@@ -1,0 +1,27 @@
+# IDE
+.idea/
+*.properties
+
+# Gradle
+gradle/
+!gradle.properties
+gradlew*
+
+# Environment
+*.env
+!.env
+
+# Configuration
+application.*.conf
+!application.conf
+
+# Database
+service/db/*.db
+
+# Build
+build/
+out/
+.gradle/
+
+# Deployment
+docker-compose.*.yml
