@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="io.sunland.chainpass.android">
     <uses-permission android:name="android.permission.INTERNET" />
     <application
+            android:label="Chain Pass"
             android:icon="@mipmap/icon"
             android:roundIcon="@mipmap/icon_round"
             android:allowBackup="false"
