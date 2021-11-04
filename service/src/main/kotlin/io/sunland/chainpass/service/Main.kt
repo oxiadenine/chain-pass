@@ -11,16 +11,18 @@ import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.sunland.chainpass.common.WebSocket
+import io.sunland.chainpass.common.SocketMessage
+import io.sunland.chainpass.common.SocketMessageType
+import io.sunland.chainpass.common.SocketType
 import io.sunland.chainpass.common.repository.Chain
 import io.sunland.chainpass.common.repository.ChainLink
+import io.sunland.chainpass.common.socketId
 import io.sunland.chainpass.service.repository.ChainLinkDataRepository
 import io.sunland.chainpass.service.repository.ChainDataRepository
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.sql.*
 import org.slf4j.LoggerFactory
 
 fun main() {
@@ -54,75 +56,71 @@ fun main() {
                 url {
                     protocol = URLProtocol.byName[config.getString("service.protocol")]!!
                 }
+
+                header("Socket-Type", SocketType.SERVICE)
+                header("Socket-Id", socketId())
             }
         }
 
         runBlocking {
             try {
-                httpClient.webSocket(request = {
-                    header("Socket-Type", WebSocket.ConnectionType.SERVICE)
-                }) {
+                httpClient.webSocket {
                     while (true) {
                         val frame = incoming.receive() as? Frame.Text ?: continue
 
-                        val message = WebSocket.Message.from(frame)
+                        val fromMessage = SocketMessage.from(frame)
 
-                        when (message.type) {
-                            WebSocket.MessageType.CREATE_CHAIN -> {
-                                val chain = Json.decodeFromString<Chain>(message.text)
+                        val toMessage: SocketMessage? = when (fromMessage.type) {
+                            SocketMessageType.CREATE_CHAIN -> {
+                                val chain = Json.decodeFromString<Chain>(fromMessage.text)
 
                                 chain.id = ChainDataRepository.create(chain)
 
-                                send(WebSocket.Message(
-                                    Json.encodeToString(chain),
-                                    WebSocket.MessageType.CREATE_CHAIN).toFrame()
-                                )
+                                SocketMessage(SocketMessageType.CREATE_CHAIN, fromMessage.id, Json.encodeToString(chain))
                             }
-                            WebSocket.MessageType.READ_CHAIN -> {
+                            SocketMessageType.READ_CHAIN -> {
                                 val chains = ChainDataRepository.read()
 
-                                send(WebSocket.Message(
-                                    Json.encodeToString(chains),
-                                    WebSocket.MessageType.READ_CHAIN).toFrame()
-                                )
+                                SocketMessage(SocketMessageType.READ_CHAIN, fromMessage.id, Json.encodeToString(chains))
                             }
-                            WebSocket.MessageType.DELETE_CHAIN -> {
-                                val chain = Json.decodeFromString<Chain>(message.text)
+                            SocketMessageType.DELETE_CHAIN -> {
+                                val chain = Json.decodeFromString<Chain>(fromMessage.text)
 
                                 ChainDataRepository.delete(chain)
+
+                                null
                             }
-                            WebSocket.MessageType.CREATE_CHAIN_LINK -> {
-                                val chainLink = Json.decodeFromString<ChainLink>(message.text)
+                            SocketMessageType.CREATE_CHAIN_LINK -> {
+                                val chainLink = Json.decodeFromString<ChainLink>(fromMessage.text)
 
                                 chainLink.id = ChainLinkDataRepository.create(chainLink)
 
-                                send(WebSocket.Message(
-                                    Json.encodeToString(chainLink),
-                                    WebSocket.MessageType.CREATE_CHAIN_LINK).toFrame()
-                                )
+                                SocketMessage(SocketMessageType.CREATE_CHAIN_LINK, fromMessage.id, Json.encodeToString(chainLink))
                             }
-                            WebSocket.MessageType.READ_CHAIN_LINK -> {
-                                val chain = Json.decodeFromString<Chain>(message.text)
+                            SocketMessageType.READ_CHAIN_LINK -> {
+                                val chain = Json.decodeFromString<Chain>(fromMessage.text)
 
                                 val chainLinks = ChainLinkDataRepository.read(chain)
 
-                                send(WebSocket.Message(
-                                    Json.encodeToString(chainLinks),
-                                    WebSocket.MessageType.READ_CHAIN_LINK).toFrame()
-                                )
+                                SocketMessage(SocketMessageType.READ_CHAIN_LINK, fromMessage.id, Json.encodeToString(chainLinks))
                             }
-                            WebSocket.MessageType.UPDATE_CHAIN_LINK -> {
-                                val chainLink = Json.decodeFromString<ChainLink>(message.text)
+                            SocketMessageType.UPDATE_CHAIN_LINK -> {
+                                val chainLink = Json.decodeFromString<ChainLink>(fromMessage.text)
 
                                 ChainLinkDataRepository.update(chainLink)
+
+                                null
                             }
-                            WebSocket.MessageType.DELETE_CHAIN_LINK -> {
-                                val chainLink = Json.decodeFromString<ChainLink>(message.text)
+                            SocketMessageType.DELETE_CHAIN_LINK -> {
+                                val chainLink = Json.decodeFromString<ChainLink>(fromMessage.text)
 
                                 ChainLinkDataRepository.delete(chainLink)
+
+                                null
                             }
-                            else -> exposedLogger.info(message.text)
                         }
+
+                        toMessage?.run { send(toMessage.toFrame()) }
                     }
                 }
             } catch (ex: Throwable) {

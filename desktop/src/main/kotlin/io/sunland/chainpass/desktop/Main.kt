@@ -12,7 +12,8 @@ import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.sunland.chainpass.common.App
-import io.sunland.chainpass.common.WebSocket
+import io.sunland.chainpass.common.SocketType
+import io.sunland.chainpass.common.socketId
 
 fun main(args: Array<String>) = application {
     val config = args.joinToString { "application.$it" }.ifEmpty { "application" }.let {
@@ -32,7 +33,8 @@ fun main(args: Array<String>) = application {
                 protocol = URLProtocol.byName[config.getString("protocol")]!!
             }
 
-            header("Socket-Type", WebSocket.ConnectionType.CLIENT)
+            header("Socket-Type", SocketType.CLIENT)
+            header("Socket-Id", socketId())
         }
     }
 
