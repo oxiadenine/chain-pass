@@ -11,8 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.component.VerticalScrollbar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 enum class ChainLinkListItemStatus { ACTUAL, DRAFT, EDIT }
 
@@ -26,8 +24,9 @@ data class ChainLinkListItem(
 
 @Composable
 fun ChainLinkList(
-    coroutineScope: CoroutineScope,
     viewModel: ChainLinkListViewModel,
+    onItemCreate: (ChainLinkListItem) -> Unit,
+    onItemUpdate: (ChainLinkListItem) -> Unit,
     onItemDelete: (ChainLinkListItem) -> Unit
 ) {
     if (viewModel.chainLinkListItems.isEmpty()) {
@@ -63,27 +62,13 @@ fun ChainLinkList(
                         )
                         ChainLinkListItemStatus.DRAFT -> ChainLinkListItemDraft(
                             chainLinkListItem = chainLinkListItem,
-                            onIconDoneClick = {
-                                chainLinkListItem.status = ChainLinkListItemStatus.ACTUAL
-
-                                coroutineScope.launch {
-                                    viewModel.create(chainLinkListItem)
-                                    viewModel.refresh()
-                                }
-                            },
+                            onIconDoneClick = { onItemCreate(chainLinkListItem) },
                             onIconClearClick = { viewModel.chainLinkListItems.remove(chainLinkListItem) }
                         )
                         ChainLinkListItemStatus.EDIT -> ChainLinkListItemEdit(
                             password = chainLinkListItem.password,
                             chainLinkListItem = chainLinkListItem,
-                            onIconDoneClick = {
-                                chainLinkListItem.status = ChainLinkListItemStatus.ACTUAL
-
-                                coroutineScope.launch {
-                                    viewModel.update(chainLinkListItem)
-                                    viewModel.refresh()
-                                }
-                            },
+                            onIconDoneClick = { onItemUpdate(chainLinkListItem) },
                             onIconClearClick = {
                                 chainLinkListItem.status = ChainLinkListItemStatus.ACTUAL
 

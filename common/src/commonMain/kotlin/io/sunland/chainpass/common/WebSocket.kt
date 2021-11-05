@@ -5,13 +5,13 @@ import io.ktor.http.cio.websocket.*
 enum class SocketType { SERVICE, CLIENT }
 
 enum class SocketMessageType {
-    CREATE_CHAIN,
-    READ_CHAIN,
-    DELETE_CHAIN,
-    CREATE_CHAIN_LINK,
-    READ_CHAIN_LINK,
-    UPDATE_CHAIN_LINK,
-    DELETE_CHAIN_LINK
+    CHAIN_CREATE,
+    CHAIN_READ,
+    CHAIN_DELETE,
+    CHAIN_LINK_CREATE,
+    CHAIN_LINK_READ,
+    CHAIN_LINK_UPDATE,
+    CHAIN_LINK_DELETE
 }
 
 data class SocketConnection(val type: SocketType, val id: String, val session: DefaultWebSocketSession, )

@@ -49,11 +49,28 @@ fun App(httpClient: HttpClient) {
     ) {
         when (screenState.value) {
             Screen.CHAIN_LIST -> {
-                coroutineScope.launch { chainListViewModel.read() }
+                coroutineScope.launch {
+                    chainListViewModel.read().onFailure { exception ->
+                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                    }
+                }
 
                 ChainList(
-                    coroutineScope = coroutineScope,
                     viewModel = chainListViewModel,
+                    onItemCreate = { chainListItem ->
+                        coroutineScope.launch {
+                            chainListViewModel.create(chainListItem).fold(
+                                onSuccess = {
+                                    chainListItem.status = ChainListItemStatus.ACTUAL
+
+                                    chainListViewModel.refresh()
+                                },
+                                onFailure = { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
+                            )
+                        }
+                    },
                     onItemSelect = { chainListItem ->
                         chainLinkListViewModel.chainListItem = chainListItem
 
@@ -69,18 +86,55 @@ fun App(httpClient: HttpClient) {
                                 SnackbarResult.ActionPerformed -> {
                                     chainListViewModel.chainListItems.add(chainListItem)
                                 }
-                                SnackbarResult.Dismissed -> chainListViewModel.delete(chainListItem)
+                                SnackbarResult.Dismissed -> {
+                                    chainListViewModel.delete(chainListItem).onFailure { exception ->
+                                        chainListViewModel.chainListItems.add(chainListItem)
+
+                                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    }
+                                }
                             }
                         }
                     }
                 )
             }
             Screen.CHAIN_LINK_LIST -> {
-                coroutineScope.launch { chainLinkListViewModel.read() }
+                coroutineScope.launch {
+                    chainLinkListViewModel.read().onFailure { exception ->
+                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                    }
+                }
 
                 ChainLinkList(
-                    coroutineScope = coroutineScope,
                     viewModel = chainLinkListViewModel,
+                    onItemCreate = { chainLinkListItem ->
+                        coroutineScope.launch {
+                            chainLinkListViewModel.create(chainLinkListItem).fold(
+                                onSuccess = {
+                                    chainLinkListItem.status = ChainLinkListItemStatus.ACTUAL
+
+                                    chainLinkListViewModel.refresh()
+                                },
+                                onFailure = { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
+                            )
+                        }
+                    },
+                    onItemUpdate = { chainLinkListItem ->
+                        coroutineScope.launch {
+                            chainLinkListViewModel.update(chainLinkListItem).fold(
+                                onSuccess = {
+                                    chainLinkListItem.status = ChainLinkListItemStatus.ACTUAL
+
+                                    chainLinkListViewModel.refresh()
+                                },
+                                onFailure = { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
+                            )
+                        }
+                    },
                     onItemDelete = { chainLinkListItem ->
                         coroutineScope.launch {
                             when (scaffoldState.snackbarHostState.showSnackbar(
@@ -91,7 +145,13 @@ fun App(httpClient: HttpClient) {
                                 SnackbarResult.ActionPerformed -> {
                                     chainLinkListViewModel.chainLinkListItems.add(chainLinkListItem)
                                 }
-                                SnackbarResult.Dismissed -> chainLinkListViewModel.delete(chainLinkListItem)
+                                SnackbarResult.Dismissed -> {
+                                    chainLinkListViewModel.delete(chainLinkListItem).onFailure { exception ->
+                                        chainLinkListViewModel.chainLinkListItems.add(chainLinkListItem)
+
+                                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    }
+                                }
                             }
                         }
                     }

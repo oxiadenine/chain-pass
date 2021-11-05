@@ -8,27 +8,40 @@ import io.sunland.chainpass.service.Database
 import org.jetbrains.exposed.sql.*
 
 object ChainLinkDataRepository : ChainLinkRepository {
-    override suspend fun create(chainLink: ChainLink) = Database.execute {
-        ChainLinkTable.insertAndGetId {
-            it[name] = chainLink.name
-            it[password] = chainLink.password
-            it[chainId] = chainLink.chainId
-        }.value
-    }
-
-    override suspend fun read(chain: Chain) = Database.execute {
-        ChainLinkTable.select { ChainLinkTable.chainId eq chain.id }.map {
-            ChainLink(it[ChainLinkTable.id].value, it[ChainLinkTable.name], it[ChainLinkTable.password], it[ChainLinkTable.chainId].value)
+    override suspend fun create(chainLink: ChainLink) = runCatching {
+        Database.execute {
+            ChainLinkTable.insertAndGetId {
+                it[name] = chainLink.name
+                it[password] = chainLink.password
+                it[chainId] = chainLink.chainId
+            }.value
         }
     }
 
-    override suspend fun update(chainLink: ChainLink) = Database.execute<Unit> {
-        ChainLinkTable.update { it[password] = chainLink.password }
+    override suspend fun read(chain: Chain) = runCatching {
+        Database.execute {
+            ChainLinkTable.select { ChainLinkTable.chainId eq chain.id }.map {
+                ChainLink(
+                    it[ChainLinkTable.id].value,
+                    it[ChainLinkTable.name],
+                    it[ChainLinkTable.password],
+                    it[ChainLinkTable.chainId].value
+                )
+            }
+        }
     }
 
-    override suspend fun delete(chainLink: ChainLink) = Database.execute<Unit> {
-        ChainLinkTable.deleteWhere {
-            (ChainLinkTable.id eq chainLink.id) and (ChainLinkTable.chainId eq chainLink.chainId)
+    override suspend fun update(chainLink: ChainLink) = runCatching {
+        Database.execute<Unit> {
+            ChainLinkTable.update { it[password] = chainLink.password }
+        }
+    }
+
+    override suspend fun delete(chainLink: ChainLink) = runCatching {
+        Database.execute<Unit> {
+            ChainLinkTable.deleteWhere {
+                (ChainLinkTable.id eq chainLink.id) and (ChainLinkTable.chainId eq chainLink.chainId)
+            }
         }
     }
 }
