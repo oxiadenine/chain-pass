@@ -20,17 +20,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val config = intent.extras?.let {
-            System.setProperty("SERVER_HOST", it.getString("SERVER_HOST"))
-            System.setProperty("SERVER_PORT", it.getString("SERVER_PORT"))
-            System.setProperty("SERVER_PROTOCOL", it.getString("SERVER_PROTOCOL")!!)
+        val environment = if (BuildConfig.DEBUG) "development" else "production"
 
-            ConfigFactory.load().getConfig("client")
-        } ?: run {
-            val environment = if (BuildConfig.DEBUG) "development" else "production"
-
-            ConfigFactory.load("application.$environment").getConfig("client")
-        }
+        val config = ConfigFactory.load("application.$environment").getConfig("client")
 
         val httpClient = HttpClient(CIO) {
             install(WebSockets)
