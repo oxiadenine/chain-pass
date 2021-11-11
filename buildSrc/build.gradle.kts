@@ -11,7 +11,7 @@ repositories {
 }
 
 val props = Properties().apply {
-    file("../gradle.properties").inputStream().use { load(it) }
+    file("../gradle.properties").inputStream().use { fileStream -> load(fileStream) }
 }
 
 fun version(target: String) = props.getProperty("${target}.version")

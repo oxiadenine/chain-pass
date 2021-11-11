@@ -10,22 +10,22 @@ import org.jetbrains.exposed.sql.*
 object ChainLinkDataRepository : ChainLinkRepository {
     override suspend fun create(chainLink: ChainLink) = runCatching {
         Database.execute {
-            ChainLinkTable.insertAndGetId {
-                it[name] = chainLink.name
-                it[password] = chainLink.password
-                it[chainId] = chainLink.chainId
+            ChainLinkTable.insertAndGetId { statement ->
+                statement[name] = chainLink.name
+                statement[password] = chainLink.password
+                statement[chainId] = chainLink.chainId
             }.value
         }
     }
 
     override suspend fun read(chain: Chain) = runCatching {
         Database.execute {
-            ChainLinkTable.select { ChainLinkTable.chainId eq chain.id }.map {
+            ChainLinkTable.select { ChainLinkTable.chainId eq chain.id }.map { record ->
                 ChainLink(
-                    it[ChainLinkTable.id].value,
-                    it[ChainLinkTable.name],
-                    it[ChainLinkTable.password],
-                    it[ChainLinkTable.chainId].value
+                    record[ChainLinkTable.id].value,
+                    record[ChainLinkTable.name],
+                    record[ChainLinkTable.password],
+                    record[ChainLinkTable.chainId].value
                 )
             }
         }
@@ -33,8 +33,8 @@ object ChainLinkDataRepository : ChainLinkRepository {
 
     override suspend fun update(chainLink: ChainLink) = runCatching {
         Database.execute<Unit> {
-            ChainLinkTable.update({ ChainLinkTable.id eq chainLink.id }) {
-                it[password] = chainLink.password
+            ChainLinkTable.update({ ChainLinkTable.id eq chainLink.id }) { statement ->
+                statement[password] = chainLink.password
             }
         }
     }
