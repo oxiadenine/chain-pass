@@ -33,7 +33,9 @@ object ChainLinkDataRepository : ChainLinkRepository {
 
     override suspend fun update(chainLink: ChainLink) = runCatching {
         Database.execute<Unit> {
-            ChainLinkTable.update { it[password] = chainLink.password }
+            ChainLinkTable.update({ ChainLinkTable.id eq chainLink.id }) {
+                it[password] = chainLink.password
+            }
         }
     }
 
