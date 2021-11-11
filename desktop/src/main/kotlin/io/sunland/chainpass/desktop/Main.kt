@@ -1,6 +1,5 @@
 package io.sunland.chainpass.desktop
 
-import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import com.typesafe.config.ConfigFactory
@@ -39,8 +38,6 @@ fun main(args: Array<String>) = application {
     }
 
     Window(title = "Chain Pass", onCloseRequest = ::exitApplication) {
-        DesktopMaterialTheme {
-            App(httpClient)
-        }
+        App(httpClient)
     }
 }
