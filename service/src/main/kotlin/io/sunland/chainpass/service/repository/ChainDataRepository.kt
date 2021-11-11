@@ -4,7 +4,6 @@ import io.sunland.chainpass.common.repository.Chain
 import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.service.ChainTable
 import io.sunland.chainpass.service.Database
-import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
@@ -29,9 +28,7 @@ object ChainDataRepository : ChainRepository {
 
     override suspend fun delete(chain: Chain) = runCatching {
         Database.execute<Unit> {
-            ChainTable.deleteWhere {
-                (ChainTable.id eq chain.id) and (ChainTable.name eq chain.name)
-            }
+            ChainTable.deleteWhere { ChainTable.id eq chain.id }
         }
     }
 }

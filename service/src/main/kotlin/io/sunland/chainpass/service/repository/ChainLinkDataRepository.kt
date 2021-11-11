@@ -41,9 +41,7 @@ object ChainLinkDataRepository : ChainLinkRepository {
 
     override suspend fun delete(chainLink: ChainLink) = runCatching {
         Database.execute<Unit> {
-            ChainLinkTable.deleteWhere {
-                (ChainLinkTable.id eq chainLink.id) and (ChainLinkTable.chainId eq chainLink.chainId)
-            }
+            ChainLinkTable.deleteWhere { ChainLinkTable.id eq chainLink.id }
         }
     }
 }
