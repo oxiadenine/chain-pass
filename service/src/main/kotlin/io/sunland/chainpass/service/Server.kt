@@ -62,6 +62,8 @@ fun Application.main() {
             }.onFailure { exception -> log.info(exception.message) }
 
             if (fromConnection.type == SocketConnectionType.CLIENT) {
+                fromConnection.session.close()
+
                 socketConnections.remove(fromConnection)
             }
         }
