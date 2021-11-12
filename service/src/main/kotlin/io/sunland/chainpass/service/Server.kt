@@ -21,52 +21,54 @@ fun Application.main() {
 
     routing {
         webSocket("/") {
-            val fromConnection = SocketConnection(
-                SocketConnectionType.valueOf(call.request.headers["Socket-Type"]!!),
-                UUID.randomUUID().toString(),
-                this
-            )
+            call.request.headers["Socket-Type"]?.let { socketType ->
+                val fromConnection = SocketConnection(
+                    SocketConnectionType.valueOf(socketType),
+                    UUID.randomUUID().toString(),
+                    this
+                )
 
-            if (fromConnection.type == SocketConnectionType.SERVICE) {
-                if (socketConnections.none { connection -> connection.type == fromConnection.type }) {
-                    socketConnections.add(fromConnection)
-                } else fromConnection.session.close()
-            } else socketConnections.add(fromConnection)
+                if (fromConnection.type == SocketConnectionType.SERVICE) {
+                    if (socketConnections.none { connection -> connection.type == fromConnection.type }) {
+                        socketConnections.add(fromConnection)
+                    } else fromConnection.session.close()
+                } else socketConnections.add(fromConnection)
 
-            log.info("${fromConnection.type.name}#${fromConnection.socketId}")
+                log.info("${fromConnection.type.name}#${fromConnection.socketId}")
 
-            runCatching {
-                for (frame in incoming) {
-                    frame as? Frame.Text ?: continue
+                runCatching {
+                    for (frame in incoming) {
+                        frame as? Frame.Text ?: continue
 
-                    val message = SocketMessage.from(frame)
+                        val message = SocketMessage.from(frame)
 
-                    val toConnection = when (fromConnection.type) {
-                        SocketConnectionType.SERVICE -> socketConnections.first { connection ->
-                            connection.type == SocketConnectionType.CLIENT &&
-                                    connection.socketId == message.socketId &&
-                                    connection.session.isActive
-                        }
-                        SocketConnectionType.CLIENT -> {
-                            val serviceConnection = socketConnections.first { connection ->
-                                connection.type == SocketConnectionType.SERVICE && connection.session.isActive
+                        val toConnection = when (fromConnection.type) {
+                            SocketConnectionType.SERVICE -> socketConnections.first { connection ->
+                                connection.type == SocketConnectionType.CLIENT &&
+                                        connection.socketId == message.socketId &&
+                                        connection.session.isActive
                             }
+                            SocketConnectionType.CLIENT -> {
+                                val serviceConnection = socketConnections.first { connection ->
+                                    connection.type == SocketConnectionType.SERVICE && connection.session.isActive
+                                }
 
-                            message.socketId = fromConnection.socketId
+                                message.socketId = fromConnection.socketId
 
-                            serviceConnection
+                                serviceConnection
+                            }
                         }
+
+                        toConnection.session.send(message.toFrame())
                     }
+                }.onFailure { exception -> log.info(exception.message) }
 
-                    toConnection.session.send(message.toFrame())
+                if (fromConnection.type == SocketConnectionType.CLIENT) {
+                    fromConnection.session.close()
+
+                    socketConnections.remove(fromConnection)
                 }
-            }.onFailure { exception -> log.info(exception.message) }
-
-            if (fromConnection.type == SocketConnectionType.CLIENT) {
-                fromConnection.session.close()
-
-                socketConnections.remove(fromConnection)
-            }
+            } ?: close()
         }
     }
 }
