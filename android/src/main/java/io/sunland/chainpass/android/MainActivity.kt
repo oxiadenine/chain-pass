@@ -16,6 +16,8 @@ import io.sunland.chainpass.common.SocketConnectionType
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var httpClient: HttpClient
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -23,7 +25,7 @@ class MainActivity : AppCompatActivity() {
 
         val config = ConfigFactory.load("application.$environment").getConfig("client")
 
-        val httpClient = HttpClient(CIO) {
+        httpClient = HttpClient(CIO) {
             install(WebSockets)
             install(Logging)
 
@@ -46,5 +48,11 @@ class MainActivity : AppCompatActivity() {
 
             App(httpClient)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        httpClient.close()
     }
 }
