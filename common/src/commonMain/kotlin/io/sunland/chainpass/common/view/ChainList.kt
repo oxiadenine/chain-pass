@@ -23,11 +23,11 @@ data class ChainListItem(var id: Int, var name: String, var key: String, var sta
 @Composable
 fun ChainList(
     viewModel: ChainListViewModel,
-    onItemCreate: (ChainListItem) -> Unit,
+    onItemNew: (ChainListItem) -> Unit,
     onItemSelect: (ChainListItem) -> Unit,
-    onItemDelete: (ChainListItem) -> Unit
+    onItemRemove: (ChainListItem) -> Unit
 ) {
-    if (viewModel.chainListItems.isEmpty()) {
+    if (viewModel.chains.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -42,7 +42,7 @@ fun ChainList(
             val scrollState = rememberScrollState()
 
             Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-                viewModel.chainListItems.forEach { chainListItem ->
+                viewModel.chains.forEach { chain ->
                     val keyInputDialogVisible = remember { mutableStateOf(false) }
 
                     if (keyInputDialogVisible.value) {
@@ -62,32 +62,32 @@ fun ChainList(
                             isError = keyInputErrorState.value,
                             onDismissRequest = { keyInputDialogVisible.value = false },
                             onConfirmRequest = {
-                                keyInputErrorState.value = keyInputState.value != chainListItem.key
+                                keyInputErrorState.value = keyInputState.value != chain.key
 
                                 if (!keyInputErrorState.value) {
                                     keyInputDialogVisible.value = false
 
-                                    onItemSelect(chainListItem)
+                                    onItemSelect(chain)
                                 }
                             }
                         )
                     }
 
-                    when (chainListItem.status) {
+                    when (chain.status) {
                         ChainListItemStatus.ACTUAL -> ChainListItem(
-                            name = chainListItem.name,
-                            key = chainListItem.key,
+                            name = chain.name,
+                            key = chain.key,
                             onClick = { keyInputDialogVisible.value = true },
                             onIconDeleteClick = {
-                                viewModel.chainListItems.remove(chainListItem)
+                                viewModel.chains.remove(chain)
 
-                                onItemDelete(chainListItem)
+                                onItemRemove(chain)
                             }
                         )
                         ChainListItemStatus.DRAFT -> ChainListItemDraft(
-                            chainListItem = chainListItem,
-                            onIconDoneClick = { onItemCreate(chainListItem) },
-                            onIconClearClick = { viewModel.chainListItems.remove(chainListItem) }
+                            chainListItem = chain,
+                            onIconDoneClick = { onItemNew(chain) },
+                            onIconClearClick = { viewModel.chains.remove(chain) }
                         )
                     }
                 }
