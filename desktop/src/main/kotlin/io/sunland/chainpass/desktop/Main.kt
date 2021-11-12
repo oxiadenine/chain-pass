@@ -11,7 +11,7 @@ import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.sunland.chainpass.common.App
-import io.sunland.chainpass.common.SocketConnectionType
+import io.sunland.chainpass.common.network.SocketConnectionType
 
 fun main(args: Array<String>) = application {
     val config = args.joinToString { env -> "application.$env" }.ifEmpty { "application" }.let { name ->

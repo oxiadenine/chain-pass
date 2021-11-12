@@ -4,7 +4,8 @@ import androidx.compose.runtime.mutableStateListOf
 import io.ktor.client.*
 import io.ktor.client.features.websocket.*
 import io.ktor.http.cio.websocket.*
-import io.sunland.chainpass.common.*
+import io.sunland.chainpass.common.network.SocketMessage
+import io.sunland.chainpass.common.network.SocketMessageType
 import io.sunland.chainpass.common.repository.Chain
 import io.sunland.chainpass.common.repository.ChainLink
 import kotlinx.serialization.decodeFromString

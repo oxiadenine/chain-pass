@@ -11,9 +11,9 @@ import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.sunland.chainpass.common.SocketMessage
-import io.sunland.chainpass.common.SocketMessageType
-import io.sunland.chainpass.common.SocketConnectionType
+import io.sunland.chainpass.common.network.SocketMessage
+import io.sunland.chainpass.common.network.SocketMessageType
+import io.sunland.chainpass.common.network.SocketConnectionType
 import io.sunland.chainpass.common.repository.Chain
 import io.sunland.chainpass.common.repository.ChainLink
 import io.sunland.chainpass.service.repository.ChainLinkDataRepository
@@ -83,20 +83,12 @@ fun main() {
                             ChainDataRepository.create(chain).map { chainId ->
                                 chain.id = chainId
 
-                                SocketMessage(
-                                    SocketMessageType.CHAIN_CREATE,
-                                    Json.encodeToString(chain),
-                                    fromMessage.socketId,
-                                )
+                                SocketMessage(SocketMessageType.CHAIN_CREATE, Json.encodeToString(chain))
                             }
                         }
                         SocketMessageType.CHAIN_READ -> {
                             ChainDataRepository.read().map { chains ->
-                                SocketMessage(
-                                    SocketMessageType.CHAIN_READ,
-                                    Json.encodeToString(chains),
-                                    fromMessage.socketId
-                                )
+                                SocketMessage(SocketMessageType.CHAIN_READ, Json.encodeToString(chains))
                             }
                         }
                         SocketMessageType.CHAIN_DELETE -> {
@@ -110,22 +102,14 @@ fun main() {
                             ChainLinkDataRepository.create(chainLink).map { chainLinkId ->
                                 chainLink.id = chainLinkId
 
-                                SocketMessage(
-                                    SocketMessageType.CHAIN_LINK_CREATE,
-                                    Json.encodeToString(chainLink),
-                                    fromMessage.socketId
-                                )
+                                SocketMessage(SocketMessageType.CHAIN_LINK_CREATE, Json.encodeToString(chainLink))
                             }
                         }
                         SocketMessageType.CHAIN_LINK_READ -> {
                             val chain = Json.decodeFromString<Chain>(fromMessage.text)
 
                             ChainLinkDataRepository.read(chain).map { chainLinks ->
-                                SocketMessage(
-                                    SocketMessageType.CHAIN_LINK_READ,
-                                    Json.encodeToString(chainLinks),
-                                    fromMessage.socketId,
-                                )
+                                SocketMessage(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chainLinks))
                             }
                         }
                         SocketMessageType.CHAIN_LINK_UPDATE -> {
@@ -141,7 +125,7 @@ fun main() {
                     }.fold(
                         onSuccess = { message ->
                             if (message is SocketMessage) {
-                                send(message.toFrame())
+                                send(message.toFrame(fromMessage.socketId))
                             }
                         },
                         onFailure = { exception -> logger.info(exception.message) }

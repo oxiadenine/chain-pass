@@ -12,7 +12,7 @@ import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.sunland.chainpass.common.App
-import io.sunland.chainpass.common.SocketConnectionType
+import io.sunland.chainpass.common.network.SocketConnectionType
 
 class MainActivity : AppCompatActivity() {
     private lateinit var httpClient: HttpClient
