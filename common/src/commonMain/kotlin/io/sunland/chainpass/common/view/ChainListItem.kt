@@ -21,7 +21,7 @@ fun ChainListItem(chain: Chain, onClick: () -> Unit, onIconDeleteClick: () -> Un
         }
         Text(
             modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
-            text = chain.key.toList().joinToString(separator = "") { "*" }
+            text = chain.key.value.toList().joinToString(separator = "") { "*" }
         )
     }
 }

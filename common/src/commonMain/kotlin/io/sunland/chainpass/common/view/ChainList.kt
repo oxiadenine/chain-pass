@@ -60,7 +60,7 @@ fun ChainList(
                             isError = keyInputErrorState.value,
                             onDismissRequest = { keyInputDialogVisible.value = false },
                             onConfirmRequest = {
-                                runCatching { chain.validateKey(keyInputState.value) }
+                                runCatching { chain.key.validate(keyInputState.value) }
                                     .onSuccess { keyInputErrorState.value = false }
                                     .onFailure { keyInputErrorState.value = true }
 

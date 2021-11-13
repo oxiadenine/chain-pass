@@ -29,5 +29,4 @@ class ChainLink {
             }
         }
     var status: ChainLinkStatus = ChainLinkStatus.DRAFT
-    var chainId: Int = 0
 }

@@ -52,6 +52,10 @@ class ChainNetRepository(private val httpClient: HttpClient) : ChainRepository {
         chainEntities.toList()
     }
 
+    override suspend fun read(id: Int): Result<ChainEntity> {
+        throw NotImplementedError("Not yet implemented")
+    }
+
     override suspend fun delete(chainEntity: ChainEntity) = runCatching {
         httpClient.webSocket {
             send(SocketMessage(SocketMessageType.CHAIN_DELETE, Json.encodeToString(chainEntity)).toFrame())

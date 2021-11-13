@@ -11,10 +11,12 @@ import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.network.SocketMessage
 import io.sunland.chainpass.common.network.SocketMessageType
 import io.sunland.chainpass.common.network.SocketConnectionType
 import io.sunland.chainpass.common.repository.ChainEntity
+import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.service.repository.ChainLinkDataRepository
 import io.sunland.chainpass.service.repository.ChainDataRepository
@@ -80,8 +82,8 @@ fun main() {
                         SocketMessageType.CHAIN_CREATE -> {
                             val chainEntity = Json.decodeFromString<ChainEntity>(fromMessage.text)
 
-                            ChainDataRepository.create(chainEntity).map { id ->
-                                chainEntity.id = id
+                            ChainDataRepository.create(chainEntity).map { chainId ->
+                                chainEntity.id = chainId
 
                                 SocketMessage(SocketMessageType.CHAIN_CREATE, Json.encodeToString(chainEntity))
                             }
@@ -99,28 +101,36 @@ fun main() {
                         SocketMessageType.CHAIN_LINK_CREATE -> {
                             val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.text)
 
-                            ChainLinkDataRepository.create(chainLinkEntity).map { chainLinkId ->
+                            ChainDataRepository.read(chainLinkEntity.chainKey.id).onSuccess { chainEntity ->
+                                Chain.Key(chainEntity.key).validate(chainLinkEntity.chainKey.key)
+                            }.map { ChainLinkDataRepository.create(chainLinkEntity).getOrThrow() }.map { chainLinkId ->
                                 chainLinkEntity.id = chainLinkId
 
                                 SocketMessage(SocketMessageType.CHAIN_LINK_CREATE, Json.encodeToString(chainLinkEntity))
                             }
                         }
                         SocketMessageType.CHAIN_LINK_READ -> {
-                            val chainEntity = Json.decodeFromString<ChainEntity>(fromMessage.text)
+                            val chainKeyEntity = Json.decodeFromString<ChainKeyEntity>(fromMessage.text)
 
-                            ChainLinkDataRepository.read(chainEntity).map { chainLinks ->
+                            ChainDataRepository.read(chainKeyEntity.id).onSuccess { chainEntity ->
+                                Chain.Key(chainEntity.key).validate(chainKeyEntity.key)
+                            }.map { ChainLinkDataRepository.read(chainKeyEntity).getOrThrow() }.map { chainLinks ->
                                 SocketMessage(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chainLinks))
                             }
                         }
                         SocketMessageType.CHAIN_LINK_UPDATE -> {
                             val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.text)
 
-                            ChainLinkDataRepository.update(chainLinkEntity)
+                            ChainDataRepository.read(chainLinkEntity.chainKey.id).onSuccess { chainEntity ->
+                                Chain.Key(chainEntity.key).validate(chainLinkEntity.chainKey.key)
+                            }.map { ChainLinkDataRepository.update(chainLinkEntity).getOrThrow() }
                         }
                         SocketMessageType.CHAIN_LINK_DELETE -> {
                             val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.text)
 
-                            ChainLinkDataRepository.delete(chainLinkEntity)
+                            ChainDataRepository.read(chainLinkEntity.chainKey.id).onSuccess { chainEntity ->
+                                Chain.Key(chainEntity.key).validate(chainLinkEntity.chainKey.key)
+                            }.map { ChainLinkDataRepository.delete(chainLinkEntity).getOrThrow() }
                         }
                     }.fold(
                         onSuccess = { message ->

@@ -32,7 +32,7 @@ fun ChainListItemDraft(
     val keyErrorState = remember { mutableStateOf(false) }
 
     nameState.value = chain.name
-    keyState.value = chain.key
+    keyState.value = chain.key.value
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -41,7 +41,7 @@ fun ChainListItemDraft(
                     .onSuccess { nameErrorState.value = false }
                     .onFailure { nameErrorState.value = true }
 
-                runCatching { chain.key = keyState.value }
+                runCatching { chain.setKey(keyState.value) }
                     .onSuccess { keyErrorState.value = false }
                     .onFailure { keyErrorState.value = true }
 
@@ -51,7 +51,7 @@ fun ChainListItemDraft(
             }) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
             IconButton(onClick = {
                 nameState.value = chain.name
-                keyState.value = chain.key
+                keyState.value = chain.key.value
 
                 onIconClearClick()
             }) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
@@ -86,7 +86,7 @@ fun ChainListItemDraft(
             onValueChange = { key ->
                 keyState.value = key
 
-                runCatching { chain.key = keyState.value }
+                runCatching { chain.setKey(keyState.value) }
                     .onSuccess { keyErrorState.value = false }
                     .onFailure { keyErrorState.value = true }
             },

@@ -16,8 +16,9 @@ class ChainListViewModel(private val repository: ChainRepository) {
                 Chain().apply {
                     id = chainEntity.id
                     name = chainEntity.name
-                    key = chainEntity.key
                     status = ChainStatus.ACTUAL
+
+                    setKey(chainEntity.key)
                 }
             })
         }
@@ -34,10 +35,10 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     suspend fun new(chain: Chain): Result<Unit> {
-        val chainEntity = ChainEntity(chain.id, chain.name, chain.key)
+        val chainEntity = ChainEntity(chain.id, chain.name, chain.key.value)
 
-        return repository.create(chainEntity).map { id ->
-            chain.id = id
+        return repository.create(chainEntity).map { chainId ->
+            chain.id = chainId
             chain.status = ChainStatus.ACTUAL
 
             val chains = chains.toList()
@@ -58,7 +59,7 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     suspend fun remove(chain: Chain): Result<Unit> {
-        val chainEntity = ChainEntity(chain.id, chain.name, chain.key)
+        val chainEntity = ChainEntity(chain.id, chain.name, chain.key.value)
 
         return repository.delete(chainEntity)
     }
