@@ -11,32 +11,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import io.sunland.chainpass.common.ChainLink
 
 @Composable
-fun ChainLinkListItemEdit(
-    password: String,
-    chainLinkListItem: ChainLinkListItem,
-    onIconDoneClick: () -> Unit,
-    onIconClearClick: () -> Unit
-) {
-    val passwordState = remember { mutableStateOf(chainLinkListItem.password) }
+fun ChainLinkListItemEdit(password: String, chainLink: ChainLink, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
+    val passwordState = remember { mutableStateOf(chainLink.password) }
     val passwordErrorState = remember { mutableStateOf(false) }
 
-    passwordState.value = chainLinkListItem.password
+    passwordState.value = chainLink.password
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(modifier = Modifier.padding(all = 16.dp), text = chainLinkListItem.name)
+            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name)
             Row {
                 IconButton(onClick = {
-                    passwordErrorState.value = passwordState.value.isEmpty() || passwordState.value.length > 32
+                    runCatching { chainLink.password = passwordState.value }
+                        .onSuccess { passwordErrorState.value = false }
+                        .onFailure { passwordErrorState.value = true }
 
                     if (!passwordErrorState.value) {
                         onIconDoneClick()
                     }
                 }) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
                 IconButton(onClick = {
-                    chainLinkListItem.password = password
+                    chainLink.password = password
 
                     onIconClearClick()
                 }) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
@@ -48,9 +46,10 @@ fun ChainLinkListItemEdit(
             value = passwordState.value,
             onValueChange = { password ->
                 passwordState.value = password
-                passwordErrorState.value = password.isEmpty() || password.length > 32
 
-                chainLinkListItem.password = password
+                runCatching { chainLink.password = passwordState.value }
+                    .onSuccess { passwordErrorState.value = false }
+                    .onFailure { passwordErrorState.value = true }
             },
             trailingIcon = if (passwordErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }

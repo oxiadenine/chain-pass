@@ -17,10 +17,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import io.sunland.chainpass.common.Chain
 
 @Composable
 fun ChainListItemDraft(
-    chainListItem: ChainListItem,
+    chain: Chain,
     onIconDoneClick: () -> Unit,
     onIconClearClick: () -> Unit
 ) {
@@ -30,22 +31,27 @@ fun ChainListItemDraft(
     val keyState = remember { mutableStateOf("") }
     val keyErrorState = remember { mutableStateOf(false) }
 
-    nameState.value = chainListItem.name
-    keyState.value = chainListItem.key
+    nameState.value = chain.name
+    keyState.value = chain.key
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             IconButton(onClick = {
-                nameErrorState.value = nameState.value.isEmpty() || nameState.value.length > 16
-                keyErrorState.value = keyState.value.isEmpty()|| keyState.value.length > 32
+                runCatching { chain.name = nameState.value }
+                    .onSuccess { nameErrorState.value = false }
+                    .onFailure { nameErrorState.value = true }
+
+                runCatching { chain.key = keyState.value }
+                    .onSuccess { keyErrorState.value = false }
+                    .onFailure { keyErrorState.value = true }
 
                 if (!nameErrorState.value && !keyErrorState.value) {
                     onIconDoneClick()
                 }
             }) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
             IconButton(onClick = {
-                nameState.value = chainListItem.name
-                keyState.value = chainListItem.key
+                nameState.value = chain.name
+                keyState.value = chain.key
 
                 onIconClearClick()
             }) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
@@ -56,9 +62,10 @@ fun ChainListItemDraft(
             value = nameState.value,
             onValueChange = { name ->
                 nameState.value = name
-                nameErrorState.value = name.isEmpty() || name.length > 16
 
-                chainListItem.name = name
+                runCatching { chain.name = nameState.value }
+                    .onSuccess { nameErrorState.value = false }
+                    .onFailure { nameErrorState.value = true }
             },
             trailingIcon = if (nameErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
@@ -78,9 +85,10 @@ fun ChainListItemDraft(
             value = keyState.value,
             onValueChange = { key ->
                 keyState.value = key
-                keyErrorState.value = key.isEmpty() || key.length > 32
 
-                chainListItem.key = key
+                runCatching { chain.key = keyState.value }
+                    .onSuccess { keyErrorState.value = false }
+                    .onFailure { keyErrorState.value = true }
             },
             trailingIcon = if (keyErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }

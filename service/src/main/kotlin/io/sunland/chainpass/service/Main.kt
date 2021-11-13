@@ -14,8 +14,8 @@ import io.ktor.server.netty.*
 import io.sunland.chainpass.common.network.SocketMessage
 import io.sunland.chainpass.common.network.SocketMessageType
 import io.sunland.chainpass.common.network.SocketConnectionType
-import io.sunland.chainpass.common.repository.Chain
-import io.sunland.chainpass.common.repository.ChainLink
+import io.sunland.chainpass.common.repository.ChainEntity
+import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.service.repository.ChainLinkDataRepository
 import io.sunland.chainpass.service.repository.ChainDataRepository
 import kotlinx.coroutines.runBlocking
@@ -78,12 +78,12 @@ fun main() {
 
                     when (fromMessage.type) {
                         SocketMessageType.CHAIN_CREATE -> {
-                            val chain = Json.decodeFromString<Chain>(fromMessage.text)
+                            val chainEntity = Json.decodeFromString<ChainEntity>(fromMessage.text)
 
-                            ChainDataRepository.create(chain).map { chainId ->
-                                chain.id = chainId
+                            ChainDataRepository.create(chainEntity).map { id ->
+                                chainEntity.id = id
 
-                                SocketMessage(SocketMessageType.CHAIN_CREATE, Json.encodeToString(chain))
+                                SocketMessage(SocketMessageType.CHAIN_CREATE, Json.encodeToString(chainEntity))
                             }
                         }
                         SocketMessageType.CHAIN_READ -> {
@@ -92,35 +92,35 @@ fun main() {
                             }
                         }
                         SocketMessageType.CHAIN_DELETE -> {
-                            val chain = Json.decodeFromString<Chain>(fromMessage.text)
+                            val chainEntity = Json.decodeFromString<ChainEntity>(fromMessage.text)
 
-                            ChainDataRepository.delete(chain)
+                            ChainDataRepository.delete(chainEntity)
                         }
                         SocketMessageType.CHAIN_LINK_CREATE -> {
-                            val chainLink = Json.decodeFromString<ChainLink>(fromMessage.text)
+                            val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.text)
 
-                            ChainLinkDataRepository.create(chainLink).map { chainLinkId ->
-                                chainLink.id = chainLinkId
+                            ChainLinkDataRepository.create(chainLinkEntity).map { chainLinkId ->
+                                chainLinkEntity.id = chainLinkId
 
-                                SocketMessage(SocketMessageType.CHAIN_LINK_CREATE, Json.encodeToString(chainLink))
+                                SocketMessage(SocketMessageType.CHAIN_LINK_CREATE, Json.encodeToString(chainLinkEntity))
                             }
                         }
                         SocketMessageType.CHAIN_LINK_READ -> {
-                            val chain = Json.decodeFromString<Chain>(fromMessage.text)
+                            val chainEntity = Json.decodeFromString<ChainEntity>(fromMessage.text)
 
-                            ChainLinkDataRepository.read(chain).map { chainLinks ->
+                            ChainLinkDataRepository.read(chainEntity).map { chainLinks ->
                                 SocketMessage(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chainLinks))
                             }
                         }
                         SocketMessageType.CHAIN_LINK_UPDATE -> {
-                            val chainLink = Json.decodeFromString<ChainLink>(fromMessage.text)
+                            val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.text)
 
-                            ChainLinkDataRepository.update(chainLink)
+                            ChainLinkDataRepository.update(chainLinkEntity)
                         }
                         SocketMessageType.CHAIN_LINK_DELETE -> {
-                            val chainLink = Json.decodeFromString<ChainLink>(fromMessage.text)
+                            val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.text)
 
-                            ChainLinkDataRepository.delete(chainLink)
+                            ChainLinkDataRepository.delete(chainLinkEntity)
                         }
                     }.fold(
                         onSuccess = { message ->

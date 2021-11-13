@@ -10,9 +10,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class ChainNetRepository(private val httpClient: HttpClient) : ChainRepository {
-    override suspend fun create(chain: Chain) = runCatching {
+    override suspend fun create(chainEntity: ChainEntity) = runCatching {
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_CREATE, Json.encodeToString(chain)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_CREATE, Json.encodeToString(chainEntity)).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue
@@ -20,18 +20,18 @@ class ChainNetRepository(private val httpClient: HttpClient) : ChainRepository {
                 val message = SocketMessage.from(frame)
 
                 if (message.type == SocketMessageType.CHAIN_CREATE) {
-                    chain.id = Json.decodeFromString<Chain>(message.text).id
+                    chainEntity.id = Json.decodeFromString<ChainEntity>(message.text).id
                 }
 
                 break
             }
         }
 
-        chain.id
+        chainEntity.id
     }
 
     override suspend fun read() = runCatching {
-        val chains = mutableListOf<Chain>()
+        val chainEntities = mutableListOf<ChainEntity>()
 
         httpClient.webSocket {
             send(SocketMessage(SocketMessageType.CHAIN_READ).toFrame())
@@ -42,19 +42,19 @@ class ChainNetRepository(private val httpClient: HttpClient) : ChainRepository {
                 val message = SocketMessage.from(frame)
 
                 if (message.type == SocketMessageType.CHAIN_READ) {
-                    chains.addAll(Json.decodeFromString<List<Chain>>(message.text))
+                    chainEntities.addAll(Json.decodeFromString<List<ChainEntity>>(message.text))
                 }
 
                 break
             }
         }
 
-        chains.toList()
+        chainEntities.toList()
     }
 
-    override suspend fun delete(chain: Chain) = runCatching {
+    override suspend fun delete(chainEntity: ChainEntity) = runCatching {
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_DELETE, Json.encodeToString(chain)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_DELETE, Json.encodeToString(chainEntity)).toFrame())
         }
     }
 }

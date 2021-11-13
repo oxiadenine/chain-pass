@@ -61,24 +61,10 @@ fun App(httpClient: HttpClient) = MaterialTheme(
         scaffoldState = scaffoldState,
         topBar = {
             when (screenState.value) {
-                Screen.CHAIN_LIST -> ChainListTopBar(onIconAddClick = {
-                    val chain = ChainListItem(0, "", "", ChainListItemStatus.DRAFT)
-
-                    chainListViewModel.chains.add(chain)
-                })
-                Screen.CHAIN_LINK_LIST -> CHainLinkListTopBar(
+                Screen.CHAIN_LIST -> ChainListTopBar(onIconAddClick = { chainListViewModel.draft() })
+                Screen.CHAIN_LINK_LIST -> ChainLinkListTopBar(
                     onIconArrowBackClick = { screenState.value = Screen.CHAIN_LIST },
-                    onIconAddClick = {
-                        val chainLink = ChainLinkListItem(
-                            id = 0,
-                            name = "",
-                            password = "",
-                            chainId = chainLinkListViewModel.chain!!.id,
-                            status = ChainLinkListItemStatus.DRAFT
-                        )
-
-                        chainLinkListViewModel.chainLinks.add(chainLink)
-                    }
+                    onIconAddClick = { chainLinkListViewModel.draft() }
                 )
             }
         }
@@ -95,16 +81,9 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                     viewModel = chainListViewModel,
                     onItemNew = { chain ->
                         coroutineScope.launch {
-                            chainListViewModel.new(chain).fold(
-                                onSuccess = {
-                                    chain.status = ChainListItemStatus.ACTUAL
-
-                                    chainListViewModel.refresh()
-                                },
-                                onFailure = { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
-                                }
-                            )
+                            chainListViewModel.new(chain).onFailure { exception ->
+                                scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                            }
                         }
                     },
                     onItemSelect = { chain ->
@@ -119,12 +98,10 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                                 actionLabel = "Dismiss",
                                 duration = SnackbarDuration.Short
                             )) {
-                                SnackbarResult.ActionPerformed -> {
-                                    chainListViewModel.chains.add(chain)
-                                }
+                                SnackbarResult.ActionPerformed -> chainListViewModel.undoRemove(chain)
                                 SnackbarResult.Dismissed -> {
                                     chainListViewModel.remove(chain).onFailure { exception ->
-                                        chainListViewModel.chains.add(chain)
+                                        chainListViewModel.undoRemove(chain)
 
                                         scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                     }
@@ -145,30 +122,16 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                     viewModel = chainLinkListViewModel,
                     onItemNew = { chainLink ->
                         coroutineScope.launch {
-                            chainLinkListViewModel.new(chainLink).fold(
-                                onSuccess = {
-                                    chainLink.status = ChainLinkListItemStatus.ACTUAL
-
-                                    chainLinkListViewModel.refresh()
-                                },
-                                onFailure = { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
-                                }
-                            )
+                            chainLinkListViewModel.new(chainLink).onFailure { exception ->
+                                scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                            }
                         }
                     },
                     onItemEdit = { chainLink ->
                         coroutineScope.launch {
-                            chainLinkListViewModel.edit(chainLink).fold(
-                                onSuccess = {
-                                    chainLink.status = ChainLinkListItemStatus.ACTUAL
-
-                                    chainLinkListViewModel.refresh()
-                                },
-                                onFailure = { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
-                                }
-                            )
+                            chainLinkListViewModel.edit(chainLink).onFailure { exception ->
+                                scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                            }
                         }
                     },
                     onItemRemove = { chainLink ->
@@ -178,12 +141,10 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                                 actionLabel = "Dismiss",
                                 duration = SnackbarDuration.Short
                             )) {
-                                SnackbarResult.ActionPerformed -> {
-                                    chainLinkListViewModel.chainLinks.add(chainLink)
-                                }
+                                SnackbarResult.ActionPerformed -> chainLinkListViewModel.undoRemove(chainLink)
                                 SnackbarResult.Dismissed -> {
                                     chainLinkListViewModel.remove(chainLink).onFailure { exception ->
-                                        chainLinkListViewModel.chainLinks.add(chainLink)
+                                        chainLinkListViewModel.undoRemove(chainLink)
 
                                         scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                     }

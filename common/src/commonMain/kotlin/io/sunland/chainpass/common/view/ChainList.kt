@@ -13,19 +13,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import io.sunland.chainpass.common.Chain
+import io.sunland.chainpass.common.ChainStatus
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.VerticalScrollbar
-
-enum class ChainListItemStatus { ACTUAL, DRAFT }
-
-data class ChainListItem(var id: Int, var name: String, var key: String, var status: ChainListItemStatus)
 
 @Composable
 fun ChainList(
     viewModel: ChainListViewModel,
-    onItemNew: (ChainListItem) -> Unit,
-    onItemSelect: (ChainListItem) -> Unit,
-    onItemRemove: (ChainListItem) -> Unit
+    onItemNew: (Chain) -> Unit,
+    onItemSelect: (Chain) -> Unit,
+    onItemRemove: (Chain) -> Unit
 ) {
     if (viewModel.chains.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -55,14 +53,16 @@ fun ChainList(
                             value = keyInputState.value,
                             ontValueChange = { key ->
                                 keyInputState.value = key
-                                keyInputErrorState.value = keyInputState.value.isEmpty()
+                                keyInputErrorState.value = false
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                             visualTransformation = PasswordVisualTransformation(),
                             isError = keyInputErrorState.value,
                             onDismissRequest = { keyInputDialogVisible.value = false },
                             onConfirmRequest = {
-                                keyInputErrorState.value = keyInputState.value != chain.key
+                                runCatching { chain.validateKey(keyInputState.value) }
+                                    .onSuccess { keyInputErrorState.value = false }
+                                    .onFailure { keyInputErrorState.value = true }
 
                                 if (!keyInputErrorState.value) {
                                     keyInputDialogVisible.value = false
@@ -74,20 +74,15 @@ fun ChainList(
                     }
 
                     when (chain.status) {
-                        ChainListItemStatus.ACTUAL -> ChainListItem(
-                            name = chain.name,
-                            key = chain.key,
+                        ChainStatus.ACTUAL -> ChainListItem(
+                            chain = chain,
                             onClick = { keyInputDialogVisible.value = true },
-                            onIconDeleteClick = {
-                                viewModel.chains.remove(chain)
-
-                                onItemRemove(chain)
-                            }
+                            onIconDeleteClick = { viewModel.remove(chain, onItemRemove) }
                         )
-                        ChainListItemStatus.DRAFT -> ChainListItemDraft(
-                            chainListItem = chain,
+                        ChainStatus.DRAFT -> ChainListItemDraft(
+                            chain = chain,
                             onIconDoneClick = { onItemNew(chain) },
-                            onIconClearClick = { viewModel.chains.remove(chain) }
+                            onIconClearClick = { viewModel.rejectDraft(chain) }
                         )
                     }
                 }

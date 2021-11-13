@@ -17,35 +17,37 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import io.sunland.chainpass.common.ChainLink
 
 @Composable
-fun ChainLinkListItemDraft(
-    chainLinkListItem: ChainLinkListItem,
-    onIconDoneClick: () -> Unit,
-    onIconClearClick: () -> Unit
-) {
+fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
     val nameState = remember { mutableStateOf("") }
     val nameErrorState = remember { mutableStateOf(false) }
 
     val passwordState = remember { mutableStateOf("") }
     val passwordErrorState = remember { mutableStateOf(false) }
 
-    nameState.value = chainLinkListItem.name
-    passwordState.value = chainLinkListItem.password
+    nameState.value = chainLink.name
+    passwordState.value = chainLink.password
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             IconButton(onClick = {
-                nameErrorState.value = nameState.value.isEmpty() || nameState.value.length > 16
-                passwordErrorState.value = passwordState.value.isEmpty() || passwordState.value.length > 32
+                runCatching { chainLink.name = nameState.value }
+                    .onSuccess { nameErrorState.value = false }
+                    .onFailure { nameErrorState.value = true }
+
+                runCatching { chainLink.password = passwordState.value }
+                    .onSuccess { passwordErrorState.value = false }
+                    .onFailure { passwordErrorState.value = true }
 
                 if (!nameErrorState.value && !passwordErrorState.value) {
                     onIconDoneClick()
                 }
             }) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
             IconButton(onClick = {
-                nameState.value = chainLinkListItem.name
-                passwordState.value = chainLinkListItem.password
+                nameState.value = chainLink.name
+                passwordState.value = chainLink.password
 
                 onIconClearClick()
             }) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
@@ -56,9 +58,10 @@ fun ChainLinkListItemDraft(
             value = nameState.value,
             onValueChange = { name ->
                 nameState.value = name
-                nameErrorState.value = name.isEmpty() || name.length > 16
 
-                chainLinkListItem.name = name
+                runCatching { chainLink.name = nameState.value }
+                    .onSuccess { nameErrorState.value = false }
+                    .onFailure { nameErrorState.value = true }
             },
             trailingIcon = if (nameErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
@@ -78,9 +81,10 @@ fun ChainLinkListItemDraft(
             value = passwordState.value,
             onValueChange = { password ->
                 passwordState.value = password
-                passwordErrorState.value = password.isEmpty() || password.length > 32
 
-                chainLinkListItem.password = password
+                runCatching { chainLink.password = passwordState.value }
+                    .onSuccess { passwordErrorState.value = false }
+                    .onFailure { passwordErrorState.value = true }
             },
             trailingIcon = if (passwordErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }

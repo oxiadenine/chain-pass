@@ -10,7 +10,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 
 @Composable
-fun CHainLinkListTopBar(onIconArrowBackClick: () -> Unit, onIconAddClick: () -> Unit) {
+fun ChainLinkListTopBar(onIconArrowBackClick: () -> Unit, onIconAddClick: () -> Unit) {
     TopAppBar(
         title = { Text("Chain Links") },
         navigationIcon = {
