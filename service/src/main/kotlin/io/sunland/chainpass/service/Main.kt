@@ -114,16 +114,28 @@ fun main() {
                                 )
                             }
                             SocketMessageType.CHAIN_DELETE -> {
-                                val chainEntity = Json.decodeFromString<ChainEntity>(fromMessage.data.getOrThrow())
+                                val chainKeyEntity = Json.decodeFromString<ChainKeyEntity>(fromMessage.data.getOrThrow())
 
-                                ChainDataRepository.delete(chainEntity).fold(
-                                    onSuccess = {
-                                        SocketMessage.success(SocketMessageType.CHAIN_DELETE)
-                                    },
-                                    onFailure = { exception ->
-                                        SocketMessage.failure(SocketMessageType.CHAIN_DELETE, exception.message!!)
+                                ChainDataRepository.read(chainKeyEntity.id)
+                                    .mapCatching { chainEntity ->
+                                        val chainKey = Chain().apply {
+                                            id = chainEntity.id
+                                            name = chainEntity.name
+
+                                            hashKey(chainKeyEntity.key)
+                                        }.key
+
+                                        Chain.Key(chainEntity.key).validate(chainKey.value)
                                     }
-                                )
+                                    .mapCatching { ChainDataRepository.delete(chainKeyEntity).getOrThrow() }
+                                    .fold(
+                                        onSuccess = {
+                                            SocketMessage.success(SocketMessageType.CHAIN_DELETE)
+                                        },
+                                        onFailure = { exception ->
+                                            SocketMessage.failure(SocketMessageType.CHAIN_DELETE, exception.message!!)
+                                        }
+                                    )
                             }
                             SocketMessageType.CHAIN_LINK_CREATE -> {
                                 val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.data.getOrThrow())
