@@ -12,7 +12,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object ChainTable : IntIdTable("chain") {
     val name = varchar("name", 16).index()
-    val key = varchar("key", 32)
+    val key = varchar("key", 64)
 }
 
 object ChainLinkTable : IntIdTable("chain_link") {
