@@ -87,9 +87,17 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                         }
                     },
                     onItemSelect = { chain ->
-                        chainLinkListViewModel.chain = chain
+                        coroutineScope.launch {
+                            chainLinkListViewModel.chain = chain
 
-                        screenState.value = Screen.CHAIN_LINK_LIST
+                            chainLinkListViewModel.getAll()
+                                .onSuccess { screenState.value = Screen.CHAIN_LINK_LIST }
+                                .onFailure { exception ->
+                                    chainLinkListViewModel.chain = null
+
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
+                        }
                     },
                     onItemRemove = { chain ->
                         coroutineScope.launch {
@@ -112,12 +120,6 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                 )
             }
             Screen.CHAIN_LINK_LIST -> {
-                coroutineScope.launch {
-                    chainLinkListViewModel.getAll().onFailure { exception ->
-                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
-                    }
-                }
-
                 ChainLinkList(
                     viewModel = chainLinkListViewModel,
                     onItemNew = { chainLink ->

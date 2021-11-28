@@ -12,7 +12,7 @@ import kotlinx.serialization.json.Json
 class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepository {
     override suspend fun create(chainLinkEntity: ChainLinkEntity) = runCatching {
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_CREATE, Json.encodeToString(chainLinkEntity)).toFrame())
+            send(SocketMessage.success(SocketMessageType.CHAIN_LINK_CREATE, Json.encodeToString(chainLinkEntity)).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue
@@ -20,7 +20,7 @@ class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepo
                 val message = SocketMessage.from(frame)
 
                 if (message.type == SocketMessageType.CHAIN_LINK_CREATE) {
-                    chainLinkEntity.id = Json.decodeFromString<ChainLinkEntity>(message.text).id
+                    chainLinkEntity.id = Json.decodeFromString<ChainLinkEntity>(message.data.getOrThrow()).id
                 }
 
                 break
@@ -34,7 +34,7 @@ class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepo
         val chainLinkEntities = mutableListOf<ChainLinkEntity>()
 
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chainKeyEntity)).toFrame())
+            send(SocketMessage.success(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chainKeyEntity)).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue
@@ -42,7 +42,7 @@ class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepo
                 val message = SocketMessage.from(frame)
 
                 if (message.type == SocketMessageType.CHAIN_LINK_READ) {
-                    chainLinkEntities.addAll(Json.decodeFromString<List<ChainLinkEntity>>(message.text))
+                    chainLinkEntities.addAll(Json.decodeFromString<List<ChainLinkEntity>>(message.data.getOrThrow()))
                 }
 
                 break
@@ -54,13 +54,37 @@ class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepo
 
     override suspend fun update(chainLinkEntity: ChainLinkEntity) = runCatching {
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_UPDATE, Json.encodeToString(chainLinkEntity)).toFrame())
+            send(SocketMessage.success(SocketMessageType.CHAIN_LINK_UPDATE, Json.encodeToString(chainLinkEntity)).toFrame())
+
+            while (true) {
+                val frame = incoming.receive() as? Frame.Text ?: continue
+
+                val message = SocketMessage.from(frame)
+
+                if (message.type == SocketMessageType.CHAIN_LINK_UPDATE) {
+                    message.data.getOrThrow()
+                }
+
+                break
+            }
         }
     }
 
     override suspend fun delete(chainLinkEntity: ChainLinkEntity) = runCatching {
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_DELETE, Json.encodeToString(chainLinkEntity)).toFrame())
+            send(SocketMessage.success(SocketMessageType.CHAIN_LINK_DELETE, Json.encodeToString(chainLinkEntity)).toFrame())
+
+            while (true) {
+                val frame = incoming.receive() as? Frame.Text ?: continue
+
+                val message = SocketMessage.from(frame)
+
+                if (message.type == SocketMessageType.CHAIN_LINK_DELETE) {
+                    message.data.getOrThrow()
+                }
+
+                break
+            }
         }
     }
 }
