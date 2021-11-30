@@ -77,7 +77,7 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
         )
         TextField(
             modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text(text = "Key") },
+            placeholder = { Text(text = "Password") },
             value = passwordState.value,
             onValueChange = { password ->
                 passwordState.value = password
