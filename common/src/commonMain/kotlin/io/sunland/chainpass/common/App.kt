@@ -106,7 +106,7 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                     onItemRemove = { chain ->
                         coroutineScope.launch {
                             when (scaffoldState.snackbarHostState.showSnackbar(
-                                message = "${chain.name} removed",
+                                message = "${chain.name.value} removed",
                                 actionLabel = "Dismiss",
                                 duration = SnackbarDuration.Short
                             )) {
@@ -143,7 +143,7 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                     onItemRemove = { chainLink ->
                         coroutineScope.launch {
                             when (scaffoldState.snackbarHostState.showSnackbar(
-                                message = "${chainLink.name} removed",
+                                message = "${chainLink.name.value} removed",
                                 actionLabel = "Dismiss",
                                 duration = SnackbarDuration.Short
                             )) {

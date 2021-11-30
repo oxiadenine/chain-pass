@@ -27,27 +27,25 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
     val passwordState = remember { mutableStateOf("") }
     val passwordErrorState = remember { mutableStateOf(false) }
 
-    nameState.value = chainLink.name
-    passwordState.value = chainLink.password
+    nameState.value = chainLink.name.value
+    passwordState.value = chainLink.password.value
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             IconButton(onClick = {
-                runCatching { chainLink.name = nameState.value }
-                    .onSuccess { nameErrorState.value = false }
-                    .onFailure { nameErrorState.value = true }
+                chainLink.name = ChainLink.Name(nameState.value)
+                chainLink.password = ChainLink.Password(passwordState.value)
 
-                runCatching { chainLink.password = passwordState.value }
-                    .onSuccess { passwordErrorState.value = false }
-                    .onFailure { passwordErrorState.value = true }
+                nameErrorState.value = !chainLink.name.isValid
+                passwordErrorState.value = !chainLink.password.isValid
 
                 if (!nameErrorState.value && !passwordErrorState.value) {
                     onIconDoneClick()
                 }
             }) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
             IconButton(onClick = {
-                nameState.value = chainLink.name
-                passwordState.value = chainLink.password
+                nameState.value = chainLink.name.value
+                passwordState.value = chainLink.password.value
 
                 onIconClearClick()
             }) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
@@ -59,9 +57,9 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
             onValueChange = { name ->
                 nameState.value = name
 
-                runCatching { chainLink.name = nameState.value }
-                    .onSuccess { nameErrorState.value = false }
-                    .onFailure { nameErrorState.value = true }
+                chainLink.name = ChainLink.Name(nameState.value)
+
+                nameErrorState.value = !chainLink.name.isValid
             },
             trailingIcon = if (nameErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
@@ -82,9 +80,9 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
             onValueChange = { password ->
                 passwordState.value = password
 
-                runCatching { chainLink.password = passwordState.value }
-                    .onSuccess { passwordErrorState.value = false }
-                    .onFailure { passwordErrorState.value = true }
+                chainLink.password = ChainLink.Password(passwordState.value)
+
+                passwordErrorState.value = !chainLink.password.isValid
             },
             trailingIcon = if (passwordErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }

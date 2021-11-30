@@ -1,41 +1,28 @@
 package io.sunland.chainpass.common
 
-import io.sunland.chainpass.common.security.PasswordEncoder
-
 enum class ChainStatus { ACTUAL, DRAFT, REMOVE, SELECT }
 
 class Chain {
-    class Key(value: String) {
-        var value: String = value
+    class Name(value: String? = null) {
+        var value = value ?: ""
             private set
 
-        fun validate(key: String) = if (value != key) {
+        val isValid = value?.let { !(value.isEmpty() || value.length > 16) } ?: true
+    }
+
+    class Key(value: String? = null) {
+        var value = value ?: ""
+            private set
+
+        var isValid = value?.let { !(value.isEmpty() || value.length > 32) } ?: true
+
+        fun matches(key: String) = if (value != key) {
             throw IllegalArgumentException("Key is not valid")
         } else Unit
-
-        fun clear() = apply { value = "" }
     }
 
-    var id: Int = 0
-    var name: String = ""
-        set(value) {
-            field = value
-
-            if (value.isEmpty() || value.length > 16) {
-                throw IllegalArgumentException("Name can't be empty or greater than 16 characters")
-            }
-        }
-    var key: Key = Key("")
-        private set
-    var status: ChainStatus = ChainStatus.DRAFT
-
-    fun setKey(value: String) {
-        key = Key(value)
-
-        if (value.isEmpty() || value.length > 32) {
-            throw IllegalArgumentException("Key can't be empty or greater than 32 characters")
-        }
-    }
-
-    fun hashKey(value: String) = apply { key = Key(PasswordEncoder.hash(value, name)) }
+    var id = 0
+    var name = Name()
+    var key = Key()
+    var status = ChainStatus.DRAFT
 }

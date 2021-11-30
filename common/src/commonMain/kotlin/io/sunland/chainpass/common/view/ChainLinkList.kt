@@ -15,12 +15,7 @@ import io.sunland.chainpass.common.ChainLinkStatus
 import io.sunland.chainpass.common.component.VerticalScrollbar
 
 @Composable
-fun ChainLinkList(
-    viewModel: ChainLinkListViewModel,
-    onItemNew: (ChainLink) -> Unit,
-    onItemEdit: (ChainLink) -> Unit,
-    onItemRemove: (ChainLink) -> Unit
-) {
+fun ChainLinkList(viewModel: ChainLinkListViewModel, onItemNew: (ChainLink) -> Unit, onItemEdit: (ChainLink) -> Unit, onItemRemove: (ChainLink) -> Unit) {
     if (viewModel.chainLinks.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Row(
@@ -49,7 +44,7 @@ fun ChainLinkList(
                             onIconClearClick = { viewModel.rejectDraft(chainLink) }
                         )
                         ChainLinkStatus.EDIT -> ChainLinkListItemEdit(
-                            password = chainLink.password,
+                            password = chainLink.password.value,
                             chainLink = chainLink,
                             onIconDoneClick = { onItemEdit(chainLink) },
                             onIconClearClick = { viewModel.endEdit(chainLink)}

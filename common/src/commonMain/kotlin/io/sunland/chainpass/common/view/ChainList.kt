@@ -19,12 +19,7 @@ import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.VerticalScrollbar
 
 @Composable
-fun ChainList(
-    viewModel: ChainListViewModel,
-    onItemNew: (Chain) -> Unit,
-    onItemSelect: (Chain) -> Unit,
-    onItemRemove: (Chain) -> Unit
-) {
+fun ChainList(viewModel: ChainListViewModel, onItemNew: (Chain) -> Unit, onItemSelect: (Chain) -> Unit, onItemRemove: (Chain) -> Unit) {
     if (viewModel.chains.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Row(
@@ -62,8 +57,8 @@ fun ChainList(
                             onConfirmRequest = {
                                 runCatching {
                                     when (chain.status) {
-                                        ChainStatus.REMOVE -> viewModel.remove(chain, keyInputState.value)
-                                        ChainStatus.SELECT -> viewModel.select(chain, keyInputState.value)
+                                        ChainStatus.REMOVE -> viewModel.remove(chain, Chain.Key(keyInputState.value))
+                                        ChainStatus.SELECT -> viewModel.select(chain, Chain.Key(keyInputState.value))
                                         else -> throw IllegalStateException()
                                     }
                                 }.fold(
