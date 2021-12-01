@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
@@ -21,14 +20,11 @@ import io.sunland.chainpass.common.Chain
 
 @Composable
 fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
-    val nameState = remember { mutableStateOf("") }
-    val nameErrorState = remember { mutableStateOf(false) }
+    val nameState = mutableStateOf(chain.name.value)
+    val nameErrorState = mutableStateOf(!chain.name.isValid)
 
-    val keyState = remember { mutableStateOf("") }
-    val keyErrorState = remember { mutableStateOf(false) }
-
-    nameState.value = chain.name.value
-    keyState.value = chain.key.value
+    val keyState = mutableStateOf(chain.key.value)
+    val keyErrorState = mutableStateOf(!chain.key.isValid)
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -43,22 +39,18 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
                     onIconDoneClick()
                 }
             }) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
-            IconButton(onClick = {
-                nameState.value = chain.name.value
-                keyState.value = chain.key.value
-
-                onIconClearClick()
-            }) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
+            IconButton(onClick = onIconClearClick) {
+                Icon(imageVector = Icons.Default.Clear, contentDescription = null)
+            }
         }
         TextField(
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(text = "Name") },
             value = nameState.value,
             onValueChange = { name ->
-                nameState.value = name
+                chain.name = Chain.Name(name)
 
-                chain.name = Chain.Name(nameState.value)
-
+                nameState.value = chain.name.value
                 nameErrorState.value = !chain.name.isValid
             },
             trailingIcon = if (nameErrorState.value) {
@@ -78,10 +70,9 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
             placeholder = { Text(text = "Key") },
             value = keyState.value,
             onValueChange = { key ->
-                keyState.value = key
+                chain.key = Chain.Key(key)
 
-                chain.key = Chain.Key(keyState.value)
-
+                keyState.value = chain.key.value
                 keyErrorState.value = !chain.key.isValid
             },
             trailingIcon = if (keyErrorState.value) {
