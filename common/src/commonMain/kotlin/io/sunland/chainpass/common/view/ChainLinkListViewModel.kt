@@ -61,10 +61,18 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
         }
     }
     
-    fun startEdit(chainLink: ChainLink) {
-        chainLink.status = ChainLinkStatus.EDIT
+    fun startEdit(chainLinkId: Int) {
+        val chainLinks = chainLinks.map { chainLink ->
+            if (chainLink.status == ChainLinkStatus.EDIT) {
+                chainLink.status = ChainLinkStatus.ACTUAL
+            }
 
-        val chainLinks = chainLinks.toList()
+            if (chainLink.id == chainLinkId) {
+                chainLink.status = ChainLinkStatus.EDIT
+            }
+
+            chainLink
+        }.toList()
 
         this.chainLinks.clear()
         this.chainLinks.addAll(chainLinks)
