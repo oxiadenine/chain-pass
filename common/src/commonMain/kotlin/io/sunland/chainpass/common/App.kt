@@ -64,7 +64,7 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                 Screen.CHAIN_LIST -> ChainListTopBar(onIconAddClick = { chainListViewModel.draft() })
                 Screen.CHAIN_LINK_LIST -> ChainLinkListTopBar(
                     onIconArrowBackClick = {
-                        chainLinkListViewModel.chain = null
+                        scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
                         screenState.value = Screen.CHAIN_LIST
                     },
@@ -79,6 +79,8 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                     chainListViewModel.getAll().onFailure { exception ->
                         scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                     }
+
+                    chainLinkListViewModel.chain = null
                 }
 
                 ChainList(
