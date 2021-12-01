@@ -51,13 +51,17 @@ class ChainListViewModel(private val repository: ChainRepository) {
         }
     }
 
-    fun remove(chain: Chain, chainKey: Chain.Key) = Chain().apply {
+    fun remove(chain: Chain, onItemRemove: (Chain) -> Unit) = Chain().apply {
         id = chain.id
         name = chain.name
-        key = Chain.Key(PasswordEncoder.hash(chainKey.value, chain.name.value))
+        key = Chain.Key(PasswordEncoder.hash(chain.key.value, chain.name.value))
         status = chain.status
 
+        chain.key = Chain.Key()
+
         chains.remove(chain)
+
+        onItemRemove(this)
     }
 
     fun undoRemove(chain: Chain) {
@@ -72,10 +76,14 @@ class ChainListViewModel(private val repository: ChainRepository) {
         return repository.delete(chainKeyEntity)
     }
 
-    fun select(chain: Chain, chainKey: Chain.Key) = Chain().apply {
+    fun select(chain: Chain, onItemSelect: (Chain) -> Unit) = Chain().apply {
         id = chain.id
         name = chain.name
-        key = Chain.Key(PasswordEncoder.hash(chainKey.value, chain.name.value))
+        key = Chain.Key(PasswordEncoder.hash(chain.key.value, chain.name.value))
         status = chain.status
+
+        chain.key = Chain.Key()
+
+        onItemSelect(this)
     }
 }
