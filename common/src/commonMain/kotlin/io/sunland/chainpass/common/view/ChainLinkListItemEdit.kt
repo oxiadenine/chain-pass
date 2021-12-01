@@ -21,17 +21,19 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name.value)
             Row {
-                IconButton(onClick = {
-                    val chainLinkPassword = ChainLink.Password(passwordState.value)
+                if (passwordState.value != chainLink.password.value) {
+                    IconButton(onClick = {
+                        val chainLinkPassword = ChainLink.Password(passwordState.value)
 
-                    passwordErrorState.value = !chainLinkPassword.isValid
+                        passwordErrorState.value = !chainLinkPassword.isValid
 
-                    if (!passwordErrorState.value) {
-                        chainLink.password = chainLinkPassword
+                        if (!passwordErrorState.value) {
+                            chainLink.password = chainLinkPassword
 
-                        onIconDoneClick()
-                    }
-                }) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
+                            onIconDoneClick()
+                        }
+                    }) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
+                }
                 IconButton(onClick = {
                     passwordState.value = chainLink.password.value
                     passwordErrorState.value = !chainLink.password.isValid
