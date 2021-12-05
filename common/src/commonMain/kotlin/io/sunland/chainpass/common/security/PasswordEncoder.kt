@@ -2,22 +2,23 @@ package io.sunland.chainpass.common.security
 
 object EncoderSpec {
     object Algorithm {
-        const val KEY = "PBKDF2WithHmacSHA512"
-        const val SECRET_KEY = "AES"
-        const val PASSWORD = "AES/CBC/PKCS5Padding"
-        const val SALT = "SHA-512"
-        const val IV = "SHA-256"
+        const val AES = "AES"
+        const val SHA256 = "SHA-256"
+        const val AESCBCPKCS5Padding = "AES/CBC/PKCS5Padding"
+        const val PBKDF2WithHmacSHA256 = "PBKDF2WithHmacSHA256"
     }
 
     object Strength {
         const val ITERATION_COUNT = 100000
         const val KEY_LENGTH = 256
     }
+
+    data class Passphrase(val key: String, val seed: String)
 }
 
 expect object PasswordEncoder {
-    fun hash(password: String, seed: String): String
+    fun hash(passphrase: EncoderSpec.Passphrase): String
 
-    fun encrypt(key: String, seed: String, password: String): String
-    fun decrypt(key: String, seed: String, password: String): String
+    fun encrypt(passphrase: EncoderSpec.Passphrase, password: String): String
+    fun decrypt(passphrase: EncoderSpec.Passphrase, password: String): String
 }

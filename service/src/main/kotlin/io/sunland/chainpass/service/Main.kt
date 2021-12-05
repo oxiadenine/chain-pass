@@ -18,7 +18,6 @@ import io.sunland.chainpass.common.network.SocketConnectionType
 import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
-import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.service.repository.ChainLinkDataRepository
 import io.sunland.chainpass.service.repository.ChainDataRepository
 import kotlinx.coroutines.runBlocking
@@ -77,15 +76,7 @@ fun main() {
                             SocketMessageType.CHAIN_CREATE -> {
                                 val chainEntity = Json.decodeFromString<ChainEntity>(fromMessage.data.getOrThrow())
 
-                                val chain = Chain().apply {
-                                    id = chainEntity.id
-                                    name = Chain.Name(chainEntity.name)
-                                    key = Chain.Key(PasswordEncoder.hash(chainEntity.key, chainEntity.name))
-                                }
-
-                                val chainEntityHashKey = ChainEntity(chain.id, chain.name.value, chain.key.value)
-
-                                ChainDataRepository.create(chainEntityHashKey).fold(
+                                ChainDataRepository.create(chainEntity).fold(
                                     onSuccess = { chainEntityId ->
                                         chainEntity.id = chainEntityId
 
@@ -99,14 +90,7 @@ fun main() {
                             SocketMessageType.CHAIN_READ -> {
                                 ChainDataRepository.read().fold(
                                     onSuccess = { chainEntities ->
-                                        val chainEntitiesNoKey = chainEntities.map { chainEntity ->
-                                            Chain().apply {
-                                                id = chainEntity.id
-                                                name = Chain.Name(chainEntity.name)
-                                            }
-                                        }.map { chain -> ChainEntity(chain.id, chain.name.value, chain.key.value) }
-
-                                        SocketMessage.success(SocketMessageType.CHAIN_READ, Json.encodeToString(chainEntitiesNoKey))
+                                        SocketMessage.success(SocketMessageType.CHAIN_READ, Json.encodeToString(chainEntities))
                                     },
                                     onFailure = { exception ->
                                         SocketMessage.failure(SocketMessageType.CHAIN_READ, exception.message!!)
@@ -117,11 +101,7 @@ fun main() {
                                 val chainKeyEntity = Json.decodeFromString<ChainKeyEntity>(fromMessage.data.getOrThrow())
 
                                 ChainDataRepository.read(chainKeyEntity.id)
-                                    .mapCatching { chainEntity ->
-                                        val chainKey = Chain.Key(PasswordEncoder.hash(chainKeyEntity.key, chainEntity.name))
-
-                                        Chain.Key(chainEntity.key).matches(chainKey.value)
-                                    }
+                                    .mapCatching { chainEntity -> Chain.Key(chainEntity.key).matches(chainKeyEntity.key) }
                                     .mapCatching { ChainDataRepository.delete(chainKeyEntity).getOrThrow() }
                                     .fold(
                                         onSuccess = {
@@ -136,11 +116,7 @@ fun main() {
                                 val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.data.getOrThrow())
 
                                  ChainDataRepository.read(chainLinkEntity.chainKey.id)
-                                     .mapCatching { chainEntity ->
-                                         val chainKey = Chain.Key(PasswordEncoder.hash(chainLinkEntity.chainKey.key, chainEntity.name))
-
-                                         Chain.Key(chainEntity.key).matches(chainKey.value)
-                                     }
+                                     .mapCatching { chainEntity -> Chain.Key(chainEntity.key).matches(chainLinkEntity.chainKey.key) }
                                      .mapCatching { ChainLinkDataRepository.create(chainLinkEntity).getOrThrow() }
                                      .fold(
                                          onSuccess = { chainLinkId ->
@@ -157,11 +133,7 @@ fun main() {
                                 val chainKeyEntity = Json.decodeFromString<ChainKeyEntity>(fromMessage.data.getOrThrow())
 
                                 ChainDataRepository.read(chainKeyEntity.id)
-                                    .mapCatching { chainEntity ->
-                                        val chainKey = Chain.Key(PasswordEncoder.hash(chainKeyEntity.key, chainEntity.name))
-
-                                        Chain.Key(chainEntity.key).matches(chainKey.value)
-                                    }
+                                    .mapCatching { chainEntity -> Chain.Key(chainEntity.key).matches(chainKeyEntity.key) }
                                     .mapCatching { ChainLinkDataRepository.read(chainKeyEntity).getOrThrow() }
                                     .fold(
                                         onSuccess = { chainLinkEntities ->
@@ -176,11 +148,7 @@ fun main() {
                                 val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.data.getOrThrow())
 
                                 ChainDataRepository.read(chainLinkEntity.chainKey.id)
-                                    .mapCatching { chainEntity ->
-                                        val chainKey = Chain.Key(PasswordEncoder.hash(chainLinkEntity.chainKey.key, chainEntity.name))
-
-                                        Chain.Key(chainEntity.key).matches(chainKey.value)
-                                    }
+                                    .mapCatching { chainEntity -> Chain.Key(chainEntity.key).matches(chainLinkEntity.chainKey.key) }
                                     .mapCatching { ChainLinkDataRepository.update(chainLinkEntity).getOrThrow() }
                                     .fold(
                                         onSuccess = {
@@ -195,11 +163,7 @@ fun main() {
                                 val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.data.getOrThrow())
 
                                 ChainDataRepository.read(chainLinkEntity.chainKey.id)
-                                    .mapCatching { chainEntity ->
-                                        val chainKey = Chain.Key(PasswordEncoder.hash(chainLinkEntity.chainKey.key, chainEntity.name))
-
-                                        Chain.Key(chainEntity.key).matches(chainKey.value)
-                                    }
+                                    .mapCatching { chainEntity -> Chain.Key(chainEntity.key).matches(chainLinkEntity.chainKey.key) }
                                     .mapCatching { ChainLinkDataRepository.delete(chainLinkEntity) }
                                     .fold(
                                         onSuccess = {

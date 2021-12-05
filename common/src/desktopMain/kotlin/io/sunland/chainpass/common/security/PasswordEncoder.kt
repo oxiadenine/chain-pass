@@ -9,35 +9,35 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
 actual object PasswordEncoder {
-    actual fun hash(password: String, seed: String): String {
-        val digest = MessageDigest.getInstance(EncoderSpec.Algorithm.SALT)
-        val salt = digest.digest(seed.toByteArray())
+    actual fun hash(passphrase: EncoderSpec.Passphrase): String {
+        val digest = MessageDigest.getInstance(EncoderSpec.Algorithm.SHA256)
+        val salt = digest.digest(passphrase.seed.encodeToByteArray())
 
-        val spec = PBEKeySpec(password.toCharArray(), salt, EncoderSpec.Strength.ITERATION_COUNT, EncoderSpec.Strength.KEY_LENGTH)
+        val keySpec = PBEKeySpec(passphrase.key.toCharArray(), salt, EncoderSpec.Strength.ITERATION_COUNT, EncoderSpec.Strength.KEY_LENGTH)
+        val secretKey = SecretKeyFactory.getInstance(EncoderSpec.Algorithm.PBKDF2WithHmacSHA256).generateSecret(keySpec)
 
-        return SecretKeyFactory.getInstance(EncoderSpec.Algorithm.KEY).generateSecret(spec).encoded
-            .joinToString(separator = "") { byte -> "%02x".format(byte) }
+        return Base64.getEncoder().encodeToString(secretKey.encoded)
     }
 
-    actual fun encrypt(key: String, seed: String, password: String): String {
-        val secretKey = SecretKeySpec(key.encodeToByteArray().copyOf(32), EncoderSpec.Algorithm.SECRET_KEY)
+    actual fun encrypt(passphrase: EncoderSpec.Passphrase, password: String): String {
+        val secretKey = SecretKeySpec(passphrase.key.encodeToByteArray().copyOf(32), EncoderSpec.Algorithm.AES)
 
-        val digest = MessageDigest.getInstance(EncoderSpec.Algorithm.IV)
-        val ivParamSpec = IvParameterSpec(digest.digest(seed.encodeToByteArray()).copyOf(16))
+        val digest = MessageDigest.getInstance(EncoderSpec.Algorithm.SHA256)
+        val ivParamSpec = IvParameterSpec(digest.digest(passphrase.seed.encodeToByteArray()).copyOf(16))
 
-        return Cipher.getInstance(EncoderSpec.Algorithm.PASSWORD).let { cipher ->
+        return Cipher.getInstance(EncoderSpec.Algorithm.AESCBCPKCS5Padding).let { cipher ->
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParamSpec)
             Base64.getEncoder().encodeToString(cipher.doFinal(password.encodeToByteArray()))
         }
     }
 
-    actual fun decrypt(key: String, seed: String, password: String): String {
-        val secretKey = SecretKeySpec(key.encodeToByteArray().copyOf(32), EncoderSpec.Algorithm.SECRET_KEY)
+    actual fun decrypt(passphrase: EncoderSpec.Passphrase, password: String): String {
+        val secretKey = SecretKeySpec(passphrase.key.encodeToByteArray().copyOf(32), EncoderSpec.Algorithm.AES)
 
-        val digest = MessageDigest.getInstance(EncoderSpec.Algorithm.IV)
-        val ivParamSpec = IvParameterSpec(digest.digest(seed.encodeToByteArray()).copyOf(16))
+        val digest = MessageDigest.getInstance(EncoderSpec.Algorithm.SHA256)
+        val ivParamSpec = IvParameterSpec(digest.digest(passphrase.seed.encodeToByteArray()).copyOf(16))
 
-        return Cipher.getInstance(EncoderSpec.Algorithm.PASSWORD).let { cipher ->
+        return Cipher.getInstance(EncoderSpec.Algorithm.AESCBCPKCS5Padding).let { cipher ->
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParamSpec)
             cipher.doFinal(Base64.getDecoder().decode(password.encodeToByteArray())).decodeToString()
         }
