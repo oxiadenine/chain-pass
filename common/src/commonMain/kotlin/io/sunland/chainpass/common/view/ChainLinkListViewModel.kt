@@ -20,10 +20,10 @@ class ChainLinkListViewModel(
     val chainLinks = mutableStateListOf<ChainLink>()
 
     suspend fun getAll(): Result<Unit> {
-        return chainRepository.seed().mapCatching { seed ->
+        return chainRepository.key(chain!!.id).mapCatching { key ->
             var passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
-            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), seed)
+            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), key.key)
 
             val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.hash(passphrase))
 
@@ -54,10 +54,10 @@ class ChainLinkListViewModel(
     }
 
     suspend fun new(chainLink: ChainLink): Result<Unit> {
-        return chainRepository.seed().mapCatching { seed ->
+        return chainRepository.key(chain!!.id).mapCatching { key ->
             var passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
-            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), seed)
+            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), key.key)
 
             val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.hash(passphrase))
 
@@ -109,10 +109,10 @@ class ChainLinkListViewModel(
     }
 
     suspend fun edit(chainLink: ChainLink): Result<Unit> {
-        return chainRepository.seed().mapCatching { seed ->
+        return chainRepository.key(chain!!.id).mapCatching { key ->
             var passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
-            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), seed)
+            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), key.key)
 
             val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.hash(passphrase))
 
@@ -143,10 +143,10 @@ class ChainLinkListViewModel(
     }
 
     suspend fun remove(chainLink: ChainLink): Result<Unit> {
-        return chainRepository.seed().mapCatching { seed ->
+        return chainRepository.key(chain!!.id).mapCatching { key ->
             var passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
-            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), seed)
+            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), key.key)
 
             val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.hash(passphrase))
 
