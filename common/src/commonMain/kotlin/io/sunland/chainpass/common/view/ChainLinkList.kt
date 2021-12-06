@@ -11,12 +11,18 @@ import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
 import io.sunland.chainpass.common.ChainLinkStatus
 import io.sunland.chainpass.common.component.VerticalScrollbar
 
 @Composable
-fun ChainLinkList(viewModel: ChainLinkListViewModel, onItemNew: (ChainLink) -> Unit, onItemEdit: (ChainLink) -> Unit, onItemRemove: (ChainLink) -> Unit) {
+fun ChainLinkList(
+    viewModel: ChainLinkListViewModel,
+    onItemNew: (ChainLink) -> Unit,
+    onItemEdit: (ChainLink) -> Unit,
+    onItemRemove: (Chain, ChainLink) -> Unit
+) {
     if (viewModel.chainLinks.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Row(

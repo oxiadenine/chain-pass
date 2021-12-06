@@ -132,25 +132,32 @@ class ChainLinkListViewModel(
         }
     }
 
-    fun remove(chainLink: ChainLink, onRemove: (ChainLink) -> Unit) {
+    fun remove(chainLink: ChainLink, onRemove: (Chain, ChainLink) -> Unit) {
         chainLinks.remove(chainLink)
 
-        onRemove(chainLink)
+        val chain = Chain().apply {
+            id = chain!!.id
+            name = chain!!.name
+            key = chain!!.key
+            status = chain!!.status
+        }
+
+        onRemove(chain, chainLink)
     }
 
     fun undoRemove(chainLink: ChainLink) {
         chainLinks.add(chainLink)
     }
 
-    suspend fun remove(chainLink: ChainLink): Result<Unit> {
-        return chainRepository.key(chain!!.id).mapCatching { key ->
-            var passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
+    suspend fun remove(chain: Chain, chainLink: ChainLink): Result<Unit> {
+        return chainRepository.key(chain.id).mapCatching { key ->
+            var passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
 
-            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), key.key)
+            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain.key.value), key.key)
 
-            val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.hash(passphrase))
+            val chainKeyEntity = ChainKeyEntity(chain.id, PasswordEncoder.hash(passphrase))
 
-            passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
+            passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
 
             chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(passphrase, chainLink.password.value))
 
