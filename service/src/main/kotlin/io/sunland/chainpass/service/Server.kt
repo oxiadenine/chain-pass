@@ -6,63 +6,221 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
 import io.ktor.websocket.WebSockets
-import io.sunland.chainpass.common.network.SocketConnection
+import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.network.SocketMessage
-import io.sunland.chainpass.common.network.SocketConnectionType
-import kotlinx.coroutines.isActive
+import io.sunland.chainpass.common.network.SocketRoute
+import io.sunland.chainpass.common.repository.ChainEntity
+import io.sunland.chainpass.common.repository.ChainKeyEntity
+import io.sunland.chainpass.common.repository.ChainLinkEntity
+import io.sunland.chainpass.common.security.EncoderSpec
+import io.sunland.chainpass.common.security.PasswordEncoder
+import io.sunland.chainpass.service.repository.ChainDataRepository
+import io.sunland.chainpass.service.repository.ChainLinkDataRepository
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.slf4j.event.Level
-import java.util.*
 
 fun Application.main() {
     install(WebSockets)
     install(CallLogging) { level = Level.INFO }
 
-    val socketConnections = Collections.synchronizedSet<SocketConnection>(LinkedHashSet())
+    Database.connect(environment.config.config("database"))
 
     routing {
-        webSocket("/") {
-            call.request.headers["Socket-Type"]?.let { socketType ->
-                val fromConnection = SocketConnection(
-                    SocketConnectionType.valueOf(socketType),
-                    UUID.randomUUID().toString(),
-                    this
+        webSocket(SocketRoute.CHAIN_CREATE.path) {
+            runCatching {
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+                val chainEntity = Json.decodeFromString<ChainEntity>(message.data.getOrThrow())
+
+                ChainDataRepository.create(chainEntity).fold(
+                    onSuccess = { chainEntityId ->
+                        chainEntity.id = chainEntityId
+
+                        SocketMessage.success(Json.encodeToString(chainEntity))
+                    },
+                    onFailure = { exception -> SocketMessage.failure(exception.message) }
                 )
+            }.fold(
+                onSuccess = { message -> send(message.toFrame()) },
+                onFailure = { exception -> log.info(exception.message) }
+            )
 
-                if (fromConnection.type == SocketConnectionType.SERVICE) {
-                    if (socketConnections.none { connection -> connection.type == fromConnection.type }) {
-                        socketConnections.add(fromConnection)
-                    } else fromConnection.session.close()
-                } else socketConnections.add(fromConnection)
+            close()
+        }
 
-                log.info("${fromConnection.type.name}#${fromConnection.socketId}")
+        webSocket(SocketRoute.CHAIN_READ.path) {
+            runCatching {
+                SocketMessage.from(incoming.receive() as Frame.Text).data.getOrThrow()
 
-                runCatching {
-                    for (frame in incoming) {
-                        frame as? Frame.Text ?: continue
+                ChainDataRepository.read().fold(
+                    onSuccess = { chainEntities -> SocketMessage.success(Json.encodeToString(chainEntities)) },
+                    onFailure = { exception -> SocketMessage.failure(exception.message) }
+                )
+            }.fold(
+                onSuccess = { message -> send(message.toFrame()) },
+                onFailure = { exception -> log.info(exception.message) }
+            )
 
-                        val message = SocketMessage.from(frame)
+            close()
+        }
 
-                        val toConnection = when (fromConnection.type) {
-                            SocketConnectionType.SERVICE -> socketConnections.first { connection ->
-                                connection.type == SocketConnectionType.CLIENT &&
-                                        connection.socketId == message.socketId &&
-                                        connection.session.isActive
-                            }
-                            SocketConnectionType.CLIENT -> socketConnections.first { connection ->
-                                connection.type == SocketConnectionType.SERVICE && connection.session.isActive
-                            }
-                        }
+        webSocket(SocketRoute.CHAIN_DELETE.path) {
+            runCatching {
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-                        toConnection.session.send(message.toFrame(fromConnection.socketId))
+                val chainKeyEntity = Json.decodeFromString<ChainKeyEntity>(message.data.getOrThrow())
+
+                ChainDataRepository.read(chainKeyEntity.id)
+                    .mapCatching { chainEntity ->
+                        val key = ChainDataRepository.key(chainEntity.id).map { key ->
+                            PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
+                        }.getOrThrow()
+
+                        Chain.Key(key).matches(chainKeyEntity.key)
                     }
-                }.onFailure { exception -> log.info(exception.message) }
+                    .mapCatching { ChainDataRepository.delete(chainKeyEntity).getOrThrow() }
+                    .fold(
+                        onSuccess = { SocketMessage.success() },
+                        onFailure = { exception -> SocketMessage.failure(exception.message) }
+                    )
+            }.fold(
+                onSuccess = { message -> send(message.toFrame()) },
+                onFailure = { exception -> log.info(exception.message) }
+            )
 
-                if (fromConnection.type == SocketConnectionType.CLIENT) {
-                    fromConnection.session.close()
+            close()
+        }
 
-                    socketConnections.remove(fromConnection)
-                }
-            } ?: close()
+        webSocket(SocketRoute.CHAIN_KEY.path) {
+            runCatching {
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+                val chainEntityId = message.data.getOrThrow().toInt()
+
+                ChainDataRepository.key(chainEntityId).fold(
+                    onSuccess = { key -> SocketMessage.success(Json.encodeToString(key)) },
+                    onFailure = { exception -> SocketMessage.failure(exception.message) }
+                )
+            }.fold(
+                onSuccess = { message -> send(message.toFrame()) },
+                onFailure = { exception -> log.info(exception.message) }
+            )
+
+            close()
+        }
+
+        webSocket(SocketRoute.CHAIN_LINK_CREATE.path) {
+            runCatching {
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+                val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(message.data.getOrThrow())
+
+                ChainDataRepository.read(chainLinkEntity.chainKey.id)
+                    .mapCatching { chainEntity ->
+                        val key = ChainDataRepository.key(chainEntity.id).map { key ->
+                            PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
+                        }.getOrThrow()
+
+                        Chain.Key(key).matches(chainLinkEntity.chainKey.key)
+                    }
+                    .mapCatching { ChainLinkDataRepository.create(chainLinkEntity).getOrThrow() }
+                    .fold(
+                        onSuccess = { chainLinkEntityId ->
+                            chainLinkEntity.id = chainLinkEntityId
+
+                            SocketMessage.success(Json.encodeToString(chainLinkEntity))
+                        },
+                        onFailure = { exception -> SocketMessage.failure(exception.message) }
+                    )
+            }.fold(
+                onSuccess = { message -> send(message.toFrame()) },
+                onFailure = { exception -> log.info(exception.message) }
+            )
+
+            close()
+        }
+
+        webSocket(SocketRoute.CHAIN_LINK_READ.path) {
+            runCatching {
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+                val chainKeyEntity = Json.decodeFromString<ChainKeyEntity>(message.data.getOrThrow())
+
+                ChainDataRepository.read(chainKeyEntity.id)
+                    .mapCatching { chainEntity ->
+                        val key = ChainDataRepository.key(chainEntity.id).map { key ->
+                            PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
+                        }.getOrThrow()
+
+                        Chain.Key(key).matches(chainKeyEntity.key)
+                    }
+                    .mapCatching { ChainLinkDataRepository.read(chainKeyEntity).getOrThrow() }
+                    .fold(
+                        onSuccess = { chainLinkEntities -> SocketMessage.success(Json.encodeToString(chainLinkEntities)) },
+                        onFailure = { exception -> SocketMessage.failure(exception.message) }
+                    )
+            }.fold(
+                onSuccess = { message -> send(message.toFrame()) },
+                onFailure = { exception -> log.info(exception.message) }
+            )
+
+            close()
+        }
+
+        webSocket(SocketRoute.CHAIN_LINK_UPDATE.path) {
+            runCatching {
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+                val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(message.data.getOrThrow())
+
+                ChainDataRepository.read(chainLinkEntity.chainKey.id)
+                    .mapCatching { chainEntity ->
+                        val key = ChainDataRepository.key(chainEntity.id).map { key ->
+                            PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
+                        }.getOrThrow()
+
+                        Chain.Key(key).matches(chainLinkEntity.chainKey.key)
+                    }
+                    .mapCatching { ChainLinkDataRepository.update(chainLinkEntity).getOrThrow() }
+                    .fold(
+                        onSuccess = { SocketMessage.success() },
+                        onFailure = { exception -> SocketMessage.failure(exception.message) }
+                    )
+            }.fold(
+                onSuccess = { message -> send(message.toFrame()) },
+                onFailure = { exception -> log.info(exception.message) }
+            )
+
+            close()
+        }
+
+        webSocket(SocketRoute.CHAIN_LINK_DELETE.path) {
+            runCatching {
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+                val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(message.data.getOrThrow())
+
+                ChainDataRepository.read(chainLinkEntity.chainKey.id)
+                    .mapCatching { chainEntity ->
+                        val key = ChainDataRepository.key(chainEntity.id).map { key ->
+                            PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
+                        }.getOrThrow()
+
+                        Chain.Key(key).matches(chainLinkEntity.chainKey.key)
+                    }
+                    .mapCatching { ChainLinkDataRepository.delete(chainLinkEntity) }
+                    .fold(
+                        onSuccess = { SocketMessage.success() },
+                        onFailure = { exception -> SocketMessage.failure(exception.message) }
+                    )
+            }.fold(
+                onSuccess = { message -> send(message.toFrame()) },
+                onFailure = { exception -> log.info(exception.message) }
+            )
+
+            close()
         }
     }
 }

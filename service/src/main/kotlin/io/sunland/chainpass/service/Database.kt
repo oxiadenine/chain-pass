@@ -1,8 +1,8 @@
 package io.sunland.chainpass.service
 
-import com.typesafe.config.Config
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
+import io.ktor.config.*
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.dao.id.IntIdTable
 import org.jetbrains.exposed.sql.*
@@ -25,12 +25,12 @@ object ChainLinkTable : IntIdTable("chain_link") {
 object Database {
     private lateinit var connection: Database
 
-    fun connect(config: Config) {
+    fun connect(config: ApplicationConfig) {
         val hikariConfig = HikariConfig().apply {
-            jdbcUrl = config.getString("url")
-            driverClassName = config.getString("driver")
-            username = config.getString("username")
-            password = config.getString("password")
+            jdbcUrl = config.property("url").getString()
+            driverClassName = config.property("driver").getString()
+            username = config.property("username").getString()
+            password = config.property("password").getString()
 
             validate()
         }

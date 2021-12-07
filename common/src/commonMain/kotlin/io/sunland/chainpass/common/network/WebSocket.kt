@@ -2,57 +2,37 @@ package io.sunland.chainpass.common.network
 
 import io.ktor.http.cio.websocket.*
 
-enum class SocketConnectionType { SERVICE, CLIENT }
-
-enum class SocketMessageType {
-    CHAIN_CREATE,
-    CHAIN_READ,
-    CHAIN_DELETE,
-    CHAIN_KEY,
-    CHAIN_LINK_CREATE,
-    CHAIN_LINK_READ,
-    CHAIN_LINK_UPDATE,
-    CHAIN_LINK_DELETE
+enum class SocketRoute(val path: String) {
+    CHAIN_CREATE("/chain/create"),
+    CHAIN_READ("/chain/read"),
+    CHAIN_DELETE("/chain/delete"),
+    CHAIN_KEY("/chain/key"),
+    CHAIN_LINK_CREATE("/chain/link/create"),
+    CHAIN_LINK_READ("/chain/link/read"),
+    CHAIN_LINK_UPDATE("/chain/link/update"),
+    CHAIN_LINK_DELETE("/chain/link/delete"),
 }
 
-class SocketConnection(val type: SocketConnectionType, val socketId: String, val session: DefaultWebSocketSession)
-
-class SocketMessage private constructor(val type: SocketMessageType, val data: Result<String>, val socketId: String = "") {
+class SocketMessage private constructor(val data: Result<String>) {
     companion object {
-        fun success(type: SocketMessageType, data: String = "", socketId: String = "") =
-            SocketMessage(type, Result.success(data), socketId)
-
-        fun failure(type: SocketMessageType, message: String, socketId: String = "") =
-            SocketMessage(type, Result.failure(Throwable(message)), socketId)
+        fun success(data: String = "") = SocketMessage(Result.success(data))
+        fun failure(message: String?) = SocketMessage(Result.failure(Throwable(message)))
 
         fun from(frame: Frame.Text): SocketMessage {
             val frameText = frame.readText()
 
-            if (!frameText.matches("^[^#|@]+#[^#|@]*#[01](@[^#|@]+)?$".toRegex())) {
+            if (!frameText.matches("^[^@]*@[a-z]+$".toRegex())) {
                 throw IllegalArgumentException("Invalid socket message")
             }
 
-            return if (frameText.contains("@")) {
-                val (type, text, status) = frameText.substringBefore("@").split("#")
-                val socketId = frameText.substringAfter("@")
+            val (text, status) = frameText.split("@")
 
-                if (status.toInt() == 1) {
-                    success(SocketMessageType.valueOf(type), text, socketId)
-                } else failure(SocketMessageType.valueOf(type), text, socketId)
-            } else {
-                val (type, text, status) = frameText.split("#")
-
-                if (status.toInt() == 1) {
-                    success(SocketMessageType.valueOf(type), text)
-                } else failure(SocketMessageType.valueOf(type), text)
-            }
+            return if (status.toBoolean()) success(text) else failure(text)
         }
     }
 
     fun toFrame() = data.fold(
-        onSuccess = { text -> Frame.Text("${type.name}#$text#1") },
-        onFailure = { exception -> Frame.Text("${type.name}#${exception.message!!}#0") }
+        onSuccess = { text -> Frame.Text("$text@true") },
+        onFailure = { exception -> Frame.Text("${exception.message}@false") }
     )
-
-    fun toFrame(socketId: String) = "${toFrame().readText()}@$socketId"
 }
