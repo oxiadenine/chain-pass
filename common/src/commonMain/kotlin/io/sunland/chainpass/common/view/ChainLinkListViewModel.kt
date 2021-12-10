@@ -28,7 +28,7 @@ class ChainLinkListViewModel(
             val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.hash(passphrase))
 
             chainLinkRepository.read(chainKeyEntity).getOrThrow()
-        }.mapCatching { chainLinkEntities ->
+        }.map { chainLinkEntities ->
             val passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
             this.chainLinks.clear()
@@ -40,6 +40,8 @@ class ChainLinkListViewModel(
                     status = ChainLinkStatus.ACTUAL
                 }
             })
+
+            Unit
         }
     }
 
@@ -68,7 +70,7 @@ class ChainLinkListViewModel(
             val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.password.value, chainKeyEntity)
 
             chainLinkRepository.create(chainLinkEntity).getOrThrow()
-        }.mapCatching { chainLinkId ->
+        }.map { chainLinkId ->
             val passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
             chainLink.id = chainLinkId
@@ -79,6 +81,8 @@ class ChainLinkListViewModel(
 
             this.chainLinks.clear()
             this.chainLinks.addAll(chainLinks)
+
+            Unit
         }
     }
     
@@ -123,7 +127,7 @@ class ChainLinkListViewModel(
             val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.password.value, chainKeyEntity)
 
             chainLinkRepository.update(chainLinkEntity).getOrThrow()
-        }.mapCatching {
+        }.map {
             val passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
             chainLink.password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLink.password.value))

@@ -52,6 +52,8 @@ class ChainListViewModel(private val repository: ChainRepository) {
 
             this.chains.clear()
             this.chains.addAll(chains)
+
+            Unit
         }
     }
 
