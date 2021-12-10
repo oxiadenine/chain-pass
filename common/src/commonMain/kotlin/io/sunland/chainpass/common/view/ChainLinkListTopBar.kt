@@ -7,10 +7,11 @@ import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 
 @Composable
-fun ChainLinkListTopBar(onIconArrowBackClick: () -> Unit, onIconAddClick: () -> Unit) {
+fun ChainLinkListTopBar(onIconArrowBackClick: () -> Unit, onIconAddClick: () -> Unit, onIconRefreshClick: () -> Unit) {
     TopAppBar(
         title = { Text("Chain Links") },
         navigationIcon = {
@@ -19,6 +20,9 @@ fun ChainLinkListTopBar(onIconArrowBackClick: () -> Unit, onIconAddClick: () -> 
             }
         },
         actions = {
+            IconButton(onClick = onIconRefreshClick) {
+                Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
+            }
             IconButton(onClick = onIconAddClick) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
             }
