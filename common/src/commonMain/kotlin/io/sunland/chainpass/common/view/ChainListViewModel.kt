@@ -36,19 +36,16 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     suspend fun new(chain: Chain): Result<Unit> {
-        var passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
-
-        chain.key = PasswordEncoder.hash(passphrase).let { secretKey ->
-            passphrase = EncoderSpec.Passphrase(secretKey, chain.name.value)
-
-            Chain.Key(PasswordEncoder.encrypt(passphrase, secretKey))
+        val chainKey = PasswordEncoder.hash(EncoderSpec.Passphrase(chain.key.value, chain.name.value)).let { secretKey ->
+            Chain.Key(PasswordEncoder.encrypt(EncoderSpec.Passphrase(secretKey, chain.name.value), secretKey))
         }
 
-        val chainEntity = ChainEntity(chain.id, chain.name.value, chain.key.value)
+        val chainEntity = ChainEntity(chain.id, chain.name.value, chainKey.value)
+
+        chain.key = Chain.Key()
 
         return repository.create(chainEntity).map { chainId ->
             chain.id = chainId
-            chain.key = Chain.Key()
             chain.status = ChainStatus.ACTUAL
 
             val chains = chains.toList()
