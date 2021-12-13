@@ -10,15 +10,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
     val focusRequester = FocusRequester()
@@ -57,13 +61,15 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
             Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name.value)
             Row {
                 if (passwordState.value != chainLink.password.value) {
-                    IconButton(onClick = onDone) {
-                        Icon(imageVector = Icons.Default.Done, contentDescription = null)
-                    }
+                    IconButton(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        onClick = onDone
+                    ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
                 }
-                IconButton(onClick = onClear) {
-                    Icon(imageVector = Icons.Default.Clear, contentDescription = null)
-                }
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    onClick = onClear
+                ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
             }
         }
         TextField(

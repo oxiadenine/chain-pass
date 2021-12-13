@@ -9,23 +9,31 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListTopBar(onIconArrowBackClick: () -> Unit, onIconAddClick: () -> Unit, onIconRefreshClick: () -> Unit) {
     TopAppBar(
         title = { Text("Chain Links") },
         navigationIcon = {
-            IconButton(onClick = onIconArrowBackClick) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
-            }
+            IconButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onIconArrowBackClick
+            ) { Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null) }
         },
         actions = {
-            IconButton(onClick = onIconRefreshClick) {
-                Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
-            }
-            IconButton(onClick = onIconAddClick) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = null)
-            }
+            IconButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onIconRefreshClick
+            ) { Icon(imageVector = Icons.Default.Refresh, contentDescription = null) }
+            IconButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onIconAddClick
+            ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
         }
     )
 }

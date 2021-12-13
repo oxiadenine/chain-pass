@@ -5,8 +5,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.ktor.client.*
@@ -23,6 +26,7 @@ enum class ThemeColor(val color: Color) {
     COPPER(Color(0.72f, 0.46f, 0.28f))
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun App(httpClient: HttpClient) = MaterialTheme(
     colors = if (isSystemInDarkTheme()) {
@@ -100,9 +104,10 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                         content = { Text(text = snackbarData.message) },
                         action = {
                             snackbarData.actionLabel?.let { label ->
-                                TextButton(onClick = {
-                                    snackbarHostState.currentSnackbarData?.performAction()
-                                }) { Text(text = label, color = ThemeColor.COPPER.color) }
+                                TextButton(
+                                    modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand),
+                                    onClick = { snackbarHostState.currentSnackbarData?.performAction() }
+                                ) { Text(text = label, color = ThemeColor.COPPER.color) }
                             }
                         },
                         backgroundColor = ThemeColor.ANTHRACITE.color,

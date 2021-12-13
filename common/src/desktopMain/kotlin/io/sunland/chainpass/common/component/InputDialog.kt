@@ -7,12 +7,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalComposeUiApi::class)
 @Composable
 actual fun InputDialog(
     title: @Composable (() -> Unit)?,
@@ -53,8 +56,14 @@ actual fun InputDialog(
             modifier = Modifier.fillMaxSize().align(Alignment.End),
             horizontalArrangement = Arrangement.End
         ) {
-            TextButton(onClick = onDismissRequest) { Text(text = "Cancel") }
-            TextButton(onClick = onConfirmRequest) { Text(text = "Ok") }
+            TextButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onDismissRequest
+            ) { Text(text = "Cancel") }
+            TextButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onConfirmRequest
+            ) { Text(text = "Ok") }
         }
     }
 }
