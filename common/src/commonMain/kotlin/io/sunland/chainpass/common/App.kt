@@ -31,20 +31,32 @@ enum class ThemeColor(val color: Color) {
 fun App(httpClient: HttpClient) = MaterialTheme(
     colors = if (isSystemInDarkTheme()) {
         darkColors(
-            surface = ThemeColor.ANTHRACITE.color,
-            onSurface = ThemeColor.QUARTZ.color,
+            primary = ThemeColor.QUARTZ.color,
+            primaryVariant = ThemeColor.QUARTZ.color,
+            secondary = ThemeColor.QUARTZ.color,
+            secondaryVariant = ThemeColor.QUARTZ.color,
             background = ThemeColor.ANTHRACITE.color,
+            surface = ThemeColor.ANTHRACITE.color,
+            error = ThemeColor.COPPER.color,
+            onPrimary = ThemeColor.ANTHRACITE.color,
+            onSecondary = ThemeColor.ANTHRACITE.color,
             onBackground = ThemeColor.QUARTZ.color,
-            error = ThemeColor.COPPER.color
+            onSurface = ThemeColor.QUARTZ.color,
+            onError = ThemeColor.COPPER.color
         )
     } else lightColors(
         primary = ThemeColor.ANTHRACITE.color,
-        onPrimary = ThemeColor.QUARTZ.color,
+        primaryVariant = ThemeColor.ANTHRACITE.color,
+        secondary = ThemeColor.ANTHRACITE.color,
+        secondaryVariant = ThemeColor.ANTHRACITE.color,
         background = ThemeColor.QUARTZ.color,
-        onBackground = ThemeColor.ANTHRACITE.color,
         surface = ThemeColor.QUARTZ.color,
+        error = ThemeColor.COPPER.color,
+        onPrimary = ThemeColor.QUARTZ.color,
+        onSecondary = ThemeColor.QUARTZ.color,
+        onBackground = ThemeColor.ANTHRACITE.color,
         onSurface = ThemeColor.ANTHRACITE.color,
-        error = ThemeColor.COPPER.color
+        onError = ThemeColor.COPPER.color
     ),
     typography = Typography(defaultFontFamily = FontFamily.Monospace),
     shapes = Shapes(
