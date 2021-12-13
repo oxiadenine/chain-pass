@@ -6,6 +6,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.VisualTransformation
@@ -24,12 +25,12 @@ actual fun InputDialog(
     onConfirmRequest: () -> Unit
 ) {
     AlertDialog(
-        modifier = Modifier.padding(32.dp),
         onDismissRequest = onDismissRequest,
-        title = title ?: { Text("") },
+        title = title ?: { Text(text = "") },
         text = {
             Column {
                 TextField(
+                    modifier = Modifier.padding(horizontal = 8.dp),
                     placeholder = { Text(text = placeholder) },
                     value = value,
                     onValueChange = ontValueChange,
@@ -49,11 +50,13 @@ actual fun InputDialog(
                 )
             }
         },
-        confirmButton = {
-            TextButton(onClick = onConfirmRequest) { Text(text = "Ok") }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismissRequest) { Text(text = "Cancel") }
+        buttons = {
+            Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                Row(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)) {
+                    TextButton(onClick = onDismissRequest) { Text(text = "Cancel") }
+                    TextButton(onClick = onConfirmRequest) { Text(text = "Ok") }
+                }
+            }
         }
     )
 }

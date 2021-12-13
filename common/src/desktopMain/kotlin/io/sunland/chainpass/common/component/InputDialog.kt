@@ -28,10 +28,10 @@ actual fun InputDialog(
     onDismissRequest: () -> Unit,
     onConfirmRequest: () -> Unit
 ) = PopupAlertDialogProvider.AlertDialog(onDismissRequest) {
-    title ?: Text("")
+    title ?: Text(text = "")
     Column(
-        modifier = Modifier.size(width = 300.dp, height = 150.dp).padding(horizontal = 16.dp).padding(top = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = Modifier.size(width = 300.dp, height = 170.dp).padding(horizontal = 16.dp).padding(top = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(space = 16.dp)
     ) {
         TextField(
             modifier = Modifier.padding(horizontal = 16.dp),
@@ -53,7 +53,7 @@ actual fun InputDialog(
             isError = isError
         )
         Row(
-            modifier = Modifier.fillMaxSize().align(Alignment.End),
+            modifier = Modifier.fillMaxWidth().align(alignment = Alignment.End).padding(vertical = 16.dp),
             horizontalArrangement = Arrangement.End
         ) {
             TextButton(
