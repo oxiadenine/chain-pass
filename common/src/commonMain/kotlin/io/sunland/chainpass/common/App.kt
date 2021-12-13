@@ -1,13 +1,14 @@
 package io.sunland.chainpass.common
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
 import io.ktor.client.*
 import io.sunland.chainpass.common.repository.ChainLinkNetRepository
 import io.sunland.chainpass.common.repository.ChainNetRepository
@@ -57,8 +58,8 @@ fun App(httpClient: HttpClient) = MaterialTheme(
     val chainLinkListViewModel = ChainLinkListViewModel(ChainNetRepository(httpClient), ChainLinkNetRepository(httpClient))
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
         scaffoldState = scaffoldState,
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             when (screenState.value) {
                 Screen.CHAIN_LIST -> ChainListTopBar(
@@ -89,100 +90,122 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                     }
                 )
             }
+        },
+        snackbarHost = { snackbarHostState ->
+            SnackbarHost(
+                hostState = snackbarHostState,
+                snackbar = { snackbarData ->
+                    Snackbar(
+                        modifier = Modifier.padding(all = 16.dp),
+                        content = { Text(text = snackbarData.message) },
+                        action = {
+                            snackbarData.actionLabel?.let { label ->
+                                TextButton(onClick = {
+                                    snackbarHostState.currentSnackbarData?.performAction()
+                                }) { Text(text = label, color = ThemeColor.COPPER.color) }
+                            }
+                        },
+                        backgroundColor = ThemeColor.ANTHRACITE.color,
+                        contentColor = ThemeColor.QUARTZ.color
+                    )
+                }
+            )
         }
     ) {
-        when (screenState.value) {
-            Screen.CHAIN_LIST -> {
-                coroutineScope.launch {
-                    chainListViewModel.getAll().onFailure { exception ->
-                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+        Box {
+            when (screenState.value) {
+                Screen.CHAIN_LIST -> {
+                    coroutineScope.launch {
+                        chainListViewModel.getAll().onFailure { exception ->
+                            scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                        }
+
+                        chainLinkListViewModel.chain = null
                     }
 
-                    chainLinkListViewModel.chain = null
-                }
-
-                ChainList(
-                    viewModel = chainListViewModel,
-                    onItemNew = { chain ->
-                        coroutineScope.launch {
-                            chainListViewModel.new(chain).onFailure { exception ->
-                                scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
-                            }
-                        }
-                    },
-                    onItemSelect = { chain ->
-                        coroutineScope.launch {
-                            chainLinkListViewModel.chain = chain
-
-                            chainLinkListViewModel.getAll()
-                                .onSuccess { screenState.value = Screen.CHAIN_LINK_LIST }
-                                .onFailure { exception ->
-                                    chainLinkListViewModel.chain = null
-
+                    ChainList(
+                        viewModel = chainListViewModel,
+                        onItemNew = { chain ->
+                            coroutineScope.launch {
+                                chainListViewModel.new(chain).onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                 }
-                        }
-                    },
-                    onItemRemove = { chain ->
-                        coroutineScope.launch {
-                            scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+                            }
+                        },
+                        onItemSelect = { chain ->
+                            coroutineScope.launch {
+                                chainLinkListViewModel.chain = chain
 
-                            when (scaffoldState.snackbarHostState.showSnackbar(
-                                message = "${chain.name.value} removed",
-                                actionLabel = "Dismiss",
-                                duration = SnackbarDuration.Short
-                            )) {
-                                SnackbarResult.ActionPerformed -> chainListViewModel.undoRemove(chain)
-                                SnackbarResult.Dismissed -> {
-                                    chainListViewModel.remove(chain).onFailure { exception ->
-                                        chainListViewModel.undoRemove(chain)
+                                chainLinkListViewModel.getAll()
+                                    .onSuccess { screenState.value = Screen.CHAIN_LINK_LIST }
+                                    .onFailure { exception ->
+                                        chainLinkListViewModel.chain = null
 
                                         scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    }
+                            }
+                        },
+                        onItemRemove = { chain ->
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+
+                                when (scaffoldState.snackbarHostState.showSnackbar(
+                                    message = "${chain.name.value} removed",
+                                    actionLabel = "Dismiss",
+                                    duration = SnackbarDuration.Short
+                                )) {
+                                    SnackbarResult.ActionPerformed -> chainListViewModel.undoRemove(chain)
+                                    SnackbarResult.Dismissed -> {
+                                        chainListViewModel.remove(chain).onFailure { exception ->
+                                            chainListViewModel.undoRemove(chain)
+
+                                            scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                )
-            }
-            Screen.CHAIN_LINK_LIST -> {
-                ChainLinkList(
-                    viewModel = chainLinkListViewModel,
-                    onItemNew = { chainLink ->
-                        coroutineScope.launch {
-                            chainLinkListViewModel.new(chainLink).onFailure { exception ->
-                                scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                    )
+                }
+                Screen.CHAIN_LINK_LIST -> {
+                    ChainLinkList(
+                        viewModel = chainLinkListViewModel,
+                        onItemNew = { chainLink ->
+                            coroutineScope.launch {
+                                chainLinkListViewModel.new(chainLink).onFailure { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
                             }
-                        }
-                    },
-                    onItemEdit = { chainLink ->
-                        coroutineScope.launch {
-                            chainLinkListViewModel.edit(chainLink).onFailure { exception ->
-                                scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                        },
+                        onItemEdit = { chainLink ->
+                            coroutineScope.launch {
+                                chainLinkListViewModel.edit(chainLink).onFailure { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
                             }
-                        }
-                    },
-                    onItemRemove = { chain, chainLink ->
-                        coroutineScope.launch {
-                            scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+                        },
+                        onItemRemove = { chain, chainLink ->
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                            when (scaffoldState.snackbarHostState.showSnackbar(
-                                message = "${chainLink.name.value} removed",
-                                actionLabel = "Dismiss",
-                                duration = SnackbarDuration.Short
-                            )) {
-                                SnackbarResult.ActionPerformed -> chainLinkListViewModel.undoRemove(chainLink)
-                                SnackbarResult.Dismissed -> {
-                                    chainLinkListViewModel.remove(chain, chainLink).onFailure { exception ->
-                                        chainLinkListViewModel.undoRemove(chainLink)
+                                when (scaffoldState.snackbarHostState.showSnackbar(
+                                    message = "${chainLink.name.value} removed",
+                                    actionLabel = "Dismiss",
+                                    duration = SnackbarDuration.Short
+                                )) {
+                                    SnackbarResult.ActionPerformed -> chainLinkListViewModel.undoRemove(chainLink)
+                                    SnackbarResult.Dismissed -> {
+                                        chainLinkListViewModel.remove(chain, chainLink).onFailure { exception ->
+                                            chainLinkListViewModel.undoRemove(chainLink)
 
-                                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                            scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }
