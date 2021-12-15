@@ -18,6 +18,9 @@ application.*.conf
 # Database
 *.db
 
+# Security
+*.jks
+
 # Build
 build/
 out/
