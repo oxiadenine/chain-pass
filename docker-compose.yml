@@ -8,9 +8,11 @@ services:
     expose:
       - 8080
     env_file: ./service/.env
+    volumes:
+      - ${DB_DIR}:/app/db
     labels:
       - traefik.http.routers.ws.rule=Host(`${HOST}`)
-      - traefik.http.routers.ws.tls=true
+      - traefik.http.routers.ws.tls=${TLS_ENABLE}
   chain-pass-proxy:
     image: traefik
     container_name: chain-pass-proxy
