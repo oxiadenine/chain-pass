@@ -9,10 +9,6 @@ plugins {
 
 kotlin {
     jvm("desktop") {
-        compilations.all {
-            kotlinOptions.jvmTarget = "1.8"
-        }
-
         testRuns["test"].executionTask {
             useJUnitPlatform()
         }

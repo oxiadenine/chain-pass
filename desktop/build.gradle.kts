@@ -14,10 +14,13 @@ dependencies {
     testImplementation(kotlin("test", kotlinVersion()))
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
 compose.desktop {
     application {
-        javaHome = System.getenv("JAVA_HOME")
-
         mainClass = "${rootProject.group}.chainpass.${project.name}.MainKt"
 
         setProperty("archivesBaseName", "${rootProject.name}-${project.name}")
