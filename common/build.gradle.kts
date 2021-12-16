@@ -8,11 +8,7 @@ plugins {
 }
 
 kotlin {
-    jvm("desktop") {
-        testRuns["test"].executionTask {
-            useJUnitPlatform()
-        }
-    }
+    jvm("desktop")
     android()
 
     sourceSets {
