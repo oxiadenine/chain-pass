@@ -5,9 +5,11 @@ import io.ktor.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
-fun main() {
+fun main(args: Array<String>) {
     embeddedServer(Netty, applicationEngineEnvironment {
-        config = HoconApplicationConfig(ConfigFactory.load())
+        config = args.joinToString { env -> "application.$env" }.ifEmpty { "application" }.let { name ->
+            HoconApplicationConfig(ConfigFactory.load(name))
+        }
 
         module {
             main()
