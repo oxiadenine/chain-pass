@@ -18,6 +18,6 @@ To package applications run the following commands:
 
 - Create Desktop binaries with `gradle desktop:packageDeb` or `desktop:packageExe`
 - Create Android APKs with `gradle android:build`
-- Create Service scripts with `gradle service:startScripts`
+- Create Service binaries with `gradle service:build`
 
 **Packaging requires JDK 17 to be installed.**
