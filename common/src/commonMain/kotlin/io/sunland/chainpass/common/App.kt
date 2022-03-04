@@ -13,12 +13,15 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.ktor.client.*
+import io.ktor.client.features.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import io.sunland.chainpass.common.repository.ChainLinkNetRepository
 import io.sunland.chainpass.common.repository.ChainNetRepository
 import io.sunland.chainpass.common.view.*
 import kotlinx.coroutines.launch
 
-enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST }
+enum class Screen { SERVER_CONNECTION, CHAIN_LIST, CHAIN_LINK_LIST }
 
 enum class ThemeColor(val color: Color) {
     ANTHRACITE(Color(0.22f, 0.24f, 0.26f)),
@@ -26,9 +29,21 @@ enum class ThemeColor(val color: Color) {
     COPPER(Color(0.72f, 0.46f, 0.28f))
 }
 
+class AppState(
+    val serverAddressState: MutableState<ServerAddress>,
+    val httpClientState: MutableState<HttpClient>,
+    val screenState: MutableState<Screen>,
+    val isServerConnected: MutableState<Boolean>
+)
+
+@Composable
+fun rememberAppState(serverAddress: ServerAddress, httpClient: HttpClient, screen: Screen) = remember {
+    AppState(mutableStateOf(serverAddress), mutableStateOf(httpClient), mutableStateOf(screen), mutableStateOf(false))
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun App(httpClient: HttpClient) = MaterialTheme(
+fun App(settings: Settings, appState: AppState) = MaterialTheme(
     colors = if (isSystemInDarkTheme()) {
         darkColors(
             primary = ThemeColor.QUARTZ.color,
@@ -65,40 +80,73 @@ fun App(httpClient: HttpClient) = MaterialTheme(
         large = RoundedCornerShape( percent = 0)
     )
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    if (!appState.isServerConnected.value) {
+        settings.load("server_address")?.let { data ->
+            appState.serverAddressState.value = appState.serverAddressState.value.apply {
+                host = ServerAddress.Host(data["host"]!!)
+                port = ServerAddress.Port(data["port"]!!)
+                protocol = ServerAddress.Protocol.valueOf(data["protocol"]!!)
+            }
+            appState.httpClientState.value = appState.httpClientState.value.config {
+                defaultRequest {
+                    host = data["host"]!!
+                    port = data["port"]!!.toInt()
+                    url {
+                        protocol = URLProtocol.byName[data["protocol"]!!.lowercase()]!!
+                    }
+                }
+            }
+            appState.screenState.value = Screen.CHAIN_LIST
+            appState.isServerConnected.value = true
+        }
+    }
 
-    val screenState = remember { mutableStateOf(Screen.CHAIN_LIST) }
     val scaffoldState = rememberScaffoldState()
 
-    val chainListViewModel = ChainListViewModel(ChainNetRepository(httpClient))
-    val chainLinkListViewModel = ChainLinkListViewModel(ChainNetRepository(httpClient), ChainLinkNetRepository(httpClient))
+    val coroutineScope = rememberCoroutineScope()
+
+    val chainListViewModel = ChainListViewModel(ChainNetRepository(appState.httpClientState.value))
+    val chainLinkListViewModel = ChainLinkListViewModel(
+        ChainNetRepository(appState.httpClientState.value),
+        ChainLinkNetRepository(appState.httpClientState.value)
+    )
 
     Scaffold(
         scaffoldState = scaffoldState,
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            when (screenState.value) {
+            when (appState.screenState.value) {
+                Screen.SERVER_CONNECTION -> Unit
                 Screen.CHAIN_LIST -> ChainListTopBar(
-                    onIconAddClick = { chainListViewModel.draft() },
+                    serverAddress = appState.serverAddressState.value,
+                    onIconExitClick = {
+                        settings.delete("server_address").let {
+                            appState.serverAddressState.value = ServerAddress()
+                            appState.httpClientState.value.close()
+                            appState.screenState.value = Screen.SERVER_CONNECTION
+                            appState.isServerConnected.value = false
+                        }
+                    },
                     onIconRefreshClick = {
                         coroutineScope.launch {
                             chainListViewModel.getAll().onFailure { exception ->
                                 scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                             }
                         }
-                    }
+                    },
+                    onIconAddClick = { chainListViewModel.draft() }
                 )
                 Screen.CHAIN_LINK_LIST -> ChainLinkListTopBar(
                     onIconArrowBackClick = {
                         scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                        screenState.value = Screen.CHAIN_LIST
+                        appState.screenState.value = Screen.CHAIN_LIST
                     },
                     onIconAddClick = { chainLinkListViewModel.draft() },
                     onIconRefreshClick = {
                         coroutineScope.launch {
                             chainLinkListViewModel.getAll()
-                                .onSuccess { screenState.value = Screen.CHAIN_LINK_LIST }
+                                .onSuccess { appState.screenState.value = Screen.CHAIN_LINK_LIST }
                                 .onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                 }
@@ -130,7 +178,32 @@ fun App(httpClient: HttpClient) = MaterialTheme(
         }
     ) {
         Box {
-            when (screenState.value) {
+            when (appState.screenState.value) {
+                Screen.SERVER_CONNECTION -> {
+                    ServerConnection(
+                        serverAddress = appState.serverAddressState.value,
+                        onIconDoneClick = { serverAddress ->
+                            settings.save(mapOf(
+                                serverAddress::host.name to serverAddress.host.value,
+                                serverAddress::port.name to serverAddress.port.value,
+                                serverAddress::protocol.name to serverAddress.protocol.name
+                            ), "server_address").let {
+                                appState.serverAddressState.value = serverAddress
+                                appState.httpClientState.value = appState.httpClientState.value.config {
+                                    defaultRequest {
+                                        host = serverAddress.host.value
+                                        port = serverAddress.port.value.toInt()
+                                        url {
+                                            protocol = URLProtocol.byName[serverAddress.protocol.name.lowercase()]!!
+                                        }
+                                    }
+                                }
+                                appState.screenState.value = Screen.CHAIN_LIST
+                                appState.isServerConnected.value = true
+                            }
+                        }
+                    )
+                }
                 Screen.CHAIN_LIST -> {
                     coroutineScope.launch {
                         chainListViewModel.getAll().onFailure { exception ->
@@ -154,7 +227,7 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                                 chainLinkListViewModel.chain = chain
 
                                 chainLinkListViewModel.getAll()
-                                    .onSuccess { screenState.value = Screen.CHAIN_LINK_LIST }
+                                    .onSuccess { appState.screenState.value = Screen.CHAIN_LINK_LIST }
                                     .onFailure { exception ->
                                         chainLinkListViewModel.chain = null
 

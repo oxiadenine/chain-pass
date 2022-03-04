@@ -33,8 +33,6 @@ compose.desktop {
 
         setProperty("archivesBaseName", "${rootProject.name}-${project.name}")
 
-        args += System.getenv("APP_ENV")?.let { appEnv -> listOf(appEnv) } ?: listOf()
-
         nativeDistributions {
             targetFormats(TargetFormat.Deb, TargetFormat.Exe)
 
