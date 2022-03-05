@@ -1,6 +1,5 @@
 package io.sunland.chainpass.common
 
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -44,33 +43,18 @@ fun rememberAppState(serverAddress: ServerAddress, httpClient: HttpClient, scree
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun App(settings: Settings, appState: AppState) = MaterialTheme(
-    colors = if (isSystemInDarkTheme()) {
-        darkColors(
-            primary = ThemeColor.QUARTZ.color,
-            primaryVariant = ThemeColor.QUARTZ.color,
-            secondary = ThemeColor.QUARTZ.color,
-            secondaryVariant = ThemeColor.QUARTZ.color,
-            background = ThemeColor.ANTHRACITE.color,
-            surface = ThemeColor.ANTHRACITE.color,
-            error = ThemeColor.COPPER.color,
-            onPrimary = ThemeColor.ANTHRACITE.color,
-            onSecondary = ThemeColor.ANTHRACITE.color,
-            onBackground = ThemeColor.QUARTZ.color,
-            onSurface = ThemeColor.QUARTZ.color,
-            onError = ThemeColor.COPPER.color
-        )
-    } else lightColors(
-        primary = ThemeColor.ANTHRACITE.color,
-        primaryVariant = ThemeColor.ANTHRACITE.color,
-        secondary = ThemeColor.ANTHRACITE.color,
-        secondaryVariant = ThemeColor.ANTHRACITE.color,
-        background = ThemeColor.QUARTZ.color,
-        surface = ThemeColor.QUARTZ.color,
+    colors = darkColors(
+        primary = ThemeColor.QUARTZ.color,
+        primaryVariant = ThemeColor.QUARTZ.color,
+        secondary = ThemeColor.QUARTZ.color,
+        secondaryVariant = ThemeColor.QUARTZ.color,
+        background = ThemeColor.ANTHRACITE.color,
+        surface = ThemeColor.ANTHRACITE.color,
         error = ThemeColor.COPPER.color,
-        onPrimary = ThemeColor.QUARTZ.color,
-        onSecondary = ThemeColor.QUARTZ.color,
-        onBackground = ThemeColor.ANTHRACITE.color,
-        onSurface = ThemeColor.ANTHRACITE.color,
+        onPrimary = ThemeColor.ANTHRACITE.color,
+        onSecondary = ThemeColor.ANTHRACITE.color,
+        onBackground = ThemeColor.QUARTZ.color,
+        onSurface = ThemeColor.QUARTZ.color,
         onError = ThemeColor.COPPER.color
     ),
     typography = Typography(defaultFontFamily = FontFamily.Monospace),
