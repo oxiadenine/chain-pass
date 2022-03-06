@@ -10,18 +10,21 @@ import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
 
 class ChainListViewModel(private val repository: ChainRepository) {
+    private var _chains = emptyList<Chain>()
     val chains = mutableStateListOf<Chain>()
 
     suspend fun getAll(): Result<Unit> {
         return repository.read().map { chainEntities ->
-            this.chains.clear()
-            this.chains.addAll(chainEntities.map { chainEntity ->
+            _chains = chainEntities.map { chainEntity ->
                 Chain().apply {
                     id = chainEntity.id
                     name = Chain.Name(chainEntity.name)
                     status = ChainStatus.ACTUAL
                 }
-            })
+            }
+
+            chains.clear()
+            chains.addAll(_chains)
         }
     }
 
@@ -48,10 +51,10 @@ class ChainListViewModel(private val repository: ChainRepository) {
             chain.id = chainId
             chain.status = ChainStatus.ACTUAL
 
-            val chains = chains.toList()
+            _chains = chains.toList()
 
-            this.chains.clear()
-            this.chains.addAll(chains)
+            chains.clear()
+            chains.addAll(_chains)
 
             Unit
         }
@@ -90,6 +93,8 @@ class ChainListViewModel(private val repository: ChainRepository) {
             val chainKeyEntity = ChainKeyEntity(chain.id, PasswordEncoder.hash(passphrase))
 
             repository.delete(chainKeyEntity).getOrThrow()
+
+            _chains = chains.toList()
         }
     }
 

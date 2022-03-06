@@ -17,6 +17,7 @@ class ChainLinkListViewModel(
 ) {
     var chain: Chain? = null
 
+    var _chainLinks = emptyList<ChainLink>()
     val chainLinks = mutableStateListOf<ChainLink>()
 
     suspend fun getAll(): Result<Unit> {
@@ -31,15 +32,17 @@ class ChainLinkListViewModel(
         }.map { chainLinkEntities ->
             val passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
-            this.chainLinks.clear()
-            this.chainLinks.addAll(chainLinkEntities.map { chainLinkEntity ->
+            _chainLinks = chainLinkEntities.map { chainLinkEntity ->
                 ChainLink().apply {
                     id = chainLinkEntity.id
                     name = ChainLink.Name(chainLinkEntity.name)
                     password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLinkEntity.password))
                     status = ChainLinkStatus.ACTUAL
                 }
-            })
+            }
+
+            chainLinks.clear()
+            chainLinks.addAll(_chainLinks)
 
             Unit
         }
@@ -77,17 +80,18 @@ class ChainLinkListViewModel(
             chainLink.password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLink.password.value))
             chainLink.status = ChainLinkStatus.ACTUAL
 
-            val chainLinks = chainLinks.toList()
+            _chainLinks = chainLinks.toList()
 
-            this.chainLinks.clear()
-            this.chainLinks.addAll(chainLinks)
+            chainLinks.clear()
+            chainLinks.addAll(_chainLinks)
 
             Unit
         }
     }
     
     fun startEdit(chainLinkId: Int) {
-        val chainLinks = chainLinks.map { chainLink ->
+        chainLinks.clear()
+        chainLinks.addAll(_chainLinks.map { chainLink ->
             if (chainLink.status == ChainLinkStatus.EDIT) {
                 chainLink.status = ChainLinkStatus.ACTUAL
             }
@@ -97,19 +101,16 @@ class ChainLinkListViewModel(
             }
 
             chainLink
-        }.toList()
-
-        this.chainLinks.clear()
-        this.chainLinks.addAll(chainLinks)
+        })
     }
 
     fun endEdit(chainLink: ChainLink) {
         chainLink.status = ChainLinkStatus.ACTUAL
 
-        val chainLinks = chainLinks.toList()
+        _chainLinks = chainLinks.toList()
 
-        this.chainLinks.clear()
-        this.chainLinks.addAll(chainLinks)
+        chainLinks.clear()
+        chainLinks.addAll(_chainLinks)
     }
 
     suspend fun edit(chainLink: ChainLink): Result<Unit> {
@@ -168,6 +169,8 @@ class ChainLinkListViewModel(
             val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.password.value, chainKeyEntity)
 
             chainLinkRepository.delete(chainLinkEntity).getOrThrow()
+
+            _chainLinks = chainLinks.toList()
         }
     }
 }
