@@ -1,6 +1,7 @@
 package io.sunland.chainpass.common.component
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -26,9 +27,9 @@ actual fun InputDialog(
     placeholder: String,
     value: String,
     ontValueChange: (String) -> Unit,
-    keyboardOptions: KeyboardOptions,
     visualTransformation: VisualTransformation,
     isError: Boolean,
+    keyboardOptions: KeyboardOptions,
     onDismissRequest: () -> Unit,
     onConfirmRequest: () -> Unit
 ) = PopupAlertDialogProvider.AlertDialog(onDismissRequest) {
@@ -47,7 +48,6 @@ actual fun InputDialog(
             trailingIcon = if (isError) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
             } else null,
-            keyboardOptions = keyboardOptions,
             visualTransformation = visualTransformation,
             singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
@@ -56,7 +56,9 @@ actual fun InputDialog(
                 disabledIndicatorColor = Color.Transparent,
                 errorIndicatorColor = Color.Transparent
             ),
-            isError = isError
+            isError = isError,
+            keyboardOptions = keyboardOptions,
+            keyboardActions = KeyboardActions(onDone = { onConfirmRequest() })
         )
         Row(
             modifier = Modifier.fillMaxWidth().align(alignment = Alignment.End).padding(vertical = 16.dp),

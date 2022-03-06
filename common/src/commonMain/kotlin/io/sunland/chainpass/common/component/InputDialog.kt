@@ -10,9 +10,9 @@ expect fun InputDialog(
     placeholder: String,
     value: String,
     ontValueChange: (String) -> Unit,
-    keyboardOptions: KeyboardOptions,
     visualTransformation: VisualTransformation,
     isError: Boolean,
+    keyboardOptions: KeyboardOptions,
     onDismissRequest: () -> Unit,
     onConfirmRequest: () -> Unit
 )

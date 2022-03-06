@@ -145,9 +145,9 @@ fun ChainList(
                                             keyState.value = chain.key.value
                                             keyErrorState.value = !chain.key.isValid
                                         },
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                                         visualTransformation = PasswordVisualTransformation(),
                                         isError = keyErrorState.value,
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                                         onDismissRequest = {
                                             chain.key = Chain.Key()
 
