@@ -98,51 +98,6 @@ fun App(settings: Settings, appState: AppState) = MaterialTheme(
     Scaffold(
         scaffoldState = scaffoldState,
         modifier = Modifier.fillMaxSize(),
-        topBar = {
-            when (appState.screenState.value) {
-                Screen.SERVER_CONNECTION -> Unit
-                Screen.CHAIN_LIST -> ChainListTopBar(
-                    serverAddress = appState.serverAddressState.value,
-                    onIconExitClick = {
-                        settings.delete("server_address").let {
-                            appState.serverAddressState.value = ServerAddress()
-                            appState.httpClientState.value.close()
-                            appState.screenState.value = Screen.SERVER_CONNECTION
-                            appState.isServerConnected.value = false
-                        }
-                    },
-                    onIconRefreshClick = {
-                        coroutineScope.launch {
-                            scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
-
-                            chainListViewModel.getAll().onFailure { exception ->
-                                scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
-                            }
-                        }
-                    },
-                    onIconAddClick = { chainListViewModel.draft() }
-                )
-                Screen.CHAIN_LINK_LIST -> ChainLinkListTopBar(
-                    onIconArrowBackClick = {
-                        scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-
-                        appState.screenState.value = Screen.CHAIN_LIST
-                    },
-                    onIconAddClick = { chainLinkListViewModel.draft() },
-                    onIconRefreshClick = {
-                        coroutineScope.launch {
-                            scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
-
-                            chainLinkListViewModel.getAll()
-                                .onSuccess { appState.screenState.value = Screen.CHAIN_LINK_LIST }
-                                .onFailure { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
-                                }
-                        }
-                    }
-                )
-            }
-        },
         snackbarHost = { snackbarHostState ->
             SnackbarHost(
                 hostState = snackbarHostState,
@@ -202,6 +157,7 @@ fun App(settings: Settings, appState: AppState) = MaterialTheme(
                     }
 
                     ChainList(
+                        serverAddress = appState.serverAddressState.value,
                         viewModel = chainListViewModel,
                         onItemNew = { chain ->
                             coroutineScope.launch {
@@ -242,6 +198,23 @@ fun App(settings: Settings, appState: AppState) = MaterialTheme(
                                     }
                                 }
                             }
+                        },
+                        onRefresh = {
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+
+                                chainListViewModel.getAll().onFailure { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
+                            }
+                        },
+                        onDisconnect = {
+                            settings.delete("server_address").let {
+                                appState.serverAddressState.value = ServerAddress()
+                                appState.httpClientState.value.close()
+                                appState.screenState.value = Screen.SERVER_CONNECTION
+                                appState.isServerConnected.value = false
+                            }
                         }
                     )
                 }
@@ -281,6 +254,22 @@ fun App(settings: Settings, appState: AppState) = MaterialTheme(
                                     }
                                 }
                             }
+                        },
+                        onRefresh = {
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+
+                                chainLinkListViewModel.getAll()
+                                    .onSuccess { appState.screenState.value = Screen.CHAIN_LINK_LIST }
+                                    .onFailure { exception ->
+                                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    }
+                            }
+                        },
+                        onBack = {
+                            scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+
+                            appState.screenState.value = Screen.CHAIN_LIST
                         }
                     )
                 }
