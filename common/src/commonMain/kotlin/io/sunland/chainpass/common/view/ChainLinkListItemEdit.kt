@@ -6,10 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -17,7 +14,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
@@ -25,7 +21,7 @@ import io.sunland.chainpass.common.ChainLink
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
-    val focusRequester = FocusRequester()
+    val focusRequester = remember { FocusRequester() }
 
     val passwordState = remember { mutableStateOf(chainLink.password.value) }
     val passwordErrorState = remember { mutableStateOf(!chainLink.password.isValid) }
@@ -88,7 +84,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
                 unfocusedIndicatorColor = Color.Transparent,
                 errorIndicatorColor = Color.Transparent
             ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             keyboardActions = KeyboardActions(onDone = {
                 if (passwordState.value != chainLink.password.value) {
                     onDone()
@@ -97,8 +93,5 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
         )
     }
 
-    DisposableEffect(Unit) {
-        focusRequester.requestFocus()
-        onDispose {}
-    }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }
