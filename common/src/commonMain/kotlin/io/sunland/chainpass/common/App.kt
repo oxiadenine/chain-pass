@@ -42,7 +42,7 @@ fun rememberAppState(serverAddress: ServerAddress, httpClient: HttpClient, scree
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun App(settings: Settings, appState: AppState) = MaterialTheme(
+fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
     colors = darkColors(
         primary = ThemeColor.QUARTZ.color,
         primaryVariant = ThemeColor.QUARTZ.color,
@@ -65,18 +65,14 @@ fun App(settings: Settings, appState: AppState) = MaterialTheme(
     )
 ) {
     if (!appState.isServerConnected.value) {
-        settings.load("server_address")?.let { data ->
-            appState.serverAddressState.value = appState.serverAddressState.value.apply {
-                host = ServerAddress.Host(data["host"]!!)
-                port = ServerAddress.Port(data["port"]!!)
-                protocol = ServerAddress.Protocol.valueOf(data["protocol"]!!)
-            }
+        settingsFactory.load(appState.serverAddressState.value)?.let { settings ->
+            appState.serverAddressState.value = settings as ServerAddress
             appState.httpClientState.value = appState.httpClientState.value.config {
                 defaultRequest {
-                    host = data["host"]!!
-                    port = data["port"]!!.toInt()
+                    host = settings.host.value
+                    port = settings.port.value.toInt()
                     url {
-                        protocol = URLProtocol.byName[data["protocol"]!!.lowercase()]!!
+                        protocol = URLProtocol.byName[settings.protocol.name.lowercase()]!!
                     }
                 }
             }
@@ -126,11 +122,7 @@ fun App(settings: Settings, appState: AppState) = MaterialTheme(
                     ServerConnection(
                         serverAddress = appState.serverAddressState.value,
                         onIconDoneClick = { serverAddress ->
-                            settings.save(mapOf(
-                                serverAddress::host.name to serverAddress.host.value,
-                                serverAddress::port.name to serverAddress.port.value,
-                                serverAddress::protocol.name to serverAddress.protocol.name
-                            ), "server_address").let {
+                            settingsFactory.save(serverAddress).let {
                                 appState.serverAddressState.value = serverAddress
                                 appState.httpClientState.value = appState.httpClientState.value.config {
                                     defaultRequest {
@@ -209,7 +201,7 @@ fun App(settings: Settings, appState: AppState) = MaterialTheme(
                             }
                         },
                         onDisconnect = {
-                            settings.delete("server_address").let {
+                            settingsFactory.delete(appState.serverAddressState.value).let {
                                 appState.serverAddressState.value = ServerAddress()
                                 appState.httpClientState.value.close()
                                 appState.screenState.value = Screen.SERVER_CONNECTION

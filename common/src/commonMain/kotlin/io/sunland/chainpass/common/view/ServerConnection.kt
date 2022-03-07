@@ -18,8 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import io.sunland.chainpass.common.Settings
 
-class ServerAddress {
+class ServerAddress : Settings {
     class Host(value: String? = null) {
         var value = value ?: ""
             private set
@@ -46,6 +47,20 @@ class ServerAddress {
     var host = Host()
     var port = Port()
     var protocol = Protocol.WS
+
+    override val fileName: String = "server-address"
+
+    override fun toMap(): Map<String, String> = mapOf(
+        "host" to host.value,
+        "port" to port.value,
+        "protocol" to protocol.name
+    )
+
+    override fun fromMap(data: Map<String, String>) = apply {
+        host = Host(data["host"]!!)
+        port = Port(data["port"]!!)
+        protocol = Protocol.valueOf(data["protocol"]!!)
+    }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)

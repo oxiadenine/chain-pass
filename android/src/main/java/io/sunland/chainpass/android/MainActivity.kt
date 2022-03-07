@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
                 Screen.SERVER_CONNECTION
             )
 
-            App(Settings(applicationContext.filesDir.absolutePath), appState)
+            App(SettingsFactory(applicationContext.filesDir.absolutePath), appState)
         }
     }
 
