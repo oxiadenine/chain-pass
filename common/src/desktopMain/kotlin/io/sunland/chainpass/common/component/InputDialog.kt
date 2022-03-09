@@ -40,8 +40,7 @@ actual fun InputDialog(
         modifier = Modifier.size(width = 300.dp, height = 170.dp).padding(horizontal = 16.dp).padding(top = 32.dp),
         verticalArrangement = Arrangement.spacedBy(space = 16.dp)
     ) {
-        TextField(
-            modifier = Modifier.padding(horizontal = 16.dp).focusRequester(focusRequester),
+        TextField(modifier = Modifier.padding(horizontal = 16.dp).focusRequester(focusRequester),
             placeholder = { Text(text = placeholder) },
             value = value,
             onValueChange = ontValueChange,
@@ -65,12 +64,10 @@ actual fun InputDialog(
             horizontalArrangement = Arrangement.End
         ) {
             TextButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onDismissRequest
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand), onClick = onDismissRequest
             ) { Text(text = "Cancel") }
             TextButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onConfirmRequest
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand), onClick = onConfirmRequest
             ) { Text(text = "Ok") }
         }
 
