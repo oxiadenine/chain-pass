@@ -35,6 +35,9 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
                 ) { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
             }
         }
+        if (chainLink.description.value.isNotEmpty()) {
+            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.description.value)
+        }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             SelectionContainer(Modifier.padding(all = 16.dp)) {
                 if (passwordVisibleState.value) {

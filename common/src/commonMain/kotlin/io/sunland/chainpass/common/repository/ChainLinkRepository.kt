@@ -3,7 +3,7 @@ package io.sunland.chainpass.common.repository
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ChainLinkEntity(var id: Int, val name: String, val password: String, val chainKey: ChainKeyEntity)
+data class ChainLinkEntity(var id: Int, val name: String, val description: String, val password: String, val chainKey: ChainKeyEntity)
 
 interface ChainLinkRepository {
     suspend fun create(chainLinkEntity: ChainLinkEntity): Result<Int>
