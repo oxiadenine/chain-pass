@@ -41,19 +41,19 @@ compose.desktop {
             description = "Save and manage passwords"
             vendor = "SunLand"
 
-            val iconsDir = "${project.buildDir}/resources/main/icons"
+            val iconsDir = "${project.buildDir}/resources/main"
 
             linux {
                 packageName = "${rootProject.name}-${project.name}"
 
-                iconFile.set(project.file("$iconsDir/icon_linux.png"))
+                iconFile.set(project.file("$iconsDir/icon.png"))
             }
 
             windows {
                 perUserInstall = true
                 menu = true
 
-                iconFile.set(project.file("$iconsDir/icon_windows.ico"))
+                iconFile.set(project.file("$iconsDir/icon.ico"))
             }
         }
     }
