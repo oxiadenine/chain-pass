@@ -1,12 +1,16 @@
 package io.sunland.chainpass.service
 
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.window.Tray
+import androidx.compose.ui.window.application
+import androidx.compose.ui.window.isTraySupported
 import com.typesafe.config.ConfigFactory
 import io.ktor.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
 fun main(args: Array<String>) {
-    embeddedServer(Netty, applicationEngineEnvironment {
+    val server = embeddedServer(Netty, applicationEngineEnvironment {
         config = args.joinToString { env -> "application.$env" }.ifEmpty { "application" }.let { name ->
             HoconApplicationConfig(ConfigFactory.load(name))
         }
@@ -18,4 +22,19 @@ fun main(args: Array<String>) {
             port = config.property("server.port").getString().toInt()
         }
     }).start()
+
+    if (isTraySupported) {
+        application {
+            Tray(
+                icon = painterResource("icon.png"),
+                menu = {
+                    Item("Exit", onClick = {
+                        server.stop(0, 0)
+
+                        exitApplication()
+                    })
+                }
+            )
+        }
+    }
 }
