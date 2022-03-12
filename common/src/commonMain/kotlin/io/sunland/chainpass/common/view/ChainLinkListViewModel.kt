@@ -57,6 +57,8 @@ class ChainLinkListViewModel(
 
     fun rejectDraft(chainLink: ChainLink) {
         chainLinks.remove(chainLink)
+
+        update()
     }
 
     suspend fun new(chainLink: ChainLink): Result<Unit> {
@@ -87,16 +89,13 @@ class ChainLinkListViewModel(
             chainLink.password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLink.password.value))
             chainLink.status = ChainLinkStatus.ACTUAL
 
-            _chainLinks = chainLinks.toList()
-
-            chainLinks.clear()
-            chainLinks.addAll(_chainLinks)
-
-            Unit
+            update()
         }
     }
 
     fun startEdit(chainLinkId: Int) {
+        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLinkStatus.DRAFT }
+
         chainLinks.clear()
         chainLinks.addAll(_chainLinks.map { chainLink ->
             if (chainLink.status == ChainLinkStatus.EDIT) {
@@ -108,16 +107,13 @@ class ChainLinkListViewModel(
             }
 
             chainLink
-        })
+        }.plus(draftChainLinks))
     }
 
     fun endEdit(chainLink: ChainLink) {
         chainLink.status = ChainLinkStatus.ACTUAL
 
-        _chainLinks = chainLinks.toList()
-
-        chainLinks.clear()
-        chainLinks.addAll(_chainLinks)
+        update()
     }
 
     suspend fun edit(chainLink: ChainLink): Result<Unit> {
@@ -165,6 +161,8 @@ class ChainLinkListViewModel(
 
     fun undoRemove(chainLink: ChainLink) {
         chainLinks.add(chainLink)
+
+        update()
     }
 
     suspend fun remove(chain: Chain, chainLink: ChainLink): Result<Unit> {
@@ -189,7 +187,16 @@ class ChainLinkListViewModel(
 
             chainLinkRepository.delete(chainLinkEntity).getOrThrow()
 
-            _chainLinks = chainLinks.toList()
+            update()
         }
+    }
+
+    private fun update() {
+        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLinkStatus.DRAFT }
+
+        _chainLinks = chainLinks.filter { chainLink -> chainLink.status != ChainLinkStatus.DRAFT }
+
+        chainLinks.clear()
+        chainLinks.addAll(_chainLinks.plus(draftChainLinks))
     }
 }
