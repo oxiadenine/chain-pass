@@ -2,7 +2,6 @@ package io.sunland.chainpass.common.view
 
 import androidx.compose.runtime.mutableStateListOf
 import io.sunland.chainpass.common.Chain
-import io.sunland.chainpass.common.ChainLinkStatus
 import io.sunland.chainpass.common.ChainStatus
 import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainKeyEntity
@@ -14,21 +13,15 @@ class ChainListViewModel(private val repository: ChainRepository) {
     private var _chains = emptyList<Chain>()
     val chains = mutableStateListOf<Chain>()
 
-    suspend fun getAll(): Result<Unit> {
-        return repository.read().map { chainEntities ->
-            _chains = chainEntities.map { chainEntity ->
-                Chain().apply {
-                    id = chainEntity.id
-                    name = Chain.Name(chainEntity.name)
-                    status = ChainStatus.ACTUAL
-                }
-            }
+    suspend fun load() = runCatching {
+        _chains = getAll().getOrThrow()
 
-            chains.clear()
-            chains.addAll(_chains)
+        val draftChains = chains.filter { chain -> chain.status == ChainStatus.DRAFT }
 
-            Unit
-        }
+        chains.clear()
+        chains.addAll(_chains.plus(draftChains))
+
+        Unit
     }
 
     fun draft() {
@@ -113,6 +106,16 @@ class ChainListViewModel(private val repository: ChainRepository) {
             status = chain.status
 
             onItemSelect(this)
+        }
+    }
+
+    private suspend fun getAll() = repository.read().map { chainEntities ->
+        chainEntities.map { chainEntity ->
+            Chain().apply {
+                id = chainEntity.id
+                name = Chain.Name(chainEntity.name)
+                status = ChainStatus.ACTUAL
+            }
         }
     }
 

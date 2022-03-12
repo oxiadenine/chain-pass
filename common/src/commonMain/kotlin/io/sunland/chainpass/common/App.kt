@@ -143,7 +143,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                 }
                 Screen.CHAIN_LIST -> {
                     coroutineScope.launch {
-                        chainListViewModel.getAll().onFailure { exception ->
+                        chainListViewModel.load().onFailure { exception ->
                             scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                         }
 
@@ -164,7 +164,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                             coroutineScope.launch {
                                 chainLinkListViewModel.chain = chain
 
-                                chainLinkListViewModel.getAll()
+                                chainLinkListViewModel.load()
                                     .onSuccess { appState.screenState.value = Screen.CHAIN_LINK_LIST }
                                     .onFailure { exception ->
                                         chainLinkListViewModel.chain = null
@@ -197,7 +197,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
-                                chainListViewModel.getAll().onFailure { exception ->
+                                chainListViewModel.load().onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                 }
                             }
@@ -253,11 +253,9 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
-                                chainLinkListViewModel.getAll()
-                                    .onSuccess { appState.screenState.value = Screen.CHAIN_LINK_LIST }
-                                    .onFailure { exception ->
-                                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
-                                    }
+                                chainLinkListViewModel.load().onFailure { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
                             }
                         },
                         onBack = {
