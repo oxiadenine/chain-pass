@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.Chain
-import io.sunland.chainpass.common.ChainStatus
 import io.sunland.chainpass.common.component.DropdownMenu
 import io.sunland.chainpass.common.component.DropdownMenuItem
 import io.sunland.chainpass.common.component.InputDialog
@@ -139,7 +138,7 @@ fun ChainList(
                 Column(modifier = Modifier.verticalScroll(scrollState)) {
                     viewModel.chains.forEach { chain ->
                         when (chain.status) {
-                            ChainStatus.ACTUAL, ChainStatus.REMOVE, ChainStatus.SELECT -> {
+                            Chain.Status.ACTUAL, Chain.Status.REMOVE, Chain.Status.SELECT -> {
                                 val keyInputDialogVisible = remember { mutableStateOf(false) }
 
                                 if (keyInputDialogVisible.value) {
@@ -171,8 +170,8 @@ fun ChainList(
 
                                             if (!keyErrorState.value) {
                                                 when (chain.status) {
-                                                    ChainStatus.REMOVE -> viewModel.remove(chain, onItemRemove)
-                                                    ChainStatus.SELECT -> viewModel.select(chain, onItemSelect)
+                                                    Chain.Status.REMOVE -> viewModel.remove(chain, onItemRemove)
+                                                    Chain.Status.SELECT -> viewModel.select(chain, onItemSelect)
                                                     else -> keyInputDialogVisible.value = false
                                                 }
 
@@ -185,18 +184,18 @@ fun ChainList(
                                 ChainListItem(
                                     chain = chain,
                                     onClick = {
-                                        chain.status = ChainStatus.SELECT
+                                        chain.status = Chain.Status.SELECT
 
                                         keyInputDialogVisible.value = true
                                     },
                                     onIconDeleteClick = {
-                                        chain.status = ChainStatus.REMOVE
+                                        chain.status = Chain.Status.REMOVE
 
                                         keyInputDialogVisible.value = true
                                     }
                                 )
                             }
-                            ChainStatus.DRAFT -> ChainListItemDraft(
+                            Chain.Status.DRAFT -> ChainListItemDraft(
                                 chain = chain,
                                 onIconDoneClick = { onItemNew(chain) },
                                 onIconClearClick = { viewModel.rejectDraft(chain) }

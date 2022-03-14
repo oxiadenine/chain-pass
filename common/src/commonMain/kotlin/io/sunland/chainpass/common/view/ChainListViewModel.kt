@@ -2,7 +2,6 @@ package io.sunland.chainpass.common.view
 
 import androidx.compose.runtime.mutableStateListOf
 import io.sunland.chainpass.common.Chain
-import io.sunland.chainpass.common.ChainStatus
 import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainRepository
@@ -16,7 +15,7 @@ class ChainListViewModel(private val repository: ChainRepository) {
     suspend fun load() = runCatching {
         _chains = getAll().getOrThrow()
 
-        val draftChains = chains.filter { chain -> chain.status == ChainStatus.DRAFT }
+        val draftChains = chains.filter { chain -> chain.status == Chain.Status.DRAFT }
 
         chains.clear()
         chains.addAll(_chains.sortedBy { chain -> chain.name.value }.plus(draftChains))
@@ -48,7 +47,7 @@ class ChainListViewModel(private val repository: ChainRepository) {
 
         return repository.create(chainEntity).map { chainId ->
             chain.id = chainId
-            chain.status = ChainStatus.ACTUAL
+            chain.status = Chain.Status.ACTUAL
 
             update()
         }
@@ -114,15 +113,15 @@ class ChainListViewModel(private val repository: ChainRepository) {
             Chain().apply {
                 id = chainEntity.id
                 name = Chain.Name(chainEntity.name)
-                status = ChainStatus.ACTUAL
+                status = Chain.Status.ACTUAL
             }
         }
     }
 
     private fun update() {
-        val draftChains = chains.filter { chain -> chain.status == ChainStatus.DRAFT }
+        val draftChains = chains.filter { chain -> chain.status == Chain.Status.DRAFT }
 
-        _chains = chains.filter { chain -> chain.status != ChainStatus.DRAFT }
+        _chains = chains.filter { chain -> chain.status != Chain.Status.DRAFT }
 
         chains.clear()
         chains.addAll(_chains.sortedBy { chain -> chain.name.value }.plus(draftChains))

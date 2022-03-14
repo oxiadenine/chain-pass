@@ -3,7 +3,6 @@ package io.sunland.chainpass.common.view
 import androidx.compose.runtime.mutableStateListOf
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
-import io.sunland.chainpass.common.ChainLinkStatus
 import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
@@ -23,8 +22,8 @@ class ChainLinkListViewModel(
     suspend fun load() = runCatching {
         _chainLinks = getAll().getOrThrow()
 
-        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLinkStatus.DRAFT }
-        val editChainLink = chainLinks.firstOrNull { chainLink -> chainLink.status == ChainLinkStatus.EDIT }
+        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
+        val editChainLink = chainLinks.firstOrNull { chainLink -> chainLink.status == ChainLink.Status.EDIT }
 
         chainLinks.clear()
         chainLinks.addAll(if (editChainLink != null) {
@@ -76,23 +75,23 @@ class ChainLinkListViewModel(
 
             chainLink.id = chainLinkId
             chainLink.password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLink.password.value))
-            chainLink.status = ChainLinkStatus.ACTUAL
+            chainLink.status = ChainLink.Status.ACTUAL
 
             update()
         }
     }
 
     fun startEdit(chainLinkId: Int) {
-        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLinkStatus.DRAFT }
+        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
 
         chainLinks.clear()
         chainLinks.addAll(_chainLinks.map { chainLink ->
-            if (chainLink.status == ChainLinkStatus.EDIT) {
-                chainLink.status = ChainLinkStatus.ACTUAL
+            if (chainLink.status == ChainLink.Status.EDIT) {
+                chainLink.status = ChainLink.Status.ACTUAL
             }
 
             if (chainLink.id == chainLinkId) {
-                chainLink.status = ChainLinkStatus.EDIT
+                chainLink.status = ChainLink.Status.EDIT
             }
 
             chainLink
@@ -100,7 +99,7 @@ class ChainLinkListViewModel(
     }
 
     fun endEdit(chainLink: ChainLink) {
-        chainLink.status = ChainLinkStatus.ACTUAL
+        chainLink.status = ChainLink.Status.ACTUAL
 
         update()
     }
@@ -197,15 +196,15 @@ class ChainLinkListViewModel(
                 name = ChainLink.Name(chainLinkEntity.name)
                 description = ChainLink.Description(chainLinkEntity.description)
                 password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLinkEntity.password))
-                status = ChainLinkStatus.ACTUAL
+                status = ChainLink.Status.ACTUAL
             }
         }
     }
 
     private fun update() {
-        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLinkStatus.DRAFT }
+        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
 
-        _chainLinks = chainLinks.filter { chainLink -> chainLink.status != ChainLinkStatus.DRAFT }
+        _chainLinks = chainLinks.filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
 
         chainLinks.clear()
         chainLinks.addAll(_chainLinks.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))

@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
-import io.sunland.chainpass.common.ChainLinkStatus
 import io.sunland.chainpass.common.component.DropdownMenu
 import io.sunland.chainpass.common.component.DropdownMenuItem
 import io.sunland.chainpass.common.component.VerticalScrollbar
@@ -117,17 +116,17 @@ fun ChainLinkList(
                 Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
                     viewModel.chainLinks.forEach { chainLink ->
                         when (chainLink.status) {
-                            ChainLinkStatus.ACTUAL -> ChainLinkListItem(
+                            ChainLink.Status.ACTUAL -> ChainLinkListItem(
                                 chainLink = chainLink,
                                 onIconEditClick = { viewModel.startEdit(chainLink.id) },
                                 onIconDeleteClick = { viewModel.remove(chainLink, onItemRemove) }
                             )
-                            ChainLinkStatus.DRAFT -> ChainLinkListItemDraft(
+                            ChainLink.Status.DRAFT -> ChainLinkListItemDraft(
                                 chainLink = chainLink,
                                 onIconDoneClick = { onItemNew(chainLink) },
                                 onIconClearClick = { viewModel.rejectDraft(chainLink) }
                             )
-                            ChainLinkStatus.EDIT -> key(chainLink.id) {
+                            ChainLink.Status.EDIT -> key(chainLink.id) {
                                 ChainLinkListItemEdit(
                                     chainLink = chainLink,
                                     onIconDoneClick = { onItemEdit(chainLink) },
