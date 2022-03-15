@@ -1,6 +1,7 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
 import io.sunland.chainpass.common.repository.ChainKeyEntity
@@ -16,8 +17,13 @@ class ChainLinkListViewModel(
 ) {
     var chain: Chain? = null
 
-    var _chainLinks = emptyList<ChainLink>()
     val chainLinks = mutableStateListOf<ChainLink>()
+    val searchChainLinks = mutableStateListOf<ChainLink>()
+
+    var isSearchState = mutableStateOf(false)
+    var searchKeywordState = mutableStateOf("")
+
+    private var _chainLinks = emptyList<ChainLink>()
 
     suspend fun load() = runCatching {
         _chainLinks = getAll().getOrThrow()
@@ -177,6 +183,31 @@ class ChainLinkListViewModel(
 
             update()
         }
+    }
+
+    fun startSearch() {
+        isSearchState.value = true
+
+        searchChainLinks.addAll(chainLinks.filter { chainLink ->
+            chainLink.status == ChainLink.Status.ACTUAL
+        }.sortedBy { chainLink -> chainLink.name.value })
+    }
+
+    fun search(keyword: String = searchKeywordState.value) {
+        searchKeywordState.value = keyword
+
+        searchChainLinks.clear()
+        searchChainLinks.addAll(chainLinks.filter { chainLink ->
+            chainLink.name.value.lowercase().contains(keyword.lowercase()) &&
+                    chainLink.status == ChainLink.Status.ACTUAL
+        }.sortedBy { chainLink -> chainLink.name.value })
+    }
+
+    fun endSearch() {
+        isSearchState.value = false
+        searchKeywordState.value = ""
+
+        searchChainLinks.clear()
     }
 
     private suspend fun getAll() = chainRepository.key(chain!!.id).mapCatching { key ->
