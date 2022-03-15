@@ -143,7 +143,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                 }
                 Screen.CHAIN_LIST -> {
                     coroutineScope.launch {
-                        chainListViewModel.load().onFailure { exception ->
+                        chainListViewModel.getAll().onFailure { exception ->
                             scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                         }
 
@@ -197,7 +197,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
-                                chainListViewModel.load().onFailure { exception ->
+                                chainListViewModel.getAll().onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                 }
                             }
