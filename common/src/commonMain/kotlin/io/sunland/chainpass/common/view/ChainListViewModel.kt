@@ -1,6 +1,7 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainKeyEntity
@@ -9,8 +10,12 @@ import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
 
 class ChainListViewModel(private val repository: ChainRepository) {
-    private var _chains = emptyList<Chain>()
     val chains = mutableStateListOf<Chain>()
+
+    var chainToRemove = mutableStateOf<Chain?>(null)
+    var chainToSelect = mutableStateOf<Chain?>(null)
+
+    private var _chains = emptyList<Chain>()
 
     suspend fun load() = runCatching {
         _chains = getAll().getOrThrow()
@@ -53,28 +58,19 @@ class ChainListViewModel(private val repository: ChainRepository) {
         }
     }
 
-    fun remove(chain: Chain, onItemRemove: (Chain) -> Unit): Chain {
-        val passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
+    fun remove() = chainToRemove.value?.let { chain ->
+        chains.remove(chain)
 
-        chain.key = Chain.Key()
-
-        return Chain().apply {
+        Chain().apply {
             id = chain.id
             name = chain.name
-            key = Chain.Key(PasswordEncoder.hash(passphrase))
+            key = Chain.Key(PasswordEncoder.hash(EncoderSpec.Passphrase(chain.key.value, chain.name.value)))
             status = chain.status
-
-            chains.remove(chain)
-
-            onItemRemove(this)
         }
     }
 
-
     fun undoRemove(chain: Chain) {
-        chain.key = Chain.Key()
-
-        chains.add(chain)
+        chains.add(chain.apply { key = Chain.Key() })
 
         update()
     }
@@ -93,18 +89,12 @@ class ChainListViewModel(private val repository: ChainRepository) {
         }
     }
 
-    fun select(chain: Chain, onItemSelect: (Chain) -> Unit): Chain {
-        val passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
-
-        chain.key = Chain.Key()
-
-        return Chain().apply {
+    fun select() = chainToSelect.value?.let { chain ->
+        Chain().apply {
             id = chain.id
             name = chain.name
-            key = Chain.Key(PasswordEncoder.hash(passphrase))
+            key = Chain.Key(PasswordEncoder.hash(EncoderSpec.Passphrase(chain.key.value, chain.name.value)))
             status = chain.status
-
-            onItemSelect(this)
         }
     }
 

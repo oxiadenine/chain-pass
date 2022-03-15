@@ -19,7 +19,7 @@ class Chain {
         } else Unit
     }
 
-    enum class Status { ACTUAL, DRAFT, REMOVE, SELECT }
+    enum class Status { ACTUAL, DRAFT }
 
     var id = 0
     var name = Name()
