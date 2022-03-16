@@ -27,13 +27,15 @@ class ChainListViewModel(private val repository: ChainRepository) {
         update()
     }
 
-    fun remove(chainKey: Chain.Key) = chainRemoveState.value?.let { chain ->
+    fun removeLater(chainKey: Chain.Key) = chainRemoveState.value?.let { chain ->
         chainListState.remove(chain)
 
         Chain().apply {
+            val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(chainKey.value, chain.name.value))
+
             id = chain.id
             name = chain.name
-            key = Chain.Key(PasswordEncoder.hash(EncoderSpec.Passphrase(chainKey.value, chain.name.value)))
+            key = Chain.Key(secretKey)
             status = chain.status
         }
     }
@@ -46,9 +48,11 @@ class ChainListViewModel(private val repository: ChainRepository) {
 
     fun select(chainKey: Chain.Key) = chainSelectState.value?.let { chain ->
         Chain().apply {
+            val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(chainKey.value, chain.name.value))
+
             id = chain.id
             name = chain.name
-            key = Chain.Key(PasswordEncoder.hash(EncoderSpec.Passphrase(chainKey.value, chain.name.value)))
+            key = Chain.Key(secretKey)
             status = chain.status
         }
     }
@@ -71,36 +75,32 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     suspend fun new(chain: Chain): Result<Unit> {
-        val passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
+        val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(chain.key.value, chain.name.value))
 
-        val chainKey = PasswordEncoder.hash(passphrase).let { secretKey ->
-            Chain.Key(PasswordEncoder.encrypt(EncoderSpec.Passphrase(secretKey, chain.name.value), secretKey))
-        }
+        val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(secretKey, chain.name.value), secretKey)
 
-        val chainEntity = ChainEntity(chain.id, chain.name.value, chainKey.value)
-
-        chain.key = Chain.Key()
+        val chainEntity = ChainEntity(chain.id, chain.name.value, privateKey)
 
         return repository.create(chainEntity).map { chainId ->
             chain.id = chainId
+            chain.key = Chain.Key()
             chain.status = Chain.Status.ACTUAL
 
             update()
         }
     }
 
-    suspend fun remove(chain: Chain): Result<Unit> {
-        return repository.key(chain.id).mapCatching { key ->
-            var passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
+    suspend fun remove(chain: Chain) = repository.key(chain.id).mapCatching { key ->
+        val privateKey = PasswordEncoder.encrypt(
+            EncoderSpec.Passphrase(chain.key.value, chain.name.value),
+            chain.key.value
+        )
 
-            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain.key.value), key.key)
+        val hashKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, key.key))
 
-            val chainKeyEntity = ChainKeyEntity(chain.id, PasswordEncoder.hash(passphrase))
+        repository.delete(ChainKeyEntity(chain.id, hashKey)).getOrThrow()
 
-            repository.delete(chainKeyEntity).getOrThrow()
-
-            update()
-        }
+        update()
     }
 
     private fun update() {

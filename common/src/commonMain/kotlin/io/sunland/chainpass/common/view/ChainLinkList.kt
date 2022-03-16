@@ -10,7 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
 import io.sunland.chainpass.common.component.VerticalScrollbar
 
@@ -19,7 +18,7 @@ fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
     onItemNew: (ChainLink) -> Unit,
     onItemEdit: (ChainLink) -> Unit,
-    onItemRemove: (Chain, ChainLink) -> Unit,
+    onItemRemove: (ChainLink) -> Unit,
     onRefresh: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -69,9 +68,9 @@ fun ChainLinkList(
                                     chainLink = chainLink,
                                     onIconEditClick = { viewModel.startEdit(chainLink.id) },
                                     onIconDeleteClick = {
-                                        viewModel.remove(chainLink)
+                                        viewModel.removeLater(chainLink)
 
-                                        onItemRemove(viewModel.chain!!, chainLink)
+                                        onItemRemove(chainLink)
                                     }
                                 )
                                 ChainLink.Status.DRAFT -> ChainLinkListItemDraft(
