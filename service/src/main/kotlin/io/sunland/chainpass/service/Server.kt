@@ -1,7 +1,6 @@
 package io.sunland.chainpass.service
 
 import io.ktor.application.*
-import io.ktor.features.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
@@ -18,11 +17,9 @@ import io.sunland.chainpass.service.repository.ChainLinkDataRepository
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.slf4j.event.Level
 
 fun Application.main() {
     install(WebSockets)
-    install(CallLogging) { level = Level.INFO }
 
     Database.connect(environment.config.config("database"))
 
