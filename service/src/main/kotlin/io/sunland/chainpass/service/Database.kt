@@ -13,13 +13,13 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 object ChainTable : IntIdTable("chain") {
     val name = varchar("name", 16).index()
-    val key = varchar("key", 64)
+    val key = varchar("key", 96)
 }
 
 object ChainLinkTable : IntIdTable("chain_link") {
     val name = varchar("name", 16).index()
     val description = varchar("description", 24).index()
-    val password = varchar("password", 64)
+    val password = varchar("password", 96)
 
     val chainId = reference("chain_id", ChainTable, onDelete = ReferenceOption.CASCADE).index()
 }
