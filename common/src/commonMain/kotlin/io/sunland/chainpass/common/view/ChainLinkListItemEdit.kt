@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -58,9 +59,13 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name.value)
-            Row {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(all = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(modifier = Modifier.padding(start = 14.dp), text = chainLink.name.value)
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 if (passwordState.value != chainLink.password.value) {
                     IconButton(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
@@ -74,7 +79,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
             }
         }
         TextField(
-            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp).focusRequester(focusRequester),
             placeholder = { Text(text = "Password") },
             value = passwordState.value,
             onValueChange = onPasswordChange,

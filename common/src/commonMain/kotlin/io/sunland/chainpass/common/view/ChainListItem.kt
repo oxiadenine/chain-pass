@@ -8,6 +8,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIconDefaults
@@ -19,8 +20,12 @@ import io.sunland.chainpass.common.Chain
 @Composable
 fun ChainListItem(chain: Chain, onClick: () -> Unit, onIconDeleteClick: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(modifier = Modifier.padding(all = 16.dp), text = chain.name.value)
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(all = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(modifier = Modifier.padding(start = 14.dp), text = chain.name.value)
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 onClick = onIconDeleteClick
