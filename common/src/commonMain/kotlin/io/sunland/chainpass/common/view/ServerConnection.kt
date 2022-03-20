@@ -7,10 +7,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -66,6 +69,8 @@ class ServerAddress : Settings {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddress) -> Unit) {
+    val focusRequester = FocusRequester()
+
     val hostState = mutableStateOf(serverAddress.host.value)
     val hostErrorState = mutableStateOf(!serverAddress.host.isValid)
 
@@ -123,6 +128,7 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
         Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(modifier = Modifier.padding(vertical = 32.dp), text = "Server Address", fontWeight = FontWeight.Bold)
             TextField(
+                modifier = Modifier.focusRequester(focusRequester),
                 placeholder = { Text(text = "Host") },
                 value = hostState.value,
                 onValueChange = onHostChange,
@@ -161,8 +167,14 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
                 horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
             ) {
                 Text(text = "Secure")
-                Checkbox(checked = secureState.value, onCheckedChange = onSecureCheckedChange)
+                Checkbox(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    checked = secureState.value,
+                    onCheckedChange = onSecureCheckedChange
+                )
             }
+
+            LaunchedEffect(Unit) { focusRequester.requestFocus() }
         }
     }
 }
