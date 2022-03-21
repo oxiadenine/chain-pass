@@ -6,13 +6,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 
 @Composable
 expect fun InputDialog(
-    title: @Composable (() -> Unit)?,
-    placeholder: String,
+    title: @Composable (() -> Unit)? = null,
+    placeholder: @Composable (() -> Unit)? = null,
     value: String,
-    ontValueChange: (String) -> Unit,
-    visualTransformation: VisualTransformation,
-    isError: Boolean,
-    keyboardOptions: KeyboardOptions,
+    onValueChange: (String) -> Unit,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    isError: Boolean = false,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     onDismissRequest: () -> Unit,
     onConfirmRequest: () -> Unit
 )
