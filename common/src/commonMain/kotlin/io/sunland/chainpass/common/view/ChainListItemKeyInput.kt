@@ -22,7 +22,7 @@ fun ChainListItemKeyInput(onInputDismiss: () -> Unit, onInputConfirm: (Chain.Key
             val chainKey = Chain.Key(value)
 
             keyState.value = chainKey.value
-            keyErrorState.value = !chainKey.isValid
+            keyErrorState.value = chainKey.value.isEmpty()
         },
         visualTransformation = PasswordVisualTransformation(),
         isError = keyErrorState.value,
@@ -31,7 +31,7 @@ fun ChainListItemKeyInput(onInputDismiss: () -> Unit, onInputConfirm: (Chain.Key
         onConfirmRequest = {
             val chainKey = Chain.Key(keyState.value)
 
-            keyErrorState.value = !chainKey.isValid
+            keyErrorState.value = chainKey.value.isEmpty()
 
             if (!keyErrorState.value) {
                 onInputConfirm(chainKey)
