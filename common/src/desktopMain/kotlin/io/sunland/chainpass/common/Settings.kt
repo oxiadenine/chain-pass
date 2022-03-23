@@ -2,7 +2,7 @@ package io.sunland.chainpass.common
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.writeText

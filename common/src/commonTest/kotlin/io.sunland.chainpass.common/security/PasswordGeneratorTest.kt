@@ -20,7 +20,7 @@ class PasswordGeneratorTest {
         assertTrue(passwordGenerator.generate(8).matches("^[^\\s]{8}$".toRegex()))
 
         assertTrue(passwordGenerator.generate(alphanumeric = true).matches("^[a-zA-Z\\d]{16}$".toRegex()))
-        assertTrue(passwordGenerator.generate(1,true).matches("^[a-zA-Z\\d]$".toRegex()))
+        assertTrue(passwordGenerator.generate(1, true).matches("^[a-zA-Z\\d]$".toRegex()))
         assertTrue(passwordGenerator.generate(5, true).matches("^[a-zA-Z\\d]{5}$".toRegex()))
         assertTrue(passwordGenerator.generate(8, true).matches("^[a-zA-Z\\d]{8}$".toRegex()))
 

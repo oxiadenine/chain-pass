@@ -1,10 +1,11 @@
 package io.sunland.chainpass.common.view
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -39,14 +40,16 @@ fun ChainLinkSearchListTopBar(onIconArrowBackClick: () -> Unit, onSearch: (Strin
                     onSearch(keywordState.value)
                 },
                 trailingIcon = if (keywordState.value.isNotEmpty()) {
-                    { IconButton(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        onClick = {
-                            keywordState.value = ""
+                    {
+                        IconButton(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            onClick = {
+                                keywordState.value = ""
 
-                            onSearch(keywordState.value)
-                        }
-                    ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) } }
+                                onSearch(keywordState.value)
+                            }
+                        ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
+                    }
                 } else null,
                 singleLine = true,
                 textStyle = TextStyle(fontSize = 16.sp),
@@ -65,12 +68,14 @@ fun ChainLinkSearchListTopBar(onIconArrowBackClick: () -> Unit, onSearch: (Strin
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 onClick = onIconArrowBackClick
-            ) { Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = null,
-                tint = MaterialTheme.colors.primary.let { color ->
-                    Color(color.red, color.green, color.blue, color.alpha / 2)
-                })
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = null,
+                    tint = MaterialTheme.colors.primary.let { color ->
+                        Color(color.red, color.green, color.blue, color.alpha / 2)
+                    }
+                )
             }
         }
     )

@@ -41,10 +41,10 @@ android {
 
     signingConfigs {
         register("release") {
-            keyAlias  = "${rootProject.name}-${project.name}-key"
-            keyPassword  = System.getenv("SIGNING_KEY_PASSWORD")
+            keyAlias = "${rootProject.name}-${project.name}-key"
+            keyPassword = System.getenv("SIGNING_KEY_PASSWORD")
             storeFile = file("${project.projectDir}/keystore.jks")
-            storePassword  = System.getenv("SIGNING_STORE_PASSWORD")
+            storePassword = System.getenv("SIGNING_STORE_PASSWORD")
         }
     }
 

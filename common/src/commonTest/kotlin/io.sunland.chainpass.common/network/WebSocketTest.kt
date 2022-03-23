@@ -13,7 +13,9 @@ class SocketMessageTest {
     @Test
     fun testFrom() {
         SocketMessage.from(Frame.Text("$validData@true")).data.onSuccess { data -> assertEquals(validData, data) }
-        SocketMessage.from(Frame.Text("$errorMessage@false")).data.onFailure { exception -> assertEquals(errorMessage, exception.message) }
+        SocketMessage.from(Frame.Text("$errorMessage@false")).data.onFailure { exception ->
+            assertEquals(errorMessage, exception.message)
+        }
 
         assertFails { SocketMessage.from(Frame.Text("${invalidData}@true")) }
         assertFails { SocketMessage.from(Frame.Text("${invalidData}@false")) }
@@ -21,7 +23,13 @@ class SocketMessageTest {
 
     @Test
     fun testToFrame() {
-        assertEquals(Frame.Text("$validData@true").readText(), SocketMessage.success(validData).toFrame().readText())
-        assertEquals(Frame.Text("$errorMessage@false").readText(), SocketMessage.failure(errorMessage).toFrame().readText())
+        assertEquals(
+            Frame.Text("$validData@true").readText(),
+            SocketMessage.success(validData).toFrame().readText()
+        )
+        assertEquals(
+            Frame.Text("$errorMessage@false").readText(),
+            SocketMessage.failure(errorMessage).toFrame().readText()
+        )
     }
 }
