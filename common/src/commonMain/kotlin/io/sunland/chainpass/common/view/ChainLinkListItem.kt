@@ -29,12 +29,16 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(all = 4.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(modifier = Modifier.padding(start = 14.dp), text = chainLink.name.value)
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(modifier = Modifier.padding(horizontal = 16.dp), text = chainLink.name.value)
+            Row(
+                modifier = Modifier.padding(all = 4.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 IconButton(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = onIconEditClick
@@ -47,17 +51,17 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
         }
         if (chainLink.description.value.isNotEmpty()) {
             Text(
-                modifier = Modifier.padding(all = 18.dp),
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
                 text = chainLink.description.value,
                 fontSize = 14.sp
             )
         }
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SelectionContainer(modifier = Modifier.padding(start = 14.dp)) {
+            SelectionContainer(modifier = Modifier.padding(horizontal = 16.dp)) {
                 if (passwordVisibleState.value) {
                     Text(text = chainLink.password.value)
                 } else DisableSelection {
@@ -65,7 +69,7 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
                 }
             }
             IconButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                modifier = Modifier.padding(horizontal = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 onClick = { passwordVisibleState.value = !passwordVisibleState.value }
             ) { Icon(imageVector = Icons.Default.Lock, contentDescription = null) }
         }

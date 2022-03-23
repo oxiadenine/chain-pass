@@ -3,7 +3,10 @@ package io.sunland.chainpass.common.view
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
@@ -62,12 +65,16 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(all = 4.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(modifier = Modifier.padding(start = 14.dp), text = chainLink.name.value)
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(modifier = Modifier.padding(horizontal = 16.dp), text = chainLink.name.value)
+            Row(
+                modifier = Modifier.padding(all = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 if (passwordState.value != chainLink.password.value) {
                     IconButton(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
@@ -92,7 +99,9 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
                 onValueChange = onPasswordChange,
                 leadingIcon = {
                     IconButton(
-                        modifier = Modifier.padding(horizontal = 2.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        modifier = Modifier
+                            .padding(horizontal = 2.dp)
+                            .pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = { onPasswordChange(passwordGenerator.generate()) }
                     ) { Icon(imageVector = Icons.Default.Build, contentDescription = null) }
                 },

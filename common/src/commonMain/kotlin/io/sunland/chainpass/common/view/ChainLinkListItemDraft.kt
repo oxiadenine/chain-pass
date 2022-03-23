@@ -3,7 +3,10 @@ package io.sunland.chainpass.common.view
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
@@ -76,8 +79,10 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
         passwordValidationState.value = chainLink.password.validation
 
         if (nameValidationState.value.isSuccess && descriptionValidationState.value.isSuccess &&
-            passwordValidationState.value.isSuccess)
-        { onIconDoneClick() }
+            passwordValidationState.value.isSuccess
+        ) {
+            onIconDoneClick()
+        }
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -149,7 +154,8 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
                 onValueChange = onPasswordChange,
                 leadingIcon = {
                     IconButton(
-                        modifier = Modifier.padding(horizontal = 2.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        modifier = Modifier.padding(horizontal = 2.dp)
+                            .pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = { onPasswordChange(passwordGenerator.generate()) }
                     ) { Icon(imageVector = Icons.Default.Build, contentDescription = null) }
                 },

@@ -21,13 +21,13 @@ import io.sunland.chainpass.common.Chain
 fun ChainListItem(chain: Chain, onClick: () -> Unit, onIconDeleteClick: () -> Unit) {
     Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(all = 4.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(modifier = Modifier.padding(start = 14.dp), text = chain.name.value)
+            Text(modifier = Modifier.padding(horizontal = 16.dp), text = chain.name.value)
             IconButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                modifier = Modifier.padding(all = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 onClick = onIconDeleteClick
             ) { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
         }
