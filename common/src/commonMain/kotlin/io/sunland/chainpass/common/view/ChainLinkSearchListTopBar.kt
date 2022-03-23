@@ -2,6 +2,7 @@ package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -18,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -59,7 +61,8 @@ fun ChainLinkSearchListTopBar(onIconArrowBackClick: () -> Unit, onSearch: (Strin
                     unfocusedIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
                 ),
-                keyboardActions = KeyboardActions(onDone = { onSearch(keywordState.value) })
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions = KeyboardActions(onSearch = { onSearch(keywordState.value) })
             )
 
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
