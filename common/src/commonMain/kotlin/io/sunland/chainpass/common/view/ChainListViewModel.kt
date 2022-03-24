@@ -31,7 +31,10 @@ class ChainListViewModel(private val repository: ChainRepository) {
         chainListState.remove(chain)
 
         Chain().apply {
-            val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(chainKey.value, chain.name.value))
+            val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(
+                PasswordEncoder.Base64.encode(chainKey.value.encodeToByteArray()),
+                PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
+            ))
 
             id = chain.id
             name = chain.name
@@ -48,7 +51,10 @@ class ChainListViewModel(private val repository: ChainRepository) {
 
     fun select(chainKey: Chain.Key) = chainSelectState.value?.let { chain ->
         Chain().apply {
-            val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(chainKey.value, chain.name.value))
+            val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(
+                PasswordEncoder.Base64.encode(chainKey.value.encodeToByteArray()),
+                PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
+            ))
 
             id = chain.id
             name = chain.name
@@ -75,9 +81,15 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     suspend fun new(chain: Chain): Result<Unit> {
-        val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(chain.key.value, chain.name.value))
+        val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(
+            PasswordEncoder.Base64.encode(chain.key.value.encodeToByteArray()),
+            PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
+        ))
 
-        val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(secretKey, chain.name.value), secretKey)
+        val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
+            secretKey,
+            PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
+        ), secretKey)
 
         val chainEntity = ChainEntity(chain.id, chain.name.value, privateKey)
 
@@ -91,10 +103,10 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     suspend fun remove(chain: Chain) = repository.key(chain.id).mapCatching { key ->
-        val privateKey = PasswordEncoder.encrypt(
-            EncoderSpec.Passphrase(chain.key.value, chain.name.value),
-            chain.key.value
-        )
+        val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
+            chain.key.value,
+            PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
+        ), chain.key.value)
 
         val hashKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, key.key))
 

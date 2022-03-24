@@ -3,6 +3,7 @@ package io.sunland.chainpass.service.repository
 import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainRepository
+import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.service.ChainTable
 import io.sunland.chainpass.service.Database
 import org.jetbrains.exposed.sql.deleteWhere
@@ -54,7 +55,7 @@ object ChainDataRepository : ChainRepository {
 
             SecureRandom().nextBytes(seedBytes)
 
-            key = ChainKeyEntity(id, Base64.getEncoder().encodeToString(seedBytes))
+            key = ChainKeyEntity(id, PasswordEncoder.Base64.encode(seedBytes))
 
             keys.add(key)
         } else keys.remove(key)
