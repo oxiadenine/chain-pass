@@ -15,7 +15,7 @@ actual object PasswordEncoder {
 
     actual fun hash(passphrase: EncoderSpec.Passphrase): String {
         val keySpec = PBEKeySpec(
-            passphrase.key.toCharArray(),
+            Base64.decode(passphrase.key).decodeToString().toCharArray(),
             MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.salt)),
             EncoderSpec.Strength.ITERATION_COUNT,
             EncoderSpec.Strength.KEY_LENGTH
