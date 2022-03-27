@@ -31,14 +31,9 @@ class ChainListViewModel(private val repository: ChainRepository) {
         chainListState.remove(chain)
 
         Chain().apply {
-            val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(
-                PasswordEncoder.Base64.encode(chainKey.value.encodeToByteArray()),
-                PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
-            ))
-
             id = chain.id
             name = chain.name
-            key = Chain.Key(secretKey)
+            key = chainKey
             status = chain.status
         }
     }
@@ -51,14 +46,9 @@ class ChainListViewModel(private val repository: ChainRepository) {
 
     fun select(chainKey: Chain.Key) = chainSelectState.value?.let { chain ->
         Chain().apply {
-            val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(
-                PasswordEncoder.Base64.encode(chainKey.value.encodeToByteArray()),
-                PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
-            ))
-
             id = chain.id
             name = chain.name
-            key = Chain.Key(secretKey)
+            key = chainKey
             status = chain.status
         }
     }
@@ -89,7 +79,7 @@ class ChainListViewModel(private val repository: ChainRepository) {
         val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
             secretKey,
             PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
-        ), secretKey)
+        ), chain.key.value)
 
         val chainEntity = ChainEntity(chain.id, chain.name.value, privateKey)
 
@@ -103,8 +93,13 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     suspend fun remove(chain: Chain) = repository.key(chain.id).mapCatching { chainKeyEntity ->
+        val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(
+            PasswordEncoder.Base64.encode(chain.key.value.encodeToByteArray()),
+            PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
+        ))
+
         val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
-            chain.key.value,
+            secretKey,
             PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
         ), chain.key.value)
 
