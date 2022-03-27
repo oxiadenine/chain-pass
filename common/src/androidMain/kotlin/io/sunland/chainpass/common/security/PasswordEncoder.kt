@@ -17,7 +17,7 @@ actual object PasswordEncoder {
     actual fun hash(passphrase: EncoderSpec.Passphrase): String {
         val keySpec = PBEKeySpec(
             passphrase.key.toCharArray(),
-            MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.seed)),
+            MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.salt)),
             EncoderSpec.Strength.ITERATION_COUNT,
             EncoderSpec.Strength.KEY_LENGTH
         )
@@ -32,7 +32,7 @@ actual object PasswordEncoder {
 
         val ivParamSpec = GCMParameterSpec(
             EncoderSpec.Strength.TAG_LENGTH,
-            MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.seed))
+            MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.salt))
         )
 
         return Cipher.getInstance(EncoderSpec.Algorithm.AESGCMNoPadding).let { cipher ->
@@ -46,7 +46,7 @@ actual object PasswordEncoder {
 
         val ivParamSpec = GCMParameterSpec(
             EncoderSpec.Strength.TAG_LENGTH,
-            MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.seed))
+            MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.salt))
         )
 
         return Cipher.getInstance(EncoderSpec.Algorithm.AESGCMNoPadding).let { cipher ->

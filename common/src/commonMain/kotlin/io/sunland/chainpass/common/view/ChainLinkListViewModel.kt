@@ -89,15 +89,15 @@ class ChainLinkListViewModel(
         chainLinkSearchListState.clear()
     }
 
-    suspend fun getAll() = chainRepository.key(chain!!.id).mapCatching { key ->
+    suspend fun getAll() = chainRepository.key(chain!!.id).mapCatching { chainKeyEntity ->
         val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
             chain!!.key.value,
             PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
         ), chain!!.key.value)
 
-        val hashKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, key.key))
+        val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
-        chainLinkRepository.read(ChainKeyEntity(chain!!.id, hashKey)).getOrThrow()
+        chainLinkRepository.read(ChainKeyEntity(chain!!.id, saltKey)).getOrThrow()
     }.map { chainLinkEntities ->
         chainLinks = chainLinkEntities.map { chainLinkEntity ->
             val plainPassword = PasswordEncoder.decrypt(EncoderSpec.Passphrase(
@@ -127,13 +127,13 @@ class ChainLinkListViewModel(
         } else chainLinks.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
     }
 
-    suspend fun new(chainLink: ChainLink) = chainRepository.key(chain!!.id).mapCatching { key ->
+    suspend fun new(chainLink: ChainLink) = chainRepository.key(chain!!.id).mapCatching { chainKeyEntity ->
         val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
             chain!!.key.value,
             PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
         ), chain!!.key.value)
 
-        val hashKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, key.key))
+        val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
         val encryptedPassword = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
             chain!!.key.value,
@@ -145,7 +145,7 @@ class ChainLinkListViewModel(
             chainLink.name.value,
             chainLink.description.value,
             encryptedPassword,
-            ChainKeyEntity(chain!!.id, hashKey)
+            ChainKeyEntity(chain!!.id, saltKey)
         )
 
         chainLinkRepository.create(chainLinkEntity).getOrThrow()
@@ -156,13 +156,13 @@ class ChainLinkListViewModel(
         update()
     }
 
-    suspend fun edit(chainLink: ChainLink) = chainRepository.key(chain!!.id).mapCatching { key ->
+    suspend fun edit(chainLink: ChainLink) = chainRepository.key(chain!!.id).mapCatching { chainKeyEntity ->
         val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
             chain!!.key.value,
             PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
         ), chain!!.key.value)
 
-        val hashKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, key.key))
+        val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
         val encryptedPassword = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
             chain!!.key.value,
@@ -174,7 +174,7 @@ class ChainLinkListViewModel(
             chainLink.name.value,
             chainLink.description.value,
             encryptedPassword,
-            ChainKeyEntity(chain!!.id, hashKey)
+            ChainKeyEntity(chain!!.id, saltKey)
         )
 
         chainLinkRepository.update(chainLinkEntity).getOrThrow()
@@ -182,13 +182,13 @@ class ChainLinkListViewModel(
         endEdit(chainLink)
     }
 
-    suspend fun remove(chainLink: ChainLink) = chainRepository.key(chain!!.id).mapCatching { key ->
+    suspend fun remove(chainLink: ChainLink) = chainRepository.key(chain!!.id).mapCatching { chainKeyEntity ->
         val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
             chain!!.key.value,
             PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
         ), chain!!.key.value)
 
-        val hashKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, key.key))
+        val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
         val encryptedPassword = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
             chain!!.key.value,
@@ -200,7 +200,7 @@ class ChainLinkListViewModel(
             chainLink.name.value,
             chainLink.description.value,
             encryptedPassword,
-            ChainKeyEntity(chain!!.id, hashKey)
+            ChainKeyEntity(chain!!.id, saltKey)
         )
 
         chainLinkRepository.delete(chainLinkEntity).getOrThrow()

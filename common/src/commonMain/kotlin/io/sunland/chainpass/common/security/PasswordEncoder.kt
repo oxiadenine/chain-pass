@@ -13,10 +13,9 @@ object EncoderSpec {
         const val ITERATION_COUNT = 100000
         const val KEY_LENGTH = 256
         const val TAG_LENGTH = 128
-        const val IV_LENGTH = 128
     }
 
-    data class Passphrase(val key: String, val seed: String)
+    data class Passphrase(val key: String, val salt: String)
 }
 
 expect object PasswordEncoder {
