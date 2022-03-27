@@ -54,10 +54,22 @@ class ChainLinkListViewModel(
         }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
     }
 
-    fun endEdit(chainLink: ChainLink) {
-        chainLink.status = ChainLink.Status.ACTUAL
+    fun cancelEdit() {
+        val draftChainLinks = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
+        val editChainLinks = chainLinkListState.filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
 
-        update()
+        chainLinkListState.clear()
+        chainLinkListState.addAll(editChainLinks.map { chainLink ->
+            if (chainLink.status == ChainLink.Status.EDIT) {
+                chainLink.status = ChainLink.Status.ACTUAL
+            }
+
+            if (!chainLink.password.isPrivate) {
+                lockPassword(chainLink)
+            }
+
+            chainLink
+        }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
     }
 
     fun removeLater(chainLink: ChainLink) {
@@ -224,7 +236,9 @@ class ChainLinkListViewModel(
 
         chainLinkRepository.update(chainLinkEntity).getOrThrow()
 
-        endEdit(chainLink)
+        chainLink.status = ChainLink.Status.ACTUAL
+
+        update()
     }
 
     suspend fun remove(chainLink: ChainLink) = chainRepository.key(chain!!.id).mapCatching { chainKeyEntity ->

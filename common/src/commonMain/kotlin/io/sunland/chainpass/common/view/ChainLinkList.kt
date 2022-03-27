@@ -33,7 +33,11 @@ fun ChainLinkList(
             )
         } else {
             ChainLinkListTopBar(
-                onIconArrowBackClick = onBack,
+                onIconArrowBackClick = {
+                    viewModel.cancelEdit()
+
+                    onBack()
+                },
                 onIconRefreshClick = onRefresh,
                 onIconAddClick = { viewModel.draft() },
                 onIconSearchClick = { viewModel.startSearch() }
@@ -107,10 +111,7 @@ fun ChainLinkList(
                                     ChainLinkListItemEdit(
                                         chainLink = chainLink,
                                         onIconDoneClick = { onItemEdit(chainLink) },
-                                        onIconClearClick = {
-                                            viewModel.lockPassword(chainLink)
-                                            viewModel.endEdit(chainLink)
-                                        }
+                                        onIconClearClick = { viewModel.cancelEdit() }
                                     )
                                 }
                             }
