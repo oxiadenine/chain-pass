@@ -26,7 +26,7 @@ actual object PasswordEncoder {
         return Base64.encode(secretKey.encoded)
     }
 
-    actual fun encrypt(passphrase: EncoderSpec.Passphrase, password: String): String {
+    actual fun encrypt(password: String, passphrase: EncoderSpec.Passphrase): String {
         val secretKey = SecretKeySpec(Base64.decode(passphrase.key), EncoderSpec.AES)
 
         val ivParamSpec = GCMParameterSpec(
@@ -40,7 +40,7 @@ actual object PasswordEncoder {
         }
     }
 
-    actual fun decrypt(passphrase: EncoderSpec.Passphrase, password: String): String {
+    actual fun decrypt(password: String, passphrase: EncoderSpec.Passphrase): String {
         val secretKey = SecretKeySpec(Base64.decode(passphrase.key), EncoderSpec.AES)
 
         val ivParamSpec = GCMParameterSpec(
