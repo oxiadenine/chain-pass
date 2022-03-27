@@ -25,7 +25,7 @@ class ChainLink {
         } ?: Result.success(this.value)
     }
 
-    class Password(value: String? = null) {
+    class Password(value: String? = null, val isPrivate: Boolean = true) {
         var value = value ?: ""
             private set
 

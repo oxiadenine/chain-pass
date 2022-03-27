@@ -12,20 +12,31 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconDeleteClick: () -> Unit) {
-    val passwordVisibleState = remember { mutableStateOf(false) }
+fun ChainLinkListItem(
+    chainLink: ChainLink,
+    onIconEditClick: () -> Unit,
+    onIconDeleteClick: () -> Unit,
+    onIconLockClick: (Boolean) -> Unit
+) {
+    val passwordLockState = mutableStateOf(chainLink.password.isPrivate)
+
+    val onLock = {
+        onIconLockClick(passwordLockState.value)
+
+        passwordLockState.value = !passwordLockState.value
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -41,11 +52,23 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
             ) {
                 IconButton(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onIconEditClick
+                    onClick = {
+                        if (!passwordLockState.value) {
+                            onLock()
+                        }
+
+                        onIconEditClick()
+                    }
                 ) { Icon(imageVector = Icons.Default.Edit, contentDescription = null) }
                 IconButton(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onIconDeleteClick
+                    onClick = {
+                        if (!passwordLockState.value) {
+                            onLock()
+                        }
+
+                        onIconDeleteClick()
+                    }
                 ) { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
             }
         }
@@ -62,15 +85,13 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
             verticalAlignment = Alignment.CenterVertically
         ) {
             SelectionContainer(modifier = Modifier.padding(horizontal = 16.dp)) {
-                if (passwordVisibleState.value) {
-                    Text(text = chainLink.password.value)
-                } else DisableSelection {
-                    Text(text = chainLink.password.value.toList().joinToString(separator = "") { "*" })
-                }
+                if (passwordLockState.value) {
+                    DisableSelection { Text(text = "???", fontStyle = FontStyle.Italic) }
+                } else Text(text = chainLink.password.value)
             }
             IconButton(
                 modifier = Modifier.padding(horizontal = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = { passwordVisibleState.value = !passwordVisibleState.value }
+                onClick = onLock
             ) { Icon(imageVector = Icons.Default.Lock, contentDescription = null) }
         }
     }
