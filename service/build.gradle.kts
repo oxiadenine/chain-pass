@@ -22,6 +22,11 @@ dependencies {
     implementation(h2Dependency())
 
     testImplementation(kotlin("test", kotlinVersion()))
+
+    testImplementation(junitDependency("jupiter-api"))
+    testRuntimeOnly(junitDependency("jupiter-engine"))
+
+    testImplementation(ktorDependency("server-test-host"))
 }
 
 java {
@@ -34,6 +39,10 @@ kotlin {
         kotlinOptions {
             jvmTarget = "11"
         }
+    }
+
+    tasks.test {
+        useJUnitPlatform()
     }
 }
 
