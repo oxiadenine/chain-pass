@@ -5,10 +5,8 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.features.*
-import io.ktor.client.features.logging.*
-import io.ktor.client.features.websocket.*
-import io.ktor.http.*
+import io.ktor.client.plugins.logging.*
+import io.ktor.client.plugins.websocket.*
 import io.sunland.chainpass.common.*
 import io.sunland.chainpass.common.view.ServerAddress
 
@@ -26,8 +24,6 @@ class MainActivity : AppCompatActivity() {
                 HttpClient(CIO) {
                     install(WebSockets)
                     install(Logging)
-
-                    defaultRequest { method = HttpMethod.Get }
                 },
                 Screen.SERVER_CONNECTION
             )

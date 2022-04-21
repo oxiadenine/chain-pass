@@ -1,6 +1,6 @@
 package io.sunland.chainpass.common.network
 
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 
 enum class SocketRoute(val path: String) {
     CHAIN_CREATE("/chain/create"),

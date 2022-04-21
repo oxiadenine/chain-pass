@@ -4,10 +4,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
-import io.ktor.client.features.*
-import io.ktor.client.features.logging.*
-import io.ktor.client.features.websocket.*
-import io.ktor.http.*
+import io.ktor.client.plugins.logging.*
+import io.ktor.client.plugins.websocket.*
 import io.sunland.chainpass.common.App
 import io.sunland.chainpass.common.Screen
 import io.sunland.chainpass.common.SettingsFactory
@@ -20,8 +18,6 @@ fun main() = application {
         HttpClient(CIO) {
             install(WebSockets)
             install(Logging)
-
-            defaultRequest { method = HttpMethod.Get }
         },
         Screen.SERVER_CONNECTION
     )

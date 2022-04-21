@@ -12,7 +12,7 @@ dependencies {
     implementation(compose.desktop.currentOs)
 
     implementation(ktorDependency("server-netty"))
-    implementation(ktorDependency("websockets"))
+    implementation(ktorDependency("server-websockets"))
 
     implementation(exposedDependency("core"))
     implementation(exposedDependency("dao"))

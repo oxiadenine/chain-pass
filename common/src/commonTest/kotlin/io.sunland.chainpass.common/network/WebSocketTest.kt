@@ -1,6 +1,6 @@
 package io.sunland.chainpass.common.network
 
-import io.ktor.http.cio.websocket.*
+import io.ktor.websocket.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails

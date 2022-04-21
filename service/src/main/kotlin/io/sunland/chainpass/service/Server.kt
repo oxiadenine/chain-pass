@@ -1,8 +1,8 @@
 package io.sunland.chainpass.service
 
-import io.ktor.application.*
-import io.ktor.http.cio.websocket.*
-import io.ktor.routing.*
+import io.ktor.server.application.*
+import io.ktor.server.routing.*
+import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.network.SocketMessage
@@ -40,7 +40,7 @@ fun Application.main() {
                 )
             }.fold(
                 onSuccess = { message -> send(message.toFrame()) },
-                onFailure = { exception -> log.info(exception.message) }
+                onFailure = { exception -> call.application.environment.log.info(exception.message) }
             )
 
             close()
@@ -56,7 +56,7 @@ fun Application.main() {
                 )
             }.fold(
                 onSuccess = { message -> send(message.toFrame()) },
-                onFailure = { exception -> log.info(exception.message) }
+                onFailure = { exception -> call.application.environment.log.info(exception.message) }
             )
 
             close()
@@ -83,7 +83,7 @@ fun Application.main() {
                     )
             }.fold(
                 onSuccess = { message -> send(message.toFrame()) },
-                onFailure = { exception -> log.info(exception.message) }
+                onFailure = { exception -> call.application.environment.log.info(exception.message) }
             )
 
             close()
@@ -101,7 +101,7 @@ fun Application.main() {
                 )
             }.fold(
                 onSuccess = { message -> send(message.toFrame()) },
-                onFailure = { exception -> log.info(exception.message) }
+                onFailure = { exception -> call.application.environment.log.info(exception.message) }
             )
 
             close()
@@ -132,7 +132,7 @@ fun Application.main() {
                     )
             }.fold(
                 onSuccess = { message -> send(message.toFrame()) },
-                onFailure = { exception -> log.info(exception.message) }
+                onFailure = { exception -> call.application.environment.log.info(exception.message) }
             )
 
             close()
@@ -159,7 +159,7 @@ fun Application.main() {
                     )
             }.fold(
                 onSuccess = { message -> send(message.toFrame()) },
-                onFailure = { exception -> log.info(exception.message) }
+                onFailure = { exception -> call.application.environment.log.info(exception.message) }
             )
 
             close()
@@ -186,7 +186,7 @@ fun Application.main() {
                     )
             }.fold(
                 onSuccess = { message -> send(message.toFrame()) },
-                onFailure = { exception -> log.info(exception.message) }
+                onFailure = { exception -> call.application.environment.log.info(exception.message) }
             )
 
             close()
@@ -213,7 +213,7 @@ fun Application.main() {
                     )
             }.fold(
                 onSuccess = { message -> send(message.toFrame()) },
-                onFailure = { exception -> log.info(exception.message) }
+                onFailure = { exception -> call.application.environment.log.info(exception.message) }
             )
 
             close()

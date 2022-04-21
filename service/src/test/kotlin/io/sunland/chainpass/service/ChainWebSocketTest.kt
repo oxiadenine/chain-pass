@@ -1,10 +1,11 @@
 package io.sunland.chainpass.service
 
 import com.typesafe.config.ConfigFactory
-import io.ktor.config.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.client.plugins.websocket.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.testing.*
+import io.ktor.websocket.*
 import io.sunland.chainpass.common.network.SocketMessage
 import io.sunland.chainpass.common.network.SocketRoute
 import io.sunland.chainpass.common.repository.ChainEntity
@@ -21,18 +22,6 @@ import kotlin.test.assertTrue
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class ChainWebSocketTest {
-    private val appEngineEnv: ApplicationEngineEnvironment
-        get() = createTestEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.load())
-
-            module { main() }
-
-            connector {
-                host = config.property("server.host").getString()
-                port = config.property("server.port").getString().toInt()
-            }
-        }
-
     private var chainEntity = ChainEntity(0, "test", "test")
     private var chainKeyEntity = ChainKeyEntity(chainEntity.id, chainEntity.key)
 
@@ -41,8 +30,23 @@ class ChainWebSocketTest {
     @Test
     @Order(1)
     fun testCreate() {
-        withApplication(appEngineEnv) {
-            handleWebSocketConversation(SocketRoute.CHAIN_CREATE.path) { incoming, outgoing ->
+        testApplication {
+            environment {
+                config = HoconApplicationConfig(ConfigFactory.load())
+
+                module { main() }
+
+                connector {
+                    host = config.property("server.host").getString()
+                    port = config.property("server.port").getString().toInt()
+                }
+            }
+
+            val client = createClient {
+                install(WebSockets)
+            }
+
+            client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_CREATE.path) {
                 chainEntity = ChainEntity(
                     chainEntity.id,
                     chainEntity.name,
@@ -80,10 +84,33 @@ class ChainWebSocketTest {
     @Test
     @Order(3)
     fun testDelete() {
-        getChainKey()
+        testApplication {
+            environment {
+                config = HoconApplicationConfig(ConfigFactory.load())
 
-        withApplication(appEngineEnv) {
-            handleWebSocketConversation(SocketRoute.CHAIN_DELETE.path) { incoming, outgoing ->
+                module { main() }
+
+                connector {
+                    host = config.property("server.host").getString()
+                    port = config.property("server.port").getString().toInt()
+                }
+            }
+
+            val client = createClient {
+                install(WebSockets)
+            }
+
+            client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_KEY.path) {
+                outgoing.send(SocketMessage.success(chainEntity.id.toString()).toFrame())
+
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+                chainKeyEntity = Json.decodeFromString(message.data.getOrThrow())
+
+                assertTrue { chainKeyEntity.key != "" }
+            }
+
+            client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_DELETE.path) {
                 chainKeyEntity = ChainKeyEntity(
                     chainKeyEntity.id,
                     PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, chainKeyEntity.key))
@@ -100,34 +127,33 @@ class ChainWebSocketTest {
         checkTest(Operation.DELETE)
     }
 
-    private fun getChainKey() {
-        withApplication(appEngineEnv) {
-            handleWebSocketConversation(SocketRoute.CHAIN_KEY.path) { incoming, outgoing ->
-                outgoing.send(SocketMessage.success(chainEntity.id.toString()).toFrame())
+    private fun checkTest(operation: Operation) = testApplication {
+        environment {
+            config = HoconApplicationConfig(ConfigFactory.load())
 
-                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+            module { main() }
 
-                chainKeyEntity = Json.decodeFromString(message.data.getOrThrow())
-
-                assertTrue { chainKeyEntity.key != "" }
+            connector {
+                host = config.property("server.host").getString()
+                port = config.property("server.port").getString().toInt()
             }
         }
-    }
 
-    private fun checkTest(operation: Operation) {
-        withApplication(appEngineEnv) {
-            handleWebSocketConversation(SocketRoute.CHAIN_READ.path) { incoming, outgoing ->
-                outgoing.send(SocketMessage.success().toFrame())
+        val client = createClient {
+            install(WebSockets)
+        }
 
-                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+        client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_READ.path) {
+            outgoing.send(SocketMessage.success().toFrame())
 
-                val chainEntities = Json.decodeFromString<List<ChainEntity>>(message.data.getOrThrow())
+            val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-                when (operation) {
-                    Operation.CREATE -> assertTrue { chainEntities.first().id == chainEntity.id }
-                    Operation.READ -> assertTrue { chainEntities.size == 1 }
-                    Operation.DELETE -> assertTrue { chainEntities.isEmpty() }
-                }
+            val chainEntities = Json.decodeFromString<List<ChainEntity>>(message.data.getOrThrow())
+
+            when (operation) {
+                Operation.CREATE -> { assertTrue { chainEntities.last().id == chainEntity.id } }
+                Operation.READ -> assertTrue { chainEntities.size == 1 }
+                Operation.DELETE -> assertTrue { chainEntities.isEmpty() }
             }
         }
     }
