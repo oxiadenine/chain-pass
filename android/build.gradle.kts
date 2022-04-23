@@ -23,11 +23,11 @@ android {
 
         applicationId = "${rootProject.group}.chainpass.${project.name}"
         versionCode = 1
-        versionName = "1.0"
+        versionName = rootProject.version as String
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        setProperty("archivesBaseName", "${rootProject.name}-${project.name}")
+        setProperty("archivesBaseName", "${rootProject.name}-${project.name}-${rootProject.version}")
     }
 
     compileOptions {
