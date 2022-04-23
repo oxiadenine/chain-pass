@@ -1,10 +1,10 @@
-package io.sunland.chainpass.service.repository
+package io.sunland.chainpass.server.repository
 
 import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
-import io.sunland.chainpass.service.ChainLinkTable
-import io.sunland.chainpass.service.Database
+import io.sunland.chainpass.server.ChainLinkTable
+import io.sunland.chainpass.server.Database
 import org.jetbrains.exposed.sql.*
 
 object ChainLinkDataRepository : ChainLinkRepository {

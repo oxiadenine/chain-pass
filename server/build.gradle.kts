@@ -57,9 +57,9 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Deb, TargetFormat.Exe)
 
-            packageName = "Chain Pass Service"
+            packageName = "Chain Pass Server"
             packageVersion = rootProject.version as String
-            description = "Chain Pass Service"
+            description = "Server for save and manage passwords"
             vendor = "SunLand"
 
             val iconsDir = "${project.buildDir}/resources/main"

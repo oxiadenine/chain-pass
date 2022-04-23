@@ -1,4 +1,4 @@
-package io.sunland.chainpass.service
+package io.sunland.chainpass.server
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

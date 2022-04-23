@@ -1,4 +1,4 @@
-package io.sunland.chainpass.service
+package io.sunland.chainpass.server
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
@@ -12,18 +12,17 @@ import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
-import io.sunland.chainpass.service.repository.ChainDataRepository
-import io.sunland.chainpass.service.repository.ChainLinkDataRepository
+import io.sunland.chainpass.server.repository.ChainDataRepository
+import io.sunland.chainpass.server.repository.ChainLinkDataRepository
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 fun Application.main() {
-    install(WebSockets)
-
     Database.connect(environment.config.config("database"))
 
-    routing {
+    install(WebSockets)
+    install(Routing) {
         webSocket(SocketRoute.CHAIN_CREATE.path) {
             runCatching {
                 val message = SocketMessage.from(incoming.receive() as Frame.Text)

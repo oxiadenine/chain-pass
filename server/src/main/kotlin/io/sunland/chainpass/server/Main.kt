@@ -1,4 +1,4 @@
-package io.sunland.chainpass.service
+package io.sunland.chainpass.server
 
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Tray
