@@ -51,7 +51,12 @@ kotlin {
             }
         }
 
-        named("androidMain")
+        named("androidMain") {
+            dependencies {
+                api(androidxDependency("core-ktx"))
+                api(androidxDependency("appcompat"))
+            }
+        }
         named("androidTest") {
             dependencies {
                 implementation(kotlin("test"))
@@ -73,5 +78,10 @@ android {
         targetCompatibility(JavaVersion.VERSION_11)
     }
 
-    sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
+    sourceSets {
+        named("main") {
+            manifest.srcFile("src/androidMain/AndroidManifest.xml")
+            res.srcDirs("src/androidMain/res")
+        }
+    }
 }

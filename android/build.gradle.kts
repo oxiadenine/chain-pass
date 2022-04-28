@@ -7,8 +7,6 @@ plugins {
 dependencies {
     implementation(project(":common"))
 
-    implementation(androidxDependency("core-ktx"))
-    implementation(androidxDependency("appcompat"))
     implementation(androidxDependency("activity-compose"))
 
     testImplementation(kotlin("test", kotlinVersion()))
