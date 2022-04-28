@@ -38,20 +38,23 @@ compose.desktop {
 
             packageName = "Chain Pass"
             packageVersion = rootProject.version as String
-            description = "Save and manage passwords"
             vendor = "SunLand"
 
             val iconsDir = "${project.buildDir}/resources/main"
 
             linux {
                 packageName = "${rootProject.name}-${project.name}"
+                menuGroup = "Security"
+                appCategory = "Security"
 
                 iconFile.set(project.file("$iconsDir/icon.png"))
             }
 
             windows {
+                menuGroup = "Security"
                 perUserInstall = true
                 menu = true
+                shortcut = true
 
                 iconFile.set(project.file("$iconsDir/icon.ico"))
             }
