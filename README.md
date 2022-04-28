@@ -1,3 +1,5 @@
+[![latest release](https://img.shields.io/github/v/release/sunlandx/chain-pass?color=brightgreen&label=latest%20release)](https://github.com/sunlandx/chain-pass/releases/latest)
+
 # Chain Pass
 
 A project built with [JetBrains Compose Multiplatform](https://www.jetbrains.com/lp/compose-mpp/)
