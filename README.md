@@ -42,15 +42,15 @@ This project uses [Docker](https://www.docker.com/) for deployment.
 
 To manage services run the following commands:
 
-- Build and start services with `docker-compose -f ./docker-compose.yml up -d`
+- Build and start services with `docker-compose -f ./docker-compose.yml up -d --build`
 - Stop and terminate services with `docker-compose -f ./docker-compose.yml down`
 
 ## Distribution
 
 To package applications run the following commands with Gradle:
 
-- Create Desktop binaries with `desktop:packageDeb` or `desktop:packageExe`
+- Create Desktop binaries with `desktop:package`
 - Create Android APKs with `android:build`
-- Create Service binaries with `service:packageDeb` or `service:packageExe`
+- Create Server binaries with `server:package`
 
 **Packaging requires JDK 17 to be installed.**
