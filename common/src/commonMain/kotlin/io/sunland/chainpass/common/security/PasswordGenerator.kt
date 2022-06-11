@@ -55,9 +55,7 @@ class PasswordGenerator(private val strength: GeneratorSpec.Strength) {
             }
 
             if (length % 2 != 0 && charCount == 0) {
-                val charCodeRange = charCodeRanges.ranges[0]
-
-                charNumbers.add(RandomInt.next(charCodeRange))
+                charNumbers.add(RandomInt.next(charCodeRanges.ranges[0]))
             }
         }
 
