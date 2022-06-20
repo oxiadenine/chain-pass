@@ -54,24 +54,16 @@ class ServerAddress : Settings {
         } ?: Result.success(this.value)
     }
 
-    enum class Protocol { WS, WSS }
-
     var host = Host()
     var port = Port()
-    var protocol = Protocol.WS
 
     override val fileName: String = "server-address"
 
-    override fun toMap(): Map<String, String> = mapOf(
-        "host" to host.value,
-        "port" to port.value,
-        "protocol" to protocol.name
-    )
+    override fun toMap(): Map<String, String> = mapOf("host" to host.value, "port" to port.value)
 
     override fun fromMap(data: Map<String, String>) = apply {
         host = Host(data["host"]!!)
         port = Port(data["port"]!!)
-        protocol = Protocol.valueOf(data["protocol"]!!)
     }
 }
 
@@ -83,8 +75,6 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
 
     val portState = mutableStateOf(serverAddress.port.value)
     val portValidationState = mutableStateOf(serverAddress.port.validation)
-
-    val secureState = mutableStateOf(serverAddress.protocol != ServerAddress.Protocol.WS)
 
     val onHostChange = { host: String ->
         serverAddress.host = ServerAddress.Host(host)
@@ -100,20 +90,9 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
         portValidationState.value = serverAddress.port.validation
     }
 
-    val onSecureCheckedChange = { isSecure: Boolean ->
-        serverAddress.protocol = if (!isSecure) {
-            ServerAddress.Protocol.WS
-        } else ServerAddress.Protocol.WSS
-
-        secureState.value = serverAddress.protocol != ServerAddress.Protocol.WS
-    }
-
     val onDone = {
         serverAddress.host = ServerAddress.Host(hostState.value)
         serverAddress.port = ServerAddress.Port(portState.value)
-        serverAddress.protocol = if (!secureState.value) {
-            ServerAddress.Protocol.WS
-        } else ServerAddress.Protocol.WSS
 
         hostValidationState.value = serverAddress.host.validation
         portValidationState.value = serverAddress.port.validation
@@ -177,18 +156,6 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 keyboardActions = KeyboardActions(onDone = { onDone() })
             )
-            Row(
-                modifier = Modifier.padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
-            ) {
-                Text(text = "Secure")
-                Checkbox(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    checked = secureState.value,
-                    onCheckedChange = onSecureCheckedChange
-                )
-            }
 
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
         }

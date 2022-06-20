@@ -73,7 +73,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                     host = settings.host.value
                     port = settings.port.value.toInt()
                     url {
-                        protocol = URLProtocol.byName[settings.protocol.name.lowercase()]!!
+                        protocol = URLProtocol.WS
                     }
                 }
             }
@@ -130,7 +130,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                         host = serverAddress.host.value
                                         port = serverAddress.port.value.toInt()
                                         url {
-                                            protocol = URLProtocol.byName[serverAddress.protocol.name.lowercase()]!!
+                                            protocol = URLProtocol.WS
                                         }
                                     }
                                 }
