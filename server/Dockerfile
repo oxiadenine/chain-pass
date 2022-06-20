@@ -1,9 +1,15 @@
 FROM openjdk:11
 
+ARG version
+ARG buildDir
+
+ENV VERSION=$version
+ENV BUILD_DIR=$buildDir
+
 RUN mkdir -p /app/db
 
-COPY server/build/libs/chain-pass-server.jar /app
+COPY $BUILD_DIR/chain-pass-server-$VERSION.jar /app
 
 WORKDIR /app
 
-CMD ["java", "-server", "-jar", "chain-pass-server.jar"]
+ENTRYPOINT java -jar chain-pass-server-$VERSION.jar

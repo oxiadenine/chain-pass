@@ -19,13 +19,13 @@ android {
         minSdk = 24
         targetSdk = 31
 
-        applicationId = "${rootProject.group}.chainpass.${project.name}"
+        applicationId = "${project.group}.chainpass.${project.name}"
         versionCode = 1
-        versionName = rootProject.version as String
+        versionName = project.version as String
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        setProperty("archivesBaseName", "${rootProject.name}-${project.name}-${rootProject.version}")
+        setProperty("archivesBaseName", "${rootProject.name}-${project.name}-${project.version}")
     }
 
     compileOptions {

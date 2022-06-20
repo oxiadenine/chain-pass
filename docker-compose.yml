@@ -5,23 +5,11 @@ services:
     build:
       context: ./
       dockerfile: ./server/Dockerfile
-    expose:
-      - ${SERVER_PORT}
+      args:
+        version: ${VERSION}
+        buildDir: ./server/build/libs
+    ports:
+      - 8080:8080
     env_file: ./server/.env
     volumes:
-      - ${DATABASE_DIR}:/app/db
-    labels:
-      - traefik.http.routers.ws.rule=Host(`${SERVER_HOST}`)
-      - traefik.http.routers.ws.tls=${TLS_ENABLE}
-  chain-pass-proxy:
-    image: traefik
-    container_name: chain-pass-proxy
-    ports:
-      - 80:80
-      - 443:443
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    command:
-      - --providers.docker=true
-      - --entrypoints.ws.address=:80
-      - --entrypoints.wss.address=:443
+      - ./server/db:/app/db

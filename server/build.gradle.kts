@@ -48,7 +48,6 @@ kotlin {
             }
 
             archiveBaseName.set("${rootProject.name}-${project.name}")
-            archiveVersion.set("")
 
             from(configurations["runtimeClasspath"].map { file: File ->
                 if (file.isDirectory) file else zipTree(file)
