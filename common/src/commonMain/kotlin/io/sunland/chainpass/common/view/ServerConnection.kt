@@ -5,8 +5,10 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -24,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Settings
 import io.sunland.chainpass.common.component.ValidationTextField
+import kotlinx.coroutines.Job
 
 class ServerAddress : Settings {
     class Host(value: String? = null) {
@@ -67,37 +70,48 @@ class ServerAddress : Settings {
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
-@Composable
-fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddress) -> Unit) {
+class ServerConnectionState(serverAddress: ServerAddress) {
     val hostState = mutableStateOf(serverAddress.host.value)
     val hostValidationState = mutableStateOf(serverAddress.host.validation)
 
     val portState = mutableStateOf(serverAddress.port.value)
     val portValidationState = mutableStateOf(serverAddress.port.validation)
 
-    val onHostChange = { host: String ->
-        serverAddress.host = ServerAddress.Host(host)
+    val discoveringState = mutableStateOf<Job?>(null)
+}
 
-        hostState.value = serverAddress.host.value
-        hostValidationState.value = serverAddress.host.validation
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun ServerConnection(
+    serverConnectionState: ServerConnectionState,
+    onIconRefreshClick: () -> Unit,
+    onIconDoneClick: (ServerAddress) -> Unit
+) {
+    val onHostChange = { value: String ->
+        val host = ServerAddress.Host(value)
+
+        serverConnectionState.hostState.value = host.value
+        serverConnectionState.hostValidationState.value = host.validation
     }
 
-    val onPortChange = { port: String ->
-        serverAddress.port = ServerAddress.Port(port)
+    val onPortChange = { value: String ->
+        val port = ServerAddress.Port(value)
 
-        portState.value = serverAddress.port.value
-        portValidationState.value = serverAddress.port.validation
+        serverConnectionState.portState.value = port.value
+        serverConnectionState.portValidationState.value = port.validation
     }
 
     val onDone = {
-        serverAddress.host = ServerAddress.Host(hostState.value)
-        serverAddress.port = ServerAddress.Port(portState.value)
+        val serverAddress = ServerAddress().apply {
+            host = ServerAddress.Host(serverConnectionState.hostState.value)
+            port = ServerAddress.Port(serverConnectionState.portState.value)
+        }
 
-        hostValidationState.value = serverAddress.host.validation
-        portValidationState.value = serverAddress.port.validation
+        serverConnectionState.hostValidationState.value = serverAddress.host.validation
+        serverConnectionState.portValidationState.value = serverAddress.port.validation
 
-        if (hostValidationState.value.isSuccess && portValidationState.value.isSuccess) {
+        if (serverConnectionState.hostValidationState.value.isSuccess &&
+            serverConnectionState.portValidationState.value.isSuccess) {
             onIconDoneClick(serverAddress)
         }
     }
@@ -109,8 +123,25 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
             actions = {
                 IconButton(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onDone
-                ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
+                    onClick = onIconRefreshClick,
+                    enabled = serverConnectionState.discoveringState.value?.isActive != true
+                ) { Icon(imageVector = Icons.Default.Refresh, contentDescription = null) }
+                if (serverConnectionState.discoveringState.value?.isActive == true) {
+                    IconButton(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        onClick = {
+                            serverConnectionState.discoveringState.value?.cancel()
+                            serverConnectionState.discoveringState.value = null
+                        },
+                        enabled = serverConnectionState.discoveringState.value?.isActive == true
+                    ) { Icon(imageVector = Icons.Default.Close, contentDescription = null) }
+                } else {
+                    IconButton(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        onClick = onDone,
+                        enabled = serverConnectionState.discoveringState.value?.isActive != true
+                    ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
+                }
             }
         )
         Column(
@@ -120,42 +151,71 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
             val focusRequester = FocusRequester()
 
             Text(modifier = Modifier.padding(vertical = 32.dp), text = "Server Address", fontWeight = FontWeight.Bold)
-            ValidationTextField(
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-                placeholder = { Text(text = "Host") },
-                value = hostState.value,
-                onValueChange = onHostChange,
-                singleLine = true,
-                isError = hostValidationState.value.isFailure,
-                errorMessage = hostValidationState.value.exceptionOrNull()?.message,
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent
-                ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
-            ValidationTextField(
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = "Port") },
-                value = portState.value,
-                onValueChange = onPortChange,
-                singleLine = true,
-                trailingIcon = if (portValidationState.value.isFailure) {
-                    { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
-                } else null,
-                isError = portValidationState.value.isFailure,
-                errorMessage = portValidationState.value.exceptionOrNull()?.message,
-                colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent
-                ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                keyboardActions = KeyboardActions(onDone = { onDone() })
-            )
+            if (serverConnectionState.discoveringState.value?.isActive == true) {
+                TextField(
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                    placeholder = { Text(text = "Discovering...") },
+                    enabled = false,
+                    value = "",
+                    onValueChange = {},
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent
+                    )
+                )
+                TextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(text = "Discovering...") },
+                    enabled = false,
+                    value = "",
+                    onValueChange = {},
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent
+                    )
+                )
+            } else {
+                ValidationTextField(
+                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                    placeholder = { Text(text = "Host") },
+                    value = serverConnectionState.hostState.value,
+                    onValueChange = onHostChange,
+                    singleLine = true,
+                    isError = serverConnectionState.hostValidationState.value.isFailure,
+                    errorMessage = serverConnectionState.hostValidationState.value.exceptionOrNull()?.message,
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+                )
+                ValidationTextField(
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(text = "Port") },
+                    value = serverConnectionState.portState.value,
+                    onValueChange = onPortChange,
+                    singleLine = true,
+                    trailingIcon = if (serverConnectionState.portValidationState.value.isFailure) {
+                        { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
+                    } else null,
+                    isError = serverConnectionState.portValidationState.value.isFailure,
+                    errorMessage = serverConnectionState.portValidationState.value.exceptionOrNull()?.message,
+                    colors = TextFieldDefaults.textFieldColors(
+                        backgroundColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        errorIndicatorColor = Color.Transparent
+                    ),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    keyboardActions = KeyboardActions(onDone = { onDone() })
+                )
+            }
 
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
         }

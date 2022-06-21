@@ -10,6 +10,7 @@ services:
         buildDir: ./server/build/libs
     ports:
       - 8080:8080
+      - 8888:8888/udp
     env_file: ./server/.env
     volumes:
       - ./server/db:/app/db

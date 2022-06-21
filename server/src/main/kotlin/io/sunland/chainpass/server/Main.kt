@@ -15,13 +15,16 @@ fun main(args: Array<String>) {
             HoconApplicationConfig(ConfigFactory.load(name))
         }
 
-        module { main() }
+        module {
+            main()
+            discovery()
+        }
 
         connector {
             host = config.property("server.host").getString()
             port = config.property("server.port").getString().toInt()
         }
-    }).start()
+    }).start(wait = true)
 
     if (isTraySupported) {
         application {
