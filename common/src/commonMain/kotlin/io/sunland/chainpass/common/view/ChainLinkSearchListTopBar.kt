@@ -16,6 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
@@ -32,24 +35,34 @@ fun ChainLinkSearchListTopBar(onIconArrowBackClick: () -> Unit, onSearch: (Strin
 
             val keywordState = remember { mutableStateOf("") }
 
+            val onSearchChange = { value: String ->
+                keywordState.value = value
+
+                onSearch(keywordState.value)
+            }
+
+            val onClear = {
+                keywordState.value = ""
+
+                onSearch(keywordState.value)
+            }
+
             TextField(
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent { keyEvent ->
+                    if (keyEvent.key == Key.Escape) {
+                        onIconArrowBackClick()
+
+                        true
+                    } else false
+                },
                 placeholder = { Text(text = "Search") },
                 value = keywordState.value,
-                onValueChange = { value ->
-                    keywordState.value = value
-
-                    onSearch(keywordState.value)
-                },
+                onValueChange = onSearchChange,
                 trailingIcon = if (keywordState.value.isNotEmpty()) {
                     {
                         IconButton(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                            onClick = {
-                                keywordState.value = ""
-
-                                onSearch(keywordState.value)
-                            }
+                            onClick = onClear
                         ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
                     }
                 } else null,
