@@ -1,5 +1,6 @@
 package io.sunland.chainpass.desktop
 
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import io.ktor.client.*
@@ -22,9 +23,13 @@ fun main() = application {
         Screen.SERVER_CONNECTION
     )
 
-    Window(title = "Chain Pass", onCloseRequest = {
-        appState.httpClientState.value.close()
+    Window(
+        icon = painterResource("icon.png"),
+        title = "Chain Pass",
+        onCloseRequest = {
+            appState.httpClientState.value.close()
 
-        exitApplication()
-    }) { App(SettingsFactory("${System.getProperty("user.home")}/.chain-pass"), appState) }
+            exitApplication()
+        }
+    ) { App(SettingsFactory("${System.getProperty("user.home")}/.chain-pass"), appState) }
 }
