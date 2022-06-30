@@ -37,7 +37,10 @@ object ChainLinkDataRepository : ChainLinkRepository {
         Database.execute<Unit> {
             ChainLinkTable.update({
                 (ChainLinkTable.id eq chainLinkEntity.id) and (ChainLinkTable.chainId eq chainLinkEntity.chainKey.id)
-            }) { statement -> statement[password] = chainLinkEntity.password }
+            }) { statement ->
+                statement[password] = chainLinkEntity.password
+                statement[description] = chainLinkEntity.description
+            }
         }
     }
 
