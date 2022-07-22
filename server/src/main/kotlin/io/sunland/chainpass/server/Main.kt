@@ -24,7 +24,7 @@ fun main(args: Array<String>) {
             host = config.property("server.host").getString()
             port = config.property("server.port").getString().toInt()
         }
-    }).start(wait = true)
+    }).start()
 
     if (isTraySupported) {
         application {
