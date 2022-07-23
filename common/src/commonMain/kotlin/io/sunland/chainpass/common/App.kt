@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.http.*
-import io.sunland.chainpass.common.network.DiscoverySocketClient
+import io.sunland.chainpass.common.network.DiscoverySocket
 import io.sunland.chainpass.common.repository.ChainLinkNetRepository
 import io.sunland.chainpass.common.repository.ChainNetRepository
 import io.sunland.chainpass.common.view.*
@@ -127,7 +127,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                         serverConnectionState = serverConnectionState,
                         onIconRefreshClick = {
                             serverConnectionState.discoveringState.value = coroutineScope.launch {
-                                val serverAddress = DiscoverySocketClient.discover()
+                                val serverAddress = DiscoverySocket.discover()
 
                                 if (serverAddress.isEmpty()) {
                                     scaffoldState.snackbarHostState.showSnackbar("Server address cannot be discovered")
