@@ -7,9 +7,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -31,6 +29,11 @@ fun ChainLinkListItem(
     onIconLockClick: (Boolean) -> Unit
 ) {
     val passwordLockState = mutableStateOf(chainLink.password.isPrivate)
+    val passwordLockIconState = mutableStateOf(Icons.Default.Lock)
+
+    if (passwordLockState.value) {
+        passwordLockIconState.value = Icons.Default.Lock
+    } else passwordLockIconState.value = Icons.Default.LockOpen
 
     val onLock = {
         onIconLockClick(passwordLockState.value)
@@ -92,7 +95,7 @@ fun ChainLinkListItem(
             IconButton(
                 modifier = Modifier.padding(horizontal = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 onClick = onLock
-            ) { Icon(imageVector = Icons.Default.Lock, contentDescription = null) }
+            ) { Icon(imageVector = passwordLockIconState.value, contentDescription = null) }
         }
     }
 }

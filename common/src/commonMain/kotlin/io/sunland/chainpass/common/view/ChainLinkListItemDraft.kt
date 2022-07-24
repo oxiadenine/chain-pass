@@ -8,10 +8,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -184,7 +181,7 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
                                 } else false
                             },
                         onClick = { onPasswordChange(passwordGenerator.generate()) }
-                    ) { Icon(imageVector = Icons.Default.Build, contentDescription = null) }
+                    ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
                 trailingIcon = if (passwordValidationState.value.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }

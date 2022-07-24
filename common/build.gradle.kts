@@ -26,6 +26,7 @@ kotlin {
                 api(compose.runtime)
                 api(compose.foundation)
                 api(compose.material)
+                api(compose.materialIconsExtended)
 
                 api(ktorDependency("client-core"))
                 api(ktorDependency("client-websockets"))

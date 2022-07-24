@@ -6,10 +6,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ExitToApp
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,9 +25,9 @@ import io.sunland.chainpass.common.component.DropdownMenuItem
 @Composable
 fun ChainListTopBar(
     serverAddress: ServerAddress,
-    onIconRefreshClick: () -> Unit,
+    onIconSyncClick: () -> Unit,
     onIconAddClick: () -> Unit,
-    onIconExitClick: () -> Unit
+    onIconLogoutClick: () -> Unit
 ) {
     val actionMenuExpandState = remember { mutableStateOf(false) }
 
@@ -61,7 +58,7 @@ fun ChainListTopBar(
                     onClick = {
                         actionMenuExpandState.value = false
 
-                        onIconRefreshClick()
+                        onIconSyncClick()
                     },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
@@ -69,8 +66,8 @@ fun ChainListTopBar(
                         horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
-                        Text(text = "Refresh", fontSize = 12.sp)
+                        Icon(imageVector = Icons.Default.Sync, contentDescription = null)
+                        Text(text = "Sync", fontSize = 12.sp)
                     }
                 }
                 DropdownMenuItem(
@@ -95,7 +92,7 @@ fun ChainListTopBar(
                     onClick = {
                         actionMenuExpandState.value = false
 
-                        onIconExitClick()
+                        onIconLogoutClick()
                     },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
@@ -103,7 +100,7 @@ fun ChainListTopBar(
                         horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(imageVector = Icons.Default.ExitToApp, contentDescription = null)
+                        Icon(imageVector = Icons.Default.Logout, contentDescription = null)
                         Text(text = "Disconnect", fontSize = 12.sp)
                     }
                 }

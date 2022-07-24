@@ -8,6 +8,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.LockOpen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
@@ -24,6 +25,17 @@ import io.sunland.chainpass.common.ChainLink
 @Composable
 fun ChainLinkSearchListItem(chainLink: ChainLink, onIconLockClick: (Boolean) -> Unit) {
     val passwordLockState = mutableStateOf(chainLink.password.isPrivate)
+    val passwordLockIconState = mutableStateOf(Icons.Default.Lock)
+
+    if (passwordLockState.value) {
+        passwordLockIconState.value = Icons.Default.Lock
+    } else passwordLockIconState.value = Icons.Default.LockOpen
+
+    val onLock = {
+        onIconLockClick(passwordLockState.value)
+
+        passwordLockState.value = !passwordLockState.value
+    }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(modifier = Modifier.padding(horizontal = 16.dp, vertical = 17.dp), text = chainLink.name.value)
@@ -46,12 +58,8 @@ fun ChainLinkSearchListItem(chainLink: ChainLink, onIconLockClick: (Boolean) -> 
             }
             IconButton(
                 modifier = Modifier.padding(horizontal = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = {
-                    onIconLockClick(passwordLockState.value)
-
-                    passwordLockState.value = !passwordLockState.value
-                }
-            ) { Icon(imageVector = Icons.Default.Lock, contentDescription = null) }
+                onClick = onLock
+            ) { Icon(imageVector = passwordLockIconState.value, contentDescription = null) }
         }
     }
 }
