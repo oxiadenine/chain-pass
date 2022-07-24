@@ -22,6 +22,7 @@ fun ChainLinkList(
     onNew: (ChainLink) -> Unit,
     onEdit: (ChainLink) -> Unit,
     onRemove: (ChainLink) -> Unit,
+    onPasswordCopy: (ChainLink) -> Unit,
     onSync: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -74,7 +75,8 @@ fun ChainLinkList(
                                     if (isPasswordLocked) {
                                         viewModel.unlockPassword(chainLink)
                                     } else viewModel.lockPassword(chainLink)
-                                }
+                                },
+                                onPasswordCopy = { onPasswordCopy(chainLink) }
                             )
                         } else {
                             when (chainLink.status) {
@@ -93,7 +95,8 @@ fun ChainLinkList(
                                         if (isPasswordLocked) {
                                             viewModel.unlockPassword(chainLink)
                                         } else viewModel.lockPassword(chainLink)
-                                    }
+                                    },
+                                    onPasswordCopy = { onPasswordCopy(chainLink) }
                                 )
                                 ChainLink.Status.DRAFT -> ChainLinkListItemDraft(
                                     chainLink = chainLink,
