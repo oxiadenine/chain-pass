@@ -125,7 +125,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
 
                     ServerConnection(
                         serverConnectionState = serverConnectionState,
-                        onIconRefreshClick = {
+                        onDiscover = {
                             serverConnectionState.discoveringState.value = coroutineScope.launch {
                                 val serverAddress = DiscoverySocket.discover()
 
@@ -145,7 +145,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                 serverConnectionState.discoveringState.value = null
                             }
                         },
-                        onIconDoneClick = { serverAddress ->
+                        onConnect = { serverAddress ->
                             settingsFactory.save(serverAddress).let {
                                 appState.serverAddressState.value = serverAddress
                                 appState.httpClientState.value = appState.httpClientState.value.config {
@@ -175,14 +175,14 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                     ChainList(
                         serverAddress = appState.serverAddressState.value,
                         viewModel = chainListViewModel,
-                        onItemNew = { chain ->
+                        onNew = { chain ->
                             coroutineScope.launch {
                                 chainListViewModel.new(chain).onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                 }
                             }
                         },
-                        onItemSelect = { chain ->
+                        onSelect = { chain ->
                             coroutineScope.launch {
                                 chainLinkListViewModel.chain = chain
 
@@ -195,7 +195,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                     }
                             }
                         },
-                        onItemRemove = { chain ->
+                        onRemove = { chain ->
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
@@ -239,21 +239,21 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                 Screen.CHAIN_LINK_LIST -> {
                     ChainLinkList(
                         viewModel = chainLinkListViewModel,
-                        onItemNew = { chainLink ->
+                        onNew = { chainLink ->
                             coroutineScope.launch {
                                 chainLinkListViewModel.new(chainLink).onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                 }
                             }
                         },
-                        onItemEdit = { chainLink ->
+                        onEdit = { chainLink ->
                             coroutineScope.launch {
                                 chainLinkListViewModel.edit(chainLink).onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                 }
                             }
                         },
-                        onItemRemove = { chainLink ->
+                        onRemove = { chainLink ->
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 

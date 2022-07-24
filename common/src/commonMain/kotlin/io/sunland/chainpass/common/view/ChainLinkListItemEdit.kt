@@ -35,7 +35,7 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
+fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: () -> Unit) {
     val isEdited = remember { mutableStateOf(false) }
 
     val descriptionState = remember { mutableStateOf(chainLink.description.value) }
@@ -73,7 +73,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
             chainLink.description = chainLinkDescription
             chainLink.password = chainLinkPassword
 
-            onIconDoneClick()
+            onEdit()
         }
     }
 
@@ -84,7 +84,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
         passwordState.value = chainLink.password.value
         passwordValidationState.value = chainLink.password.validation
 
-        onIconClearClick()
+        onCancel()
     }
 
     val onKeyEvent = { keyEvent: KeyEvent ->

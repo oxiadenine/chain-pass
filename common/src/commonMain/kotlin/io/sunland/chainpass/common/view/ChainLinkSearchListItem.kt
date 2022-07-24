@@ -23,7 +23,7 @@ import io.sunland.chainpass.common.ChainLink
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkSearchListItem(chainLink: ChainLink, onIconLockClick: (Boolean) -> Unit) {
+fun ChainLinkSearchListItem(chainLink: ChainLink, onPasswordLock: (Boolean) -> Unit) {
     val passwordLockState = mutableStateOf(chainLink.password.isPrivate)
     val passwordLockIconState = mutableStateOf(Icons.Default.Lock)
 
@@ -32,7 +32,7 @@ fun ChainLinkSearchListItem(chainLink: ChainLink, onIconLockClick: (Boolean) -> 
     } else passwordLockIconState.value = Icons.Default.LockOpen
 
     val onLock = {
-        onIconLockClick(passwordLockState.value)
+        onPasswordLock(passwordLockState.value)
 
         passwordLockState.value = !passwordLockState.value
     }

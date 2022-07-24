@@ -18,8 +18,8 @@ import io.sunland.chainpass.common.Chain
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListItem(chain: Chain, onClick: () -> Unit, onIconDeleteClick: () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+fun ChainListItem(chain: Chain, onSelect: () -> Unit, onDelete: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onSelect)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -28,7 +28,7 @@ fun ChainListItem(chain: Chain, onClick: () -> Unit, onIconDeleteClick: () -> Un
             Text(modifier = Modifier.padding(horizontal = 16.dp), text = chain.name.value)
             IconButton(
                 modifier = Modifier.padding(all = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onIconDeleteClick
+                onClick = onDelete
             ) { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
         }
     }

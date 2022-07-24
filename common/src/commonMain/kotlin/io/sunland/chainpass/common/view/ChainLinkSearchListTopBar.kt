@@ -27,30 +27,30 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkSearchListTopBar(onIconArrowBackClick: () -> Unit, onSearch: (String) -> Unit) {
+fun ChainLinkSearchListTopBar(onBack: () -> Unit, onSearch: (String) -> Unit) {
+    val focusRequester = FocusRequester()
+
+    val keywordState = remember { mutableStateOf("") }
+
+    val onSearchChange = { value: String ->
+        keywordState.value = value
+
+        onSearch(keywordState.value)
+    }
+
+    val onClear = {
+        keywordState.value = ""
+
+        onSearch(keywordState.value)
+    }
+
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
         title = {
-            val focusRequester = FocusRequester()
-
-            val keywordState = remember { mutableStateOf("") }
-
-            val onSearchChange = { value: String ->
-                keywordState.value = value
-
-                onSearch(keywordState.value)
-            }
-
-            val onClear = {
-                keywordState.value = ""
-
-                onSearch(keywordState.value)
-            }
-
             TextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent { keyEvent ->
                     if (keyEvent.key == Key.Escape) {
-                        onIconArrowBackClick()
+                        onBack()
 
                         true
                     } else false
@@ -83,7 +83,7 @@ fun ChainLinkSearchListTopBar(onIconArrowBackClick: () -> Unit, onSearch: (Strin
         navigationIcon = {
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onIconArrowBackClick
+                onClick = onBack
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
