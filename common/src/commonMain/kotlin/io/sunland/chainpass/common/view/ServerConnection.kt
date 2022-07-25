@@ -1,14 +1,12 @@
 package io.sunland.chainpass.common.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -89,6 +87,7 @@ class ServerConnectionState(serverAddress: ServerAddress) {
 fun ServerConnection(
     serverConnectionState: ServerConnectionState,
     onDiscover: () -> Unit,
+    onDiscoverCancel: () -> Unit,
     onConnect: (ServerAddress) -> Unit
 ) {
     val onHostChange = { value: String ->
@@ -121,113 +120,84 @@ fun ServerConnection(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        TopAppBar(
-            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
-            title = { Text(text = "Chain Pass") },
-            actions = {
-                IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onDiscover,
-                    enabled = serverConnectionState.discoveringState.value?.isActive != true
-                ) { Icon(imageVector = Icons.Default.Refresh, contentDescription = null) }
-                if (serverConnectionState.discoveringState.value?.isActive == true) {
-                    IconButton(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        onClick = {
-                            serverConnectionState.discoveringState.value?.cancel()
-                            serverConnectionState.discoveringState.value = null
-                        },
-                        enabled = serverConnectionState.discoveringState.value?.isActive == true
-                    ) { Icon(imageVector = Icons.Default.Close, contentDescription = null) }
-                } else {
-                    IconButton(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        onClick = onDone,
-                        enabled = serverConnectionState.discoveringState.value?.isActive != true
-                    ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
-                }
-            }
-        )
+        ServerConnectionTopBar(serverConnectionState = serverConnectionState, onConnect = onDone)
         Column(
             modifier = Modifier.fillMaxWidth(fraction = 0.6f).align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val focusRequester = FocusRequester()
 
-            Text(modifier = Modifier.padding(vertical = 32.dp), text = "Server Address", fontWeight = FontWeight.Bold)
-            if (serverConnectionState.discoveringState.value?.isActive == true) {
-                TextField(
-                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
-                    placeholder = { Text(text = "Discovering...") },
-                    enabled = false,
-                    value = "",
-                    onValueChange = {},
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
-                    )
-                )
-                TextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    placeholder = { Text(text = "Discovering...") },
-                    enabled = false,
-                    value = "",
-                    onValueChange = {},
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
-                    )
-                )
-            } else {
-                val onKeyEvent = { keyEvent: KeyEvent ->
-                    if (keyEvent.key == Key.Enter) {
-                        onDone()
+            val onKeyEvent = { keyEvent: KeyEvent ->
+                if (keyEvent.key == Key.Enter) {
+                    onDone()
 
-                        true
-                    } else false
-                }
-
-                ValidationTextField(
-                    modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
-                    placeholder = { Text(text = "Host") },
-                    value = serverConnectionState.hostState.value,
-                    onValueChange = onHostChange,
-                    singleLine = true,
-                    isError = serverConnectionState.hostValidationState.value.isFailure,
-                    errorMessage = serverConnectionState.hostValidationState.value.exceptionOrNull()?.message,
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
-                    ),
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-                )
-                ValidationTextField(
-                    modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent),
-                    placeholder = { Text(text = "Port") },
-                    value = serverConnectionState.portState.value,
-                    onValueChange = onPortChange,
-                    singleLine = true,
-                    trailingIcon = if (serverConnectionState.portValidationState.value.isFailure) {
-                        { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
-                    } else null,
-                    isError = serverConnectionState.portValidationState.value.isFailure,
-                    errorMessage = serverConnectionState.portValidationState.value.exceptionOrNull()?.message,
-                    colors = TextFieldDefaults.textFieldColors(
-                        backgroundColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        errorIndicatorColor = Color.Transparent
-                    ),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    keyboardActions = KeyboardActions(onDone = { onDone() })
-                )
+                    true
+                } else false
             }
+
+            Text(modifier = Modifier.padding(vertical = 32.dp), text = "Server Address", fontWeight = FontWeight.Bold)
+            ValidationTextField(
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
+                placeholder = { Text(text = "Host") },
+                value = if (serverConnectionState.discoveringState.value?.isActive == true) {
+                    "Discovering..."
+                } else serverConnectionState.hostState.value,
+                onValueChange = onHostChange,
+                singleLine = true,
+                leadingIcon = {
+                    IconButton(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        onClick = onDiscover,
+                        enabled = serverConnectionState.discoveringState.value?.isActive != true
+                    ) { Icon(imageVector = Icons.Default.Refresh, contentDescription = null) }
+                },
+                trailingIcon = if (serverConnectionState.discoveringState.value?.isActive == true) {
+                    { Icon(
+                        modifier = Modifier
+                            .clickable(onClick = onDiscoverCancel)
+                            .pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        imageVector = Icons.Default.Cancel,
+                        contentDescription = null) }
+                } else if (serverConnectionState.hostValidationState.value.isFailure) {
+                    { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
+                } else null,
+                enabled = serverConnectionState.discoveringState.value?.isActive != true,
+                isError = serverConnectionState.discoveringState.value?.isActive != true &&
+                        serverConnectionState.hostValidationState.value.isFailure,
+                errorMessage = serverConnectionState.hostValidationState.value.exceptionOrNull()?.message,
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
+            )
+            ValidationTextField(
+                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent),
+                placeholder = { Text(text = "Port") },
+                value = if (serverConnectionState.discoveringState.value?.isActive == true) {
+                    "Discovering..."
+                } else serverConnectionState.portState.value,
+                onValueChange = onPortChange,
+                singleLine = true,
+                trailingIcon = if (serverConnectionState.discoveringState.value?.isActive != true &&
+                    serverConnectionState.portValidationState.value.isFailure) {
+                    { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
+                } else null,
+                enabled = serverConnectionState.discoveringState.value?.isActive != true,
+                isError = serverConnectionState.discoveringState.value?.isActive != true &&
+                        serverConnectionState.hostValidationState.value.isFailure,
+                errorMessage = serverConnectionState.portValidationState.value.exceptionOrNull()?.message,
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardActions = KeyboardActions(onDone = { onDone() })
+            )
 
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
         }
