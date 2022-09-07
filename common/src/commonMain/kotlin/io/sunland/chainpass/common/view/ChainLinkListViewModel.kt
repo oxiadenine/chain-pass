@@ -25,7 +25,11 @@ class ChainLinkListViewModel(
     private var chainLinks = emptyList<ChainLink>()
 
     fun draft() {
-        chainLinkListState.add(ChainLink())
+        val chainLink = ChainLink().apply {
+            id = chainLinkListState.maxOf { chainLink -> chainLink.id } + 1
+        }
+
+        chainLinkListState.add(chainLink)
     }
 
     fun rejectDraft(chainLink: ChainLink) {
