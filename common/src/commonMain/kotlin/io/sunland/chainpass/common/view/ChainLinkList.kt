@@ -95,10 +95,7 @@ fun ChainLinkList(
                             when (chainLink.status) {
                                 ChainLink.Status.ACTUAL, ChainLink.Status.SELECT -> ChainLinkListItem(
                                     chainLink = chainLink,
-                                    onEdit = {
-                                        viewModel.cancelEdit()
-                                        viewModel.startEdit(chainLink)
-                                    },
+                                    onEdit = { viewModel.startEdit(chainLink) },
                                     onDelete = {
                                         viewModel.removeLater(chainLink)
 
