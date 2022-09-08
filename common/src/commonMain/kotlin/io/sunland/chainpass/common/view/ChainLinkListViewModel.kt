@@ -38,6 +38,13 @@ class ChainLinkListViewModel(
         update()
     }
 
+    fun rejectDrafts() {
+        val chainLinks = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.ACTUAL }
+
+        chainLinkListState.clear()
+        chainLinkListState.addAll(chainLinks)
+    }
+
     fun startEdit(editChainLink: ChainLink) {
         if (editChainLink.password.isPrivate) {
             unlockPassword(editChainLink)
@@ -46,28 +53,33 @@ class ChainLinkListViewModel(
         editChainLink.status = ChainLink.Status.EDIT
 
         val draftChainLinks = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
-        val editChainLinks = chainLinkListState.filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
+
+        val chainLinks = chainLinkListState
+            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
+            .sortedBy { chainLink -> chainLink.name.value }
+            .plus(draftChainLinks)
 
         chainLinkListState.clear()
-        chainLinkListState.addAll(editChainLinks.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
+        chainLinkListState.addAll(chainLinks)
     }
 
     fun cancelEdit() {
         val draftChainLinks = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
-        val editChainLinks = chainLinkListState.filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
+
+        val chainLinks = chainLinkListState
+            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
+            .map { chainLink ->
+                if (chainLink.status == ChainLink.Status.EDIT) {
+                    lockPassword(chainLink)
+
+                    chainLink.status = ChainLink.Status.ACTUAL
+                }
+
+                chainLink
+            }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks)
 
         chainLinkListState.clear()
-        chainLinkListState.addAll(editChainLinks.map { chainLink ->
-            if (chainLink.status == ChainLink.Status.EDIT) {
-                chainLink.status = ChainLink.Status.ACTUAL
-            }
-
-            if (!chainLink.password.isPrivate) {
-                lockPassword(chainLink)
-            }
-
-            chainLink
-        }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
+        chainLinkListState.addAll(chainLinks)
     }
 
     fun removeLater(chainLink: ChainLink) {
@@ -115,17 +127,21 @@ class ChainLinkListViewModel(
     fun startSearch() {
         isSearchState.value = true
 
-        chainLinkSearchListState.addAll(chainLinkListState.filter { chainLink ->
-            chainLink.status == ChainLink.Status.ACTUAL
-        }.sortedBy { chainLink -> chainLink.name.value })
+        val chainLinks = chainLinkListState
+            .filter { chainLink -> chainLink.status == ChainLink.Status.ACTUAL }
+            .sortedBy { chainLink -> chainLink.name.value }
+
+        chainLinkSearchListState.addAll(chainLinks)
     }
 
     fun search(keyword: String) {
+        val chainLinks = chainLinkListState
+            .filter { chainLink -> chainLink.status == ChainLink.Status.ACTUAL }
+            .filter { chainLink -> chainLink.name.value.lowercase().contains(keyword.lowercase()) }
+            .sortedBy { chainLink -> chainLink.name.value }
+
         chainLinkSearchListState.clear()
-        chainLinkSearchListState.addAll(chainLinkListState.filter { chainLink ->
-            chainLink.name.value.lowercase().contains(keyword.lowercase()) &&
-                    chainLink.status == ChainLink.Status.ACTUAL
-        }.sortedBy { chainLink -> chainLink.name.value })
+        chainLinkSearchListState.addAll(chainLinks)
     }
 
     fun endSearch() {

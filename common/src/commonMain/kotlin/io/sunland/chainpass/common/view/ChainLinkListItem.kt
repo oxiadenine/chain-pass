@@ -1,5 +1,6 @@
 package io.sunland.chainpass.common.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.selection.DisableSelection
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -9,10 +10,13 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontStyle
@@ -29,6 +33,8 @@ fun ChainLinkListItem(
     onPasswordLock: (Boolean) -> Unit,
     onPasswordCopy: () -> Unit
 ) {
+    val focusRequester = FocusRequester()
+
     val passwordLockState = mutableStateOf(chainLink.password.isPrivate)
     val passwordLockIconState = mutableStateOf(Icons.Default.Lock)
 
@@ -42,7 +48,7 @@ fun ChainLinkListItem(
         passwordLockState.value = !passwordLockState.value
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).clickable {}) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -78,7 +84,7 @@ fun ChainLinkListItem(
         }
         if (chainLink.description.value.isNotEmpty()) {
             Text(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp),
+                modifier = Modifier.padding(all = 16.dp),
                 text = chainLink.description.value,
                 fontSize = 14.sp
             )
@@ -117,5 +123,11 @@ fun ChainLinkListItem(
                 onClick = onLock
             ) { Icon(imageVector = passwordLockIconState.value, contentDescription = null) }
         }
+    }
+
+    if (chainLink.status == ChainLink.Status.SELECT) {
+        chainLink.status = ChainLink.Status.ACTUAL
+
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
     }
 }
