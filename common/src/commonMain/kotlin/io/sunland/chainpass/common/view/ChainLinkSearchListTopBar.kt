@@ -7,10 +7,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -27,10 +24,8 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkSearchListTopBar(onBack: () -> Unit, onSearch: (String) -> Unit) {
+fun ChainLinkSearchListTopBar(keywordState: MutableState<String>, onBack: () -> Unit, onSearch: (String) -> Unit) {
     val focusRequester = FocusRequester()
-
-    val keywordState = remember { mutableStateOf("") }
 
     val onSearchChange = { value: String ->
         keywordState.value = value

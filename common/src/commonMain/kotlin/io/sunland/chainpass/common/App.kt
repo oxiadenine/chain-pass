@@ -270,10 +270,20 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                     actionLabel = "Dismiss",
                                     duration = SnackbarDuration.Short
                                 )) {
-                                    SnackbarResult.ActionPerformed -> chainLinkListViewModel.undoRemove(chainLink)
+                                    SnackbarResult.ActionPerformed -> {
+                                        chainLinkListViewModel.undoRemove(chainLink)
+
+                                        if (chainLinkListViewModel.isSearchState.value) {
+                                            chainLinkListViewModel.search("")
+                                        }
+                                    }
                                     SnackbarResult.Dismissed -> {
                                         chainLinkListViewModel.remove(chainLink).onFailure { exception ->
                                             chainLinkListViewModel.undoRemove(chainLink)
+
+                                            if (chainLinkListViewModel.isSearchState.value) {
+                                                chainLinkListViewModel.search("")
+                                            }
 
                                             scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                         }
@@ -281,6 +291,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                 }
                             }
                         },
+                        onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.performAction() },
                         onPasswordCopy = { chainLink ->
                             clipboardManager.setText(AnnotatedString(chainLink.password.value))
 
