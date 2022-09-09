@@ -1,6 +1,13 @@
 package io.sunland.chainpass.common
 
-class Chain {
+class Chain constructor() {
+    constructor(chain: Chain) : this() {
+        id = chain.id
+        name = chain.name
+        key = chain.key
+        status = chain.status
+    }
+
     class Name(value: String? = null) {
         var value = value ?: ""
             private set

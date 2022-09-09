@@ -18,23 +18,19 @@ class ChainListViewModel(private val repository: ChainRepository) {
     private var chains = emptyList<Chain>()
 
     fun draft() {
-        val chain = Chain().apply {
-            val chains = chains.plus(chainListState.filter { chain -> chain.status == Chain.Status.DRAFT })
+        val chains = chains.plus(chainListState.filter { chain -> chain.status == Chain.Status.DRAFT })
 
+        val chain = Chain().apply {
             id = if (chains.isNotEmpty()) {
                 chains.maxOf { chain -> chain.id } + 1
             } else 1
         }
 
         chainListState.add(chain)
-
-        update()
     }
 
     fun rejectDraft(chain: Chain) {
         chainListState.remove(chain)
-
-        update()
     }
 
     fun removeLater(chainKey: Chain.Key) = chainRemoveState.value?.let { chain ->
@@ -48,10 +44,17 @@ class ChainListViewModel(private val repository: ChainRepository) {
         }
     }
 
-    fun undoRemove(chain: Chain) {
-        chainListState.add(chain.apply { key = Chain.Key() })
+    fun undoRemove(chainRemove: Chain) {
+        val chainsDraft = chainListState.filter { chain -> chain.status == Chain.Status.DRAFT }
 
-        update()
+        val chains = chainListState
+            .filter { chain -> chain.status != Chain.Status.DRAFT }
+            .plus(chainRemove.apply { key = Chain.Key() })
+            .sortedBy { chain -> chain.name.value }
+            .plus(chainsDraft)
+
+        chainListState.clear()
+        chainListState.addAll(chains)
     }
 
     fun select(chainKey: Chain.Key) = chainSelectState.value?.let { chain ->
@@ -72,10 +75,15 @@ class ChainListViewModel(private val repository: ChainRepository) {
             }
         }
 
-        val draftChains = chainListState.filter { chain -> chain.status == Chain.Status.DRAFT }
+        val chainsDraft = chainListState.filter { chain -> chain.status == Chain.Status.DRAFT }
+
+        val chains = chains
+            .map { chain -> Chain(chain) }
+            .sortedBy { chain -> chain.name.value }
+            .plus(chainsDraft)
 
         chainListState.clear()
-        chainListState.addAll(chains.sortedBy { chain -> chain.name.value }.plus(draftChains))
+        chainListState.addAll(chains)
 
         Unit
     }
@@ -120,11 +128,21 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     private fun update() {
-        val draftChains = chainListState.filter { chain -> chain.status == Chain.Status.DRAFT }
+        val chainsRemove = chains.filter { chain -> !chainListState.any { chain.id == it.id } }
 
-        chains = chainListState.filter { chain -> chain.status != Chain.Status.DRAFT }
+        chains = chainListState
+            .filter { chain -> chain.status != Chain.Status.DRAFT }
+            .map { chain -> Chain(chain) }
+            .plus(chainsRemove)
+
+        val chainsDraft = chainListState.filter { chain -> chain.status == Chain.Status.DRAFT }
+
+        val chains = chainListState
+            .filter { chain -> chain.status != Chain.Status.DRAFT }
+            .sortedBy { chain -> chain.name.value }
+            .plus(chainsDraft)
 
         chainListState.clear()
-        chainListState.addAll(chains.sortedBy { chain -> chain.name.value }.plus(draftChains))
+        chainListState.addAll(chains)
     }
 }
