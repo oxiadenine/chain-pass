@@ -22,7 +22,7 @@ class ChainLink constructor() {
         } ?: Result.success(this.value)
     }
 
-    class Description(value: String? = null) {
+    class Description(value: String? = null, val isEdited: Boolean = false) {
         var value = value ?: ""
             private set
 
@@ -33,7 +33,7 @@ class ChainLink constructor() {
         } ?: Result.success(this.value)
     }
 
-    class Password(value: String? = null, val isPrivate: Boolean = true) {
+    class Password(value: String? = null, val isPrivate: Boolean = true, val isEdited: Boolean = false) {
         var value = value ?: ""
             private set
 

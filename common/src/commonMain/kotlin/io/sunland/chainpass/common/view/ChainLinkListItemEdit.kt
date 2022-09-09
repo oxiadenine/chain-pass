@@ -36,7 +36,9 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: () -> Unit) {
-    val isEdited = remember { mutableStateOf(false) }
+    val isEdited = chainLink.description.isEdited || chainLink.password.isEdited
+
+    val isEditedState = remember { mutableStateOf(isEdited) }
 
     val descriptionState = remember { mutableStateOf(chainLink.description.value) }
     val descriptionValidationState = remember { mutableStateOf(chainLink.description.validation) }
@@ -45,34 +47,31 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
     val passwordValidationState = remember { mutableStateOf(chainLink.password.validation) }
 
     val onDescriptionChange = { value: String ->
-        isEdited.value = value != chainLink.description.value || passwordState.value != chainLink.password.value
+        chainLink.description = ChainLink.Description(value, isEdited = true)
 
-        val chainLinkDescription = ChainLink.Description(value)
+        descriptionState.value = chainLink.description.value
+        descriptionValidationState.value = chainLink.description.validation
 
-        descriptionState.value = chainLinkDescription.value
-        descriptionValidationState.value = chainLinkDescription.validation
+        isEditedState.value = chainLink.password.isEdited || chainLink.description.isEdited
     }
 
     val onPasswordChange = { value: String ->
-        isEdited.value = value != chainLink.password.value || descriptionState.value != chainLink.description.value
+        chainLink.password = ChainLink.Password(value, isEdited = true)
 
-        val chainLinkPassword = ChainLink.Password(value)
+        passwordState.value = chainLink.password.value
+        passwordValidationState.value = chainLink.password.validation
 
-        passwordState.value = chainLinkPassword.value
-        passwordValidationState.value = chainLinkPassword.validation
+        isEditedState.value = chainLink.password.isEdited || chainLink.description.isEdited
     }
 
     val onDone = {
-        val chainLinkDescription = ChainLink.Description(descriptionState.value)
-        val chainLinkPassword = ChainLink.Password(passwordState.value)
+        chainLink.description = ChainLink.Description(descriptionState.value)
+        chainLink.password = ChainLink.Password(passwordState.value)
 
-        descriptionValidationState.value = chainLinkDescription.validation
-        passwordValidationState.value = chainLinkPassword.validation
+        descriptionValidationState.value = chainLink.description.validation
+        passwordValidationState.value = chainLink.password.validation
 
         if (descriptionValidationState.value.isSuccess && passwordValidationState.value.isSuccess) {
-            chainLink.description = chainLinkDescription
-            chainLink.password = chainLinkPassword
-
             onEdit()
         }
     }
@@ -95,7 +94,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                 true
             }
             Key.Enter -> {
-                if (isEdited.value) {
+                if (isEditedState.value) {
                     onDone()
                 }
 
@@ -117,7 +116,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (isEdited.value) {
+                if (isEditedState.value) {
                     IconButton(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = onDone
@@ -189,7 +188,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions(onDone = { if (isEdited.value) onDone() })
+                keyboardActions = KeyboardActions(onDone = { if (isEditedState.value) onDone() })
             )
 
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
