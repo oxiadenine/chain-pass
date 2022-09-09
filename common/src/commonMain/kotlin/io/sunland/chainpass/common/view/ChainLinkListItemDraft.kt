@@ -47,42 +47,38 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
     val passwordValidationState = remember { mutableStateOf(chainLink.password.validation)}
 
     val onNameChange = { value: String ->
-        val chainLinkName = ChainLink.Name(value)
+        chainLink.name = ChainLink.Name(value)
 
-        nameState.value = chainLinkName.value
-        nameValidationState.value = chainLinkName.validation
+        nameState.value = chainLink.name.value
+        nameValidationState.value = chainLink.name.validation
     }
 
     val onDescriptionChange = { value: String ->
-        val chainLinkDescription = ChainLink.Description(value)
+        chainLink.description = ChainLink.Description(value)
 
-        descriptionState.value = chainLinkDescription.value
-        descriptionValidationState.value = chainLinkDescription.validation
+        descriptionState.value = chainLink.description.value
+        descriptionValidationState.value = chainLink.description.validation
     }
 
     val onPasswordChange = { value: String ->
-        val chainLinkpPassword = ChainLink.Password(value)
+        chainLink.password = ChainLink.Password(value)
 
-        passwordState.value = chainLinkpPassword.value
-        passwordValidationState.value = chainLinkpPassword.validation
+        passwordState.value = chainLink.password.value
+        passwordValidationState.value = chainLink.password.validation
     }
 
     val onDone = {
-        val chainLinkName = ChainLink.Name(nameState.value)
-        val chainLinkDescription = ChainLink.Description(descriptionState.value)
-        val chainLinkPassword = ChainLink.Password(passwordState.value)
+        chainLink.name = ChainLink.Name(nameState.value)
+        chainLink.description = ChainLink.Description(descriptionState.value)
+        chainLink.password = ChainLink.Password(passwordState.value)
 
-        nameValidationState.value = chainLinkName.validation
-        descriptionValidationState.value = chainLinkDescription.validation
-        passwordValidationState.value = chainLinkPassword.validation
+        nameValidationState.value = chainLink.name.validation
+        descriptionValidationState.value = chainLink.description.validation
+        passwordValidationState.value = chainLink.password.validation
 
         if (nameValidationState.value.isSuccess && descriptionValidationState.value.isSuccess &&
             passwordValidationState.value.isSuccess
         ) {
-            chainLink.name = chainLinkName
-            chainLink.description = chainLinkDescription
-            chainLink.password = chainLinkPassword
-
             onNew()
         }
     }
