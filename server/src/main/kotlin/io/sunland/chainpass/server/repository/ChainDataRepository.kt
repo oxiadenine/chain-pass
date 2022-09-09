@@ -6,10 +6,7 @@ import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.server.ChainTable
 import io.sunland.chainpass.server.Database
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
 import java.security.SecureRandom
 import java.util.*
 
@@ -17,11 +14,12 @@ object ChainDataRepository : ChainRepository {
     private val keys = Collections.synchronizedList<ChainKeyEntity>(mutableListOf())
 
     override suspend fun create(chainEntity: ChainEntity) = runCatching {
-        Database.execute {
-            ChainTable.insertAndGetId { statement ->
+        Database.execute<Unit> {
+            ChainTable.insert { statement ->
+                statement[id] = chainEntity.id
                 statement[name] = chainEntity.name
                 statement[key] = chainEntity.key
-            }.value
+            }
         }
     }
 

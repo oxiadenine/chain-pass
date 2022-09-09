@@ -36,11 +36,7 @@ fun Application.main() {
                 val chainEntity = Json.decodeFromString<ChainEntity>(message.data.getOrThrow())
 
                 ChainDataRepository.create(chainEntity).fold(
-                    onSuccess = { chainEntityId ->
-                        chainEntity.id = chainEntityId
-
-                        SocketMessage.success(Json.encodeToString(chainEntity))
-                    },
+                    onSuccess = { SocketMessage.success(Json.encodeToString(chainEntity)) },
                     onFailure = { exception -> SocketMessage.failure(exception.message) }
                 )
             }.fold(
@@ -128,11 +124,7 @@ fun Application.main() {
                     }
                     .mapCatching { ChainLinkDataRepository.create(chainLinkEntity).getOrThrow() }
                     .fold(
-                        onSuccess = { chainLinkEntityId ->
-                            chainLinkEntity.id = chainLinkEntityId
-
-                            SocketMessage.success(Json.encodeToString(chainLinkEntity))
-                        },
+                        onSuccess = { SocketMessage.success(Json.encodeToString(chainLinkEntity)) },
                         onFailure = { exception -> SocketMessage.failure(exception.message) }
                     )
             }.fold(

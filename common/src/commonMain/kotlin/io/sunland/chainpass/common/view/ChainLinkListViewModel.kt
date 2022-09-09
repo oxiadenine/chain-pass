@@ -229,8 +229,7 @@ class ChainLinkListViewModel(
         )
 
         chainLinkRepository.create(chainLinkEntity).getOrThrow()
-    }.map { chainLinkId ->
-        chainLink.id = chainLinkId
+    }.map {
         chainLink.status = ChainLink.Status.ACTUAL
 
         update()

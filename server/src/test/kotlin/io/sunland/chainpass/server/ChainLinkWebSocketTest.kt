@@ -28,9 +28,9 @@ class ChainLinkWebSocketTest {
         PasswordEncoder.Base64.encode("test".encodeToByteArray())
     ))
 
-    private var chainEntity = ChainEntity(0, "test", "test")
+    private var chainEntity = ChainEntity(1, "test", "test")
     private var chainKeyEntity = ChainKeyEntity(chainEntity.id, chainEntity.key)
-    private var chainLinkEntity = ChainLinkEntity(0, "test", "test", "test", chainKeyEntity)
+    private var chainLinkEntity = ChainLinkEntity(1, "test", "test", "test", chainKeyEntity)
 
     private enum class Operation { CREATE, READ, UPDATE, DELETE }
 
@@ -68,7 +68,7 @@ class ChainLinkWebSocketTest {
 
             val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-            chainEntity.id = Json.decodeFromString<ChainEntity>(message.data.getOrThrow()).id
+            message.data.getOrThrow()
         }
     }
 
@@ -164,7 +164,7 @@ class ChainLinkWebSocketTest {
 
                 val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-                chainLinkEntity.id = Json.decodeFromString<ChainLinkEntity>(message.data.getOrThrow()).id
+                message.data.getOrThrow()
 
                 assertTrue { chainLinkEntity.id != 0 }
             }
