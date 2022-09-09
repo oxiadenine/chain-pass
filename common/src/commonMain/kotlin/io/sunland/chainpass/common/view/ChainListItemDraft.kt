@@ -42,30 +42,27 @@ fun ChainListItemDraft(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
     val keyValidationState = remember { mutableStateOf(chain.key.validation) }
 
     val onNameChange = { value: String ->
-        val chainName = Chain.Name(value)
+        chain.name = Chain.Name(value)
 
-        nameState.value = chainName.value
-        nameValidationState.value = chainName.validation
+        nameState.value = chain.name.value
+        nameValidationState.value = chain.name.validation
     }
 
     val onKeyChange = { value: String ->
-        val chainKey = Chain.Key(value)
+        chain.key = Chain.Key(value)
 
-        keyState.value = chainKey.value
-        keyValidationState.value = chainKey.validation
+        keyState.value = chain.key.value
+        keyValidationState.value = chain.key.validation
     }
 
     val onDone = {
-        val chainName = Chain.Name(nameState.value)
-        val chainKey = Chain.Key(keyState.value)
+        chain.name = Chain.Name(nameState.value)
+        chain.key = Chain.Key(keyState.value)
 
-        nameValidationState.value = chainName.validation
-        keyValidationState.value = chainKey.validation
+        nameValidationState.value = chain.name.validation
+        keyValidationState.value = chain.key.validation
 
         if (nameValidationState.value.isSuccess && keyValidationState.value.isSuccess) {
-            chain.name = chainName
-            chain.key = chainKey
-
             onNew()
         }
     }

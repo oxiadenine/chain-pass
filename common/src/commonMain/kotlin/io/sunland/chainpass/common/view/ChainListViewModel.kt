@@ -25,6 +25,8 @@ class ChainListViewModel(private val repository: ChainRepository) {
         } else Chain()
 
         chainListState.add(chain)
+
+        update()
     }
 
     fun rejectDraft(chain: Chain) {
