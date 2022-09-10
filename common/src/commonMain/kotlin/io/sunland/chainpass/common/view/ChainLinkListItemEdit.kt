@@ -16,14 +16,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -87,7 +85,9 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
     }
 
     val onKeyEvent = { keyEvent: KeyEvent ->
-        when (keyEvent.key) {
+        if (keyEvent.type == KeyEventType.KeyDown) {
+            false
+        } else when (keyEvent.key) {
             Key.Escape -> {
                 onClear()
 
@@ -129,7 +129,6 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
             }
         }
         Column(modifier = Modifier.padding(horizontal = 4.dp)) {
-            val focusManager = LocalFocusManager.current
             val focusRequester = remember { FocusRequester() }
 
             val passwordGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
@@ -151,8 +150,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                     unfocusedIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
                 ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
 
             ValidationTextField(
@@ -166,7 +164,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
                             .onPreviewKeyEvent { keyEvent ->
-                                if (keyEvent.key == Key.Enter) {
+                                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
                                     onPasswordChange(passwordGenerator.generate())
 
                                     true
@@ -188,7 +186,11 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions(onDone = { if (isEditedState.value) onDone() })
+                keyboardActions = KeyboardActions(onDone = {
+                    if (isEditedState.value) {
+                        onDone()
+                    }
+                })
             )
 
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
