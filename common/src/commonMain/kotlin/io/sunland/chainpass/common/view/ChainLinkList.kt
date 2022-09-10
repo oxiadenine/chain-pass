@@ -1,9 +1,8 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -11,12 +10,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
-import kotlinx.coroutines.launch
+import io.sunland.chainpass.common.component.VerticalScrollbar
 
 @Composable
 fun ChainLinkList(
@@ -29,10 +27,6 @@ fun ChainLinkList(
     onSync: () -> Unit,
     onBack: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
-    val lazyListState = rememberLazyListState()
-
     Column(modifier = Modifier.fillMaxSize()) {
         if (viewModel.isSearchState.value) {
             ChainLinkSearchListTopBar(
@@ -48,13 +42,7 @@ fun ChainLinkList(
                     onBack()
                 },
                 onSync = onSync,
-                onAdd = {
-                    viewModel.draft()
-
-                    coroutineScope.launch {
-                        lazyListState.scrollToItem(viewModel.chainLinkListState.size - 1)
-                    }
-                },
+                onAdd = { viewModel.draft() },
                 onSearch = {
                     viewModel.rejectDrafts()
                     viewModel.cancelEdits()
@@ -84,8 +72,10 @@ fun ChainLinkList(
                     }
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize(), state = lazyListState) {
-                    items(chainLinks, key = { chainLink -> chainLink.id }) { chainLink ->
+                val scrollState = rememberScrollState()
+
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(state = scrollState)) {
+                    chainLinks.forEach { chainLink ->
                         if (viewModel.isSearchState.value) {
                             ChainLinkSearchListItem(
                                 chainLink = chainLink,
@@ -112,20 +102,28 @@ fun ChainLinkList(
                                     },
                                     onPasswordCopy = { onPasswordCopy(chainLink) }
                                 )
-                                ChainLink.Status.DRAFT -> ChainLinkListItemDraft(
-                                    chainLink = chainLink,
-                                    onNew = { onNew(chainLink) },
-                                    onCancel = { viewModel.rejectDraft(chainLink) }
-                                )
-                                ChainLink.Status.EDIT -> ChainLinkListItemEdit(
-                                    chainLink = chainLink,
-                                    onEdit = { onEdit(chainLink) },
-                                    onCancel = { viewModel.cancelEdit(chainLink) }
-                                )
+                                ChainLink.Status.DRAFT -> key(chainLink.id) {
+                                    ChainLinkListItemDraft(
+                                        chainLink = chainLink,
+                                        onNew = { onNew(chainLink) },
+                                        onCancel = { viewModel.rejectDraft(chainLink) }
+                                    )
+                                }
+                                ChainLink.Status.EDIT -> key(chainLink.id) {
+                                    ChainLinkListItemEdit(
+                                        chainLink = chainLink,
+                                        onEdit = { onEdit(chainLink) },
+                                        onCancel = { viewModel.cancelEdit(chainLink) }
+                                    )
+                                }
                             }
                         }
                     }
                 }
+                VerticalScrollbar(
+                    modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
+                    scrollState = scrollState
+                )
             }
         }
     }
