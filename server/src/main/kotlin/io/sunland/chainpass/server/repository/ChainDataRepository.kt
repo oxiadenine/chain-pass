@@ -26,7 +26,7 @@ object ChainDataRepository : ChainRepository {
     override suspend fun read() = runCatching {
         Database.execute {
             ChainTable.selectAll().map { record ->
-                ChainEntity(record[ChainTable.id].value, record[ChainTable.name])
+                ChainEntity(record[ChainTable.id], record[ChainTable.name])
             }
         }
     }
@@ -35,7 +35,7 @@ object ChainDataRepository : ChainRepository {
         Database.execute {
             val record = ChainTable.select { ChainTable.id eq id }.first()
 
-            ChainEntity(record[ChainTable.id].value, record[ChainTable.name], record[ChainTable.key])
+            ChainEntity(record[ChainTable.id], record[ChainTable.name], record[ChainTable.key])
         }
     }
 
