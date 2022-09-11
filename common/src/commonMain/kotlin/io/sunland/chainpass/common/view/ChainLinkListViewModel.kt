@@ -247,7 +247,13 @@ class ChainLinkListViewModel(
             .filter { chainLink -> chainLink.chain.id == chain!!.id }
 
         val chainLinks = chainLinks
-            .map { chainLink -> ChainLink(chainLink) }
+            .map { chainLink ->
+                chainLinkListState.firstOrNull { chainLink.id == it.id }?.let {
+                    if (it.status == ChainLink.Status.EDIT) {
+                        ChainLink(it)
+                    } else ChainLink(chainLink)
+                } ?: ChainLink(chainLink)
+            }
             .sortedBy { chainLink -> chainLink.name.value }
             .plus(chainLinksDraft)
 
