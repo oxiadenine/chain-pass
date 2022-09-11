@@ -245,17 +245,7 @@ class ChainLinkListViewModel(
         val chainLinksDraft = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
 
         val chainLinks = chainLinks
-            .map { chainLink ->
-                if (chainLinkListState.isEmpty()) {
-                    ChainLink(chainLink)
-                } else {
-                    chainLinkListState.first { chainLink.id == it.id }.let {
-                        if (it.status == ChainLink.Status.EDIT) {
-                            ChainLink(it)
-                        } else ChainLink(chainLink)
-                    }
-                }
-            }
+            .map { chainLink -> ChainLink(chainLink) }
             .sortedBy { chainLink -> chainLink.name.value }
             .plus(chainLinksDraft)
 
