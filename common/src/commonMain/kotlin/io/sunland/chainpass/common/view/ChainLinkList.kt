@@ -12,6 +12,8 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
 
@@ -22,7 +24,6 @@ fun ChainLinkList(
     onEdit: (ChainLink) -> Unit,
     onRemove: (ChainLink) -> Unit,
     onSearch: () -> Unit,
-    onPasswordCopy: (ChainLink) -> Unit,
     onSync: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -83,6 +84,8 @@ fun ChainLinkList(
                         } else {
                             when (chainLink.status) {
                                 ChainLink.Status.ACTUAL -> {
+                                    val clipboardManager = LocalClipboardManager.current
+
                                     ChainLinkListItem(
                                         chainLink = chainLink,
                                         onEdit = { viewModel.startEdit(chainLink) },
@@ -96,7 +99,9 @@ fun ChainLinkList(
                                                 viewModel.unlockPassword(chainLink)
                                             } else viewModel.lockPassword(chainLink)
                                         },
-                                        onPasswordCopy = { onPasswordCopy(chainLink) }
+                                        onPasswordCopy = {
+                                            clipboardManager.setText(AnnotatedString(chainLink.password.value))
+                                        }
                                     )
                                 }
                                 ChainLink.Status.DRAFT -> key(chainLink.id) {
