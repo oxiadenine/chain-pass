@@ -34,6 +34,8 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: () -> Unit) {
+    val focusRequester = remember { FocusRequester() }
+
     val isEdited = chainLink.description.isEdited || chainLink.password.isEdited
 
     val isEditedState = remember { mutableStateOf(isEdited) }
@@ -129,8 +131,6 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
             }
         }
         Column(modifier = Modifier.padding(horizontal = 4.dp)) {
-            val focusRequester = remember { FocusRequester() }
-
             val passwordGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
 
             ValidationTextField(
@@ -192,8 +192,10 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                     }
                 })
             )
-
-            LaunchedEffect(Unit) { focusRequester.requestFocus() }
         }
+    }
+
+    if (chainLink.isLatest) {
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
     }
 }

@@ -1,20 +1,19 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.key
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
-import io.sunland.chainpass.common.component.VerticalScrollbar
 
 @Composable
 fun ChainLinkList(
@@ -72,36 +71,34 @@ fun ChainLinkList(
                     }
                 }
             } else {
-                val scrollState = rememberScrollState()
+                val lazyListState = rememberLazyListState()
 
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(state = scrollState)) {
-                    chainLinks.forEach { chainLink ->
+                LazyColumn(modifier = Modifier.fillMaxSize(), state = lazyListState) {
+                    items(chainLinks, key = { chainLink -> chainLink.id }) { chainLink ->
                         if (viewModel.isSearchState.value) {
                             ChainLinkSearchListItem(
                                 chainLink = chainLink,
-                                onSelect = {
-                                    chainLink.status = ChainLink.Status.SELECT
-
-                                    viewModel.endSearch()
-                                }
+                                onSelect = { viewModel.endSearch(chainLink) }
                             )
                         } else {
                             when (chainLink.status) {
-                                ChainLink.Status.ACTUAL, ChainLink.Status.SELECT -> ChainLinkListItem(
-                                    chainLink = chainLink,
-                                    onEdit = { viewModel.startEdit(chainLink) },
-                                    onDelete = {
-                                        viewModel.removeLater(chainLink)
+                                ChainLink.Status.ACTUAL -> {
+                                    ChainLinkListItem(
+                                        chainLink = chainLink,
+                                        onEdit = { viewModel.startEdit(chainLink) },
+                                        onDelete = {
+                                            viewModel.removeLater(chainLink)
 
-                                        onRemove(chainLink)
-                                    },
-                                    onPasswordLock = { isPasswordLocked ->
-                                        if (isPasswordLocked) {
-                                            viewModel.unlockPassword(chainLink)
-                                        } else viewModel.lockPassword(chainLink)
-                                    },
-                                    onPasswordCopy = { onPasswordCopy(chainLink) }
-                                )
+                                            onRemove(chainLink)
+                                        },
+                                        onPasswordLock = { isPasswordLocked ->
+                                            if (isPasswordLocked) {
+                                                viewModel.unlockPassword(chainLink)
+                                            } else viewModel.lockPassword(chainLink)
+                                        },
+                                        onPasswordCopy = { onPasswordCopy(chainLink) }
+                                    )
+                                }
                                 ChainLink.Status.DRAFT -> key(chainLink.id) {
                                     ChainLinkListItemDraft(
                                         chainLink = chainLink,
@@ -120,10 +117,18 @@ fun ChainLinkList(
                         }
                     }
                 }
-                VerticalScrollbar(
-                    modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
-                    scrollState = scrollState
-                )
+
+                LaunchedEffect(
+                    viewModel.isSearchState.value,
+                    viewModel.searchKeywordState.value,
+                    viewModel.chainLinkSearchListState.size
+                ) { lazyListState.scrollToItem(0) }
+
+                viewModel.chainLinkLatestIndex.takeIf { index -> index != -1 }?.let { index ->
+                    LaunchedEffect(index) {
+                        lazyListState.scrollToItem(index)
+                    }
+                }
             }
         }
     }

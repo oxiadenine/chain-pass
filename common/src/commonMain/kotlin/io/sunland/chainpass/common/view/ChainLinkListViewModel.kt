@@ -23,20 +23,33 @@ class ChainLinkListViewModel(
     val isSearchState = mutableStateOf(false)
     val searchKeywordState = mutableStateOf("")
 
+    val chainLinkLatestIndex: Int
+        get() {
+            return chainLinkListState.indexOfFirst { chainLink -> chainLink.isLatest }
+        }
+
     private var chainLinks = emptyList<ChainLink>()
 
     fun draft() {
-        val chainLinks = chainLinks.plus(chainLinkListState.filter { chainLink ->
+        val chainLinkIds = chainLinks.plus(chainLinkListState.filter { chainLink ->
             chainLink.status == ChainLink.Status.DRAFT
-        })
+        }).map { chainLink -> chainLink.id }
 
-        val chainLink = ChainLink().apply {
-            id = if (chainLinks.isNotEmpty()) {
-                chainLinks.maxOf { chainLink -> chainLink.id } + 1
-            } else 1
+        val chainLinkDraft = ChainLink().apply {
+            id = chainLinkIds.maxOrNull()?.let { it + 1 } ?: 1
+            isLatest = true
         }
 
-        chainLinkListState.add(chainLink)
+        chainLinkListState.add(chainLinkDraft)
+
+        val chainLinks = chainLinkListState.map { chainLink ->
+            if (chainLink.id != chainLinkDraft.id) {
+                chainLink.apply { isLatest = false }
+            } else chainLink
+        }
+
+        chainLinkListState.clear()
+        chainLinkListState.addAll(chainLinks)
     }
 
     fun rejectDraft(chainLink: ChainLink) {
@@ -87,6 +100,8 @@ class ChainLinkListViewModel(
                     chainLink.status = chainLinkNoEdit.status
                 }
 
+                chainLink.isLatest = false
+
                 chainLink
             }
             .sortedBy { chainLink -> chainLink.name.value }
@@ -109,6 +124,8 @@ class ChainLinkListViewModel(
                     chainLink.password = chainLinkNoEdit.password
                     chainLink.status = chainLinkNoEdit.status
                 }
+
+                chainLink.isLatest = false
 
                 chainLink
             }
@@ -134,6 +151,10 @@ class ChainLinkListViewModel(
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)
+
+        if (isSearchState.value) {
+            search(searchKeywordState.value)
+        }
     }
 
     fun unlockPassword(chainLink: ChainLink) {
@@ -187,7 +208,9 @@ class ChainLinkListViewModel(
         chainLinkSearchListState.addAll(chainLinks)
     }
 
-    fun endSearch() {
+    fun endSearch(chainLink: ChainLink? = null) {
+        chainLink?.isLatest = true
+
         isSearchState.value = false
         searchKeywordState.value = ""
 
