@@ -39,7 +39,9 @@ fun ChainLinkSearchListTopBar(keywordState: MutableState<String>, onBack: () -> 
 
     val onKeyEvent = { keyEvent: KeyEvent ->
         if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
-            onBack()
+            if (keywordState.value.isEmpty()) {
+                onBack()
+            } else onClear()
 
             true
         } else false
