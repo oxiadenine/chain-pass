@@ -177,7 +177,7 @@ fun ServerConnection(
                 } else null,
                 enabled = serverConnectionState.discoveringState.value?.isActive != true,
                 isError = serverConnectionState.discoveringState.value?.isActive != true &&
-                        serverConnectionState.hostValidationState.value.isFailure,
+                        serverConnectionState.portValidationState.value.isFailure,
                 errorMessage = serverConnectionState.portValidationState.value.exceptionOrNull()?.message,
                 colors = TextFieldDefaults.textFieldColors(
                     backgroundColor = Color.Transparent,
