@@ -26,11 +26,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import io.sunland.chainpass.common.Settings
 import io.sunland.chainpass.common.component.ValidationTextField
 import kotlinx.coroutines.Job
 
-class ServerAddress : Settings {
+class ServerAddress {
     class Host(value: String? = null) {
         var value = value ?: ""
             private set
@@ -61,15 +60,6 @@ class ServerAddress : Settings {
 
     var host = Host()
     var port = Port()
-
-    override val fileName: String = "server-address"
-
-    override fun toMap(): Map<String, String> = mapOf("host" to host.value, "port" to port.value)
-
-    override fun fromMap(data: Map<String, String>) = apply {
-        host = Host(data["host"]!!)
-        port = Port(data["port"]!!)
-    }
 }
 
 class ServerConnectionState(serverAddress: ServerAddress) {

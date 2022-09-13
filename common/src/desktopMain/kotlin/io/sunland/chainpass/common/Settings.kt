@@ -7,24 +7,28 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.writeText
 
-actual class SettingsFactory actual constructor(actual val dirPath: String) {
+actual class SettingsManager actual constructor(actual val dirPath: String) {
+    private val filePath = Path.of("$dirPath/settings.json")
+
     actual fun save(settings: Settings) {
         if (!Files.exists(Path.of(dirPath))) {
             Files.createDirectory(Path.of(dirPath))
         }
 
-        val file = Files.createFile(Path.of("$dirPath/${settings.fileName}.json"))
+        if (!Files.exists(filePath)) {
+            Files.createFile(filePath)
+        }
 
-        file.writeText(Json.encodeToString(settings.toMap()))
+        filePath.writeText(Json.encodeToString(settings))
     }
 
     actual fun load(settings: Settings): Settings? {
-        return if (Files.exists(Path.of("$dirPath/${settings.fileName}.json"))) {
-            settings.fromMap(Json.decodeFromString(Files.readString(Path.of("$dirPath/${settings.fileName}.json"))))
+        return if (Files.exists(filePath)) {
+            Json.decodeFromString(Files.readString(filePath))
         } else null
     }
 
     actual fun delete(settings: Settings) {
-        Files.deleteIfExists(Path.of("$dirPath/${settings.fileName}.json"))
+        Files.deleteIfExists(filePath)
     }
 }

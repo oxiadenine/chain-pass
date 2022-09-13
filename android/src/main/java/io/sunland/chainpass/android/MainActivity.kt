@@ -8,7 +8,6 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.websocket.*
 import io.sunland.chainpass.common.*
-import io.sunland.chainpass.common.view.ServerAddress
 
 class MainActivity : AppCompatActivity() {
     private lateinit var appState: AppState
@@ -20,7 +19,7 @@ class MainActivity : AppCompatActivity() {
             title = "Chain Pass"
 
             appState = rememberAppState(
-                ServerAddress(),
+                Settings(),
                 HttpClient(CIO) {
                     install(WebSockets)
                     install(Logging)
@@ -28,7 +27,7 @@ class MainActivity : AppCompatActivity() {
                 Screen.SERVER_CONNECTION
             )
 
-            App(SettingsFactory(applicationContext.filesDir.absolutePath), appState)
+            App(SettingsManager(applicationContext.filesDir.absolutePath), appState)
         }
     }
 
