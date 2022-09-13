@@ -2,8 +2,7 @@ package io.sunland.chainpass.common.view
 
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import io.sunland.chainpass.common.Chain
-import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.*
 import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
@@ -215,6 +214,30 @@ class ChainLinkListViewModel(
         searchKeywordState.value = ""
 
         chainLinkSearchListState.clear()
+    }
+
+    fun store(storage: Storage) = runCatching {
+        val chainLinks = chainLinkListState.map { chainLink ->
+            ChainLink(chain!!).apply {
+                id = chainLink.id
+                name = chainLink.name
+                description = chainLink.description
+                password = chainLink.password
+
+                unlockPassword(this)
+            }
+        }.map { chainLink ->
+            mapOf(
+                "id" to chainLink.id.toString(),
+                "name" to chainLink.name.value,
+                "description" to chainLink.description.value,
+                "password" to chainLink.password.value
+            )
+        }
+
+        val chain = mapOf("id" to chain!!.id.toString(), "name" to chain!!.name.value)
+
+        storage.store(mapOf(chain to chainLinks))
     }
 
     suspend fun getAll() = chainRepository.key(chain!!.id).mapCatching { chainKeyEntity ->

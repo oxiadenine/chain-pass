@@ -23,7 +23,12 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import io.sunland.chainpass.common.StorageType
+import io.sunland.chainpass.common.component.DropdownMenu
+import io.sunland.chainpass.common.component.DropdownMenuItem
 import io.sunland.chainpass.common.component.ValidationTextField
 import kotlinx.coroutines.Job
 
@@ -60,7 +65,7 @@ class ServerAddress {
     var port = Port()
 }
 
-class ServerConnectionState(serverAddress: ServerAddress) {
+class ServerConnectionState(serverAddress: ServerAddress, storageType: StorageType) {
     val hostState = mutableStateOf(serverAddress.host.value)
     val hostValidationState = mutableStateOf(serverAddress.host.validation)
 
@@ -68,6 +73,8 @@ class ServerConnectionState(serverAddress: ServerAddress) {
     val portValidationState = mutableStateOf(serverAddress.port.validation)
 
     val discoveringState = mutableStateOf<Job?>(null)
+
+    val storageTypeState = mutableStateOf(storageType)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -76,7 +83,7 @@ fun ServerConnection(
     serverConnectionState: ServerConnectionState,
     onDiscover: () -> Unit,
     onDiscoverCancel: () -> Unit,
-    onConnect: (ServerAddress) -> Unit
+    onConnect: (ServerAddress, StorageType) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -94,6 +101,12 @@ fun ServerConnection(
         serverConnectionState.portValidationState.value = port.validation
     }
 
+    val storageTypeMenuExpandedState = remember { mutableStateOf(false) }
+
+    val onStorageTypeChange = { value: StorageType ->
+        serverConnectionState.storageTypeState.value = value
+    }
+
     val onDone = {
         val serverAddress = ServerAddress().apply {
             host = ServerAddress.Host(serverConnectionState.hostState.value)
@@ -105,7 +118,7 @@ fun ServerConnection(
 
         if (serverConnectionState.hostValidationState.value.isSuccess &&
             serverConnectionState.portValidationState.value.isSuccess) {
-            onConnect(serverAddress)
+            onConnect(serverAddress, serverConnectionState.storageTypeState.value)
         }
     }
 
@@ -188,6 +201,54 @@ fun ServerConnection(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 keyboardActions = KeyboardActions(onDone = { onDone() })
             )
+            Text(modifier = Modifier.padding(vertical = 32.dp), text = "Storage Type", fontWeight = FontWeight.Bold)
+            Button(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = { storageTypeMenuExpandedState.value = true },
+                colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
+            ) {
+                Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        modifier = Modifier.width(width = 60.dp).padding(start = 8.dp, end = 4.dp),
+                        text = serverConnectionState.storageTypeState.value.name
+                    )
+                    Icon(imageVector = Icons.Default.ExpandMore, contentDescription = null)
+                }
+                DropdownMenu(
+                    modifier = Modifier.width(width = 150.dp),
+                    expanded = storageTypeMenuExpandedState.value,
+                    onDismissRequest = { storageTypeMenuExpandedState.value = false },
+                    offset = DpOffset(x = 8.dp, y = (-16).dp)
+                ) {
+                    DropdownMenuItem(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        onClick = {
+                            storageTypeMenuExpandedState.value = false
+
+                            onStorageTypeChange(StorageType.JSON)
+                        },
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    ) { Text(text = "JSON", fontSize = 12.sp) }
+                    DropdownMenuItem(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        onClick = {
+                            storageTypeMenuExpandedState.value = false
+
+                            onStorageTypeChange(StorageType.CSV)
+                        },
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    ) { Text(text = "CSV", fontSize = 12.sp) }
+                    DropdownMenuItem(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        onClick = {
+                            storageTypeMenuExpandedState.value = false
+
+                            onStorageTypeChange(StorageType.TXT)
+                        },
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    ) { Text(text = "TXT", fontSize = 12.sp) }
+                }
+            }
 
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
         }
