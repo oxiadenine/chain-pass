@@ -46,6 +46,8 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
     val passwordState = remember { mutableStateOf(chainLink.password.value) }
     val passwordValidationState = remember { mutableStateOf(chainLink.password.validation)}
 
+    val passwordGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
+
     val onNameChange = { value: String ->
         chainLink.name = ChainLink.Name(value)
 
@@ -101,6 +103,14 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
         }
     }
 
+    val onPreviewKeyEvent = { keyEvent: KeyEvent ->
+        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+            onPasswordChange(passwordGenerator.generate())
+
+            true
+        } else false
+    }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(all = 4.dp),
@@ -117,8 +127,6 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
             ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
         }
         Column(modifier = Modifier.padding(horizontal = 4.dp)) {
-            val passwordGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
-
             ValidationTextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
                 placeholder = { Text(text = "Name") },
@@ -168,13 +176,7 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                            .onPreviewKeyEvent { keyEvent ->
-                                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                                    onPasswordChange(passwordGenerator.generate())
-
-                                    true
-                                } else false
-                            },
+                            .onPreviewKeyEvent(onPreviewKeyEvent),
                         onClick = { onPasswordChange(passwordGenerator.generate()) }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },

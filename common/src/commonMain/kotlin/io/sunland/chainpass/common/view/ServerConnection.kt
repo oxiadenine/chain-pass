@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -34,8 +35,8 @@ class ServerAddress {
         val validation = value?.let {
             if (value.isEmpty()) {
                 Result.failure(IllegalArgumentException("Host is empty"))
-            } else if (!value.matches("^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\\-]*[A-Za-z0-9])$".toRegex()) &&
-                !value.matches("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$".toRegex())
+            } else if (!value.matches("^(([a-zA-Z]|[a-zA-Z][a-zA-Z\\d\\-]*[a-zA-Z\\d])\\.)*([A-Za-z]|[A-Za-z][A-Za-z\\d\\-]*[A-Za-z\\d])$".toRegex()) &&
+                !value.matches("^((\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])\\.){3}(\\d|[1-9]\\d|1\\d{2}|2[0-4]\\d|25[0-5])$".toRegex())
             ) {
                 Result.failure(IllegalArgumentException("Host is not a valid hostname or IP address"))
             } else Result.success(value)
@@ -49,7 +50,7 @@ class ServerAddress {
         val validation = value?.let {
             if (value.isEmpty()) {
                 Result.failure(IllegalArgumentException("Port is empty"))
-            } else if (!value.matches("^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$".toRegex())) {
+            } else if (!value.matches("^([1-9]\\d{0,3}|[1-5]\\d{4}|6[0-4]\\d{3}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5])$".toRegex())) {
                 Result.failure(IllegalArgumentException("Port is not a valid port number"))
             } else Result.success(value)
         } ?: Result.success(this.value)
@@ -77,6 +78,8 @@ fun ServerConnection(
     onDiscoverCancel: () -> Unit,
     onConnect: (ServerAddress) -> Unit
 ) {
+    val focusRequester = remember { FocusRequester() }
+
     val onHostChange = { value: String ->
         val host = ServerAddress.Host(value)
 
@@ -106,22 +109,20 @@ fun ServerConnection(
         }
     }
 
+    val onKeyEvent = { keyEvent: KeyEvent ->
+        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+            onDone()
+
+            true
+        } else false
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         ServerConnectionTopBar(serverConnectionState = serverConnectionState, onConnect = onDone)
         Column(
             modifier = Modifier.fillMaxWidth(fraction = 0.6f).align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val focusRequester = FocusRequester()
-
-            val onKeyEvent = { keyEvent: KeyEvent ->
-                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                    onDone()
-
-                    true
-                } else false
-            }
-
             Text(modifier = Modifier.padding(vertical = 32.dp), text = "Server Address", fontWeight = FontWeight.Bold)
             ValidationTextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
@@ -139,12 +140,14 @@ fun ServerConnection(
                     ) { Icon(imageVector = Icons.Default.Refresh, contentDescription = null) }
                 },
                 trailingIcon = if (serverConnectionState.discoveringState.value?.isActive == true) {
-                    { Icon(
-                        modifier = Modifier
-                            .clickable(onClick = onDiscoverCancel)
-                            .pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        imageVector = Icons.Default.Cancel,
-                        contentDescription = null) }
+                    {
+                        Icon(
+                            modifier = Modifier
+                                .clickable(onClick = onDiscoverCancel)
+                                .pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            imageVector = Icons.Default.Cancel,
+                            contentDescription = null)
+                    }
                 } else if (serverConnectionState.hostValidationState.value.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,

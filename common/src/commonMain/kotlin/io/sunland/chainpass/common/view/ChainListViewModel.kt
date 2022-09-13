@@ -12,8 +12,8 @@ import io.sunland.chainpass.common.security.PasswordEncoder
 class ChainListViewModel(private val repository: ChainRepository) {
     val chainListState = mutableStateListOf<Chain>()
 
-    val chainRemoveState = mutableStateOf<Chain?>(null)
     val chainSelectState = mutableStateOf<Chain?>(null)
+    val chainRemoveState = mutableStateOf<Chain?>(null)
 
     val chainLatestIndex: Int
         get() {
@@ -48,6 +48,15 @@ class ChainListViewModel(private val repository: ChainRepository) {
         chainListState.remove(chain)
     }
 
+    fun select(chainKey: Chain.Key) = chainSelectState.value?.let { chain ->
+        Chain().apply {
+            id = chain.id
+            name = chain.name
+            key = chainKey
+            status = chain.status
+        }
+    }
+
     fun removeLater(chainKey: Chain.Key) = chainRemoveState.value?.let { chain ->
         chainListState.remove(chain)
 
@@ -70,15 +79,6 @@ class ChainListViewModel(private val repository: ChainRepository) {
 
         chainListState.clear()
         chainListState.addAll(chains)
-    }
-
-    fun select(chainKey: Chain.Key) = chainSelectState.value?.let { chain ->
-        Chain().apply {
-            id = chain.id
-            name = chain.name
-            key = chainKey
-            status = chain.status
-        }
     }
 
     suspend fun getAll() = repository.read().map { chainEntities ->

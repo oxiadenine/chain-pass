@@ -20,12 +20,12 @@ import io.sunland.chainpass.common.ChainLink
 @Composable
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
+    onBack: () -> Unit,
+    onSync: () -> Unit,
     onNew: (ChainLink) -> Unit,
     onEdit: (ChainLink) -> Unit,
     onRemove: (ChainLink) -> Unit,
     onSearch: () -> Unit,
-    onSync: () -> Unit,
-    onBack: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         if (viewModel.isSearchState.value) {

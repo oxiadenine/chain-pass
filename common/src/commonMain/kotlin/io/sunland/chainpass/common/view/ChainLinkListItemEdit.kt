@@ -36,15 +36,15 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: () -> Unit) {
     val focusRequester = remember { FocusRequester() }
 
-    val isEdited = chainLink.description.isEdited || chainLink.password.isEdited
-
-    val isEditedState = remember { mutableStateOf(isEdited) }
+    val isEditedState = remember { mutableStateOf(chainLink.description.isEdited || chainLink.password.isEdited) }
 
     val descriptionState = remember { mutableStateOf(chainLink.description.value) }
     val descriptionValidationState = remember { mutableStateOf(chainLink.description.validation) }
 
     val passwordState = remember { mutableStateOf(chainLink.password.value) }
     val passwordValidationState = remember { mutableStateOf(chainLink.password.validation) }
+
+    val passwordGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
 
     val onDescriptionChange = { value: String ->
         chainLink.description = ChainLink.Description(value, isEdited = true)
@@ -106,6 +106,14 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
         }
     }
 
+    val onPreviewKeyEvent = { keyEvent: KeyEvent ->
+        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+            onPasswordChange(passwordGenerator.generate())
+
+            true
+        } else false
+    }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -131,8 +139,6 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
             }
         }
         Column(modifier = Modifier.padding(horizontal = 4.dp)) {
-            val passwordGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
-
             ValidationTextField(
                 modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent),
                 placeholder = { Text(text = "Description", fontSize = 14.sp) },
@@ -163,13 +169,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                            .onPreviewKeyEvent { keyEvent ->
-                                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                                    onPasswordChange(passwordGenerator.generate())
-
-                                    true
-                                } else false
-                            },
+                            .onPreviewKeyEvent(onPreviewKeyEvent),
                         onClick = { onPasswordChange(passwordGenerator.generate()) }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },

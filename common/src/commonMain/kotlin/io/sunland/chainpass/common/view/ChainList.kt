@@ -18,10 +18,10 @@ import io.sunland.chainpass.common.Chain
 fun ChainList(
     serverAddress: ServerAddress,
     viewModel: ChainListViewModel,
+    onSync: () -> Unit,
     onNew: (Chain) -> Unit,
     onSelect: (Chain) -> Unit,
     onRemove: (Chain) -> Unit,
-    onSync: () -> Unit,
     onDisconnect: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -53,17 +53,17 @@ fun ChainList(
                                 if (keyInputDialogVisible.value) {
                                     ChainListItemKeyInput(
                                         onDismiss = {
-                                            viewModel.chainRemoveState.value = null
                                             viewModel.chainSelectState.value = null
+                                            viewModel.chainRemoveState.value = null
 
                                             keyInputDialogVisible.value = false
                                         },
                                         onConfirm = { chainKey ->
-                                            viewModel.removeLater(chainKey)?.let(onRemove)
                                             viewModel.select(chainKey)?.let(onSelect)
+                                            viewModel.removeLater(chainKey)?.let(onRemove)
 
-                                            viewModel.chainRemoveState.value = null
                                             viewModel.chainSelectState.value = null
+                                            viewModel.chainRemoveState.value = null
 
                                             keyInputDialogVisible.value = false
                                         }
@@ -77,7 +77,7 @@ fun ChainList(
 
                                         keyInputDialogVisible.value = true
                                     },
-                                    onDelete = {
+                                    onRemove = {
                                         viewModel.chainRemoveState.value = chain
 
                                         keyInputDialogVisible.value = true
