@@ -228,7 +228,9 @@ class ChainLinkListViewModel(
                 description = chainLink.description
                 password = chainLink.password
 
-                unlockPassword(this)
+                if (chainLink.password.isPrivate) {
+                    unlockPassword(this)
+                }
             }
         }.map { chainLink ->
             mapOf(
