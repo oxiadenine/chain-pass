@@ -246,9 +246,13 @@ class ChainLinkListViewModel(
                 )
             }
 
-        val chain = mapOf("id" to chain!!.id.toString(), "name" to chain!!.name.value)
+        val storable = Storable(
+            "${chain!!.name.value}${chain!!.id}",
+            mapOf("isPrivate" to storage.options.isPrivate.toString()),
+            chainLinks
+        )
 
-        storage.store(mapOf(chain to chainLinks))
+        storage.store(storable)
     }
 
     suspend fun getAll() = chainRepository.key(chain!!.id).mapCatching { chainKeyEntity ->

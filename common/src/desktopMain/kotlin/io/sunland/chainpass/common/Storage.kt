@@ -22,7 +22,7 @@ actual class Storage actual constructor(
             applyPattern("yyyy.MM.dd-HH.mm.ss")
         }.format(Date())
 
-        val fileName = "${storable.keys.first().values.toSet().joinToString("-")}_$date"
+        val fileName = "${storable.id}_$date"
 
         val filePath = when (options.type) {
             StorageType.JSON -> Path.of("$dirPath/store/$fileName.json")
@@ -34,7 +34,7 @@ actual class Storage actual constructor(
             Files.createFile(filePath)
         }
 
-        filePath.writeText(storable.toString(options.type))
+        filePath.writeText(storable.toString(options))
 
         return fileName
     }
