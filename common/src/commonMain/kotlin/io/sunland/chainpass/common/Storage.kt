@@ -4,14 +4,16 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
-enum class StorageType { JSON, CSV, TXT }
-
-expect class Storage(dirPath: String, type: StorageType) {
+expect class Storage(dirPath: String, options: StorageOptions) {
     val dirPath: String
-    val type: StorageType
+    val options: StorageOptions
 
     fun store(storable: Storable): String
 }
+
+enum class StorageType { JSON, CSV, TXT }
+
+data class StorageOptions(val isPrivate: Boolean = true, val type: StorageType = StorageType.JSON)
 
 typealias Storable = Map<Map<String, String>, List<Map<String, String>>>
 

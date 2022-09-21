@@ -230,8 +230,10 @@ class ChainLinkListViewModel(
                     description = chainLink.description
                     password = chainLink.password
 
-                    if (chainLink.password.isPrivate) {
+                    if (chainLink.password.isPrivate && !storage.options.isPrivate) {
                         unlockPassword(this)
+                    } else if (!chainLink.password.isPrivate && storage.options.isPrivate) {
+                        lockPassword(this)
                     }
                 }
             }

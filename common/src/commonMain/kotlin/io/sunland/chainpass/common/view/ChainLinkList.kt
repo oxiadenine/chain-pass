@@ -16,9 +16,11 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.StorageOptions
 
 @Composable
 fun ChainLinkList(
+    storageOptions: StorageOptions,
     viewModel: ChainLinkListViewModel,
     onBack: () -> Unit,
     onSync: () -> Unit,
@@ -26,8 +28,10 @@ fun ChainLinkList(
     onEdit: (ChainLink) -> Unit,
     onRemove: (ChainLink) -> Unit,
     onSearch: () -> Unit,
-    onStore: () -> Unit
+    onStore: (StorageOptions) -> Unit
 ) {
+    val storeDialogVisibleState = remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.fillMaxSize()) {
         if (viewModel.isSearchState.value) {
             ChainLinkSearchListTopBar(
@@ -51,7 +55,7 @@ fun ChainLinkList(
 
                     onSearch()
                 },
-                onStore = onStore
+                onStore = { storeDialogVisibleState.value = true }
             )
         }
         Box(modifier = Modifier.fillMaxSize()) {
@@ -136,6 +140,18 @@ fun ChainLinkList(
                         lazyListState.scrollToItem(index)
                     }
                 }
+            }
+
+            if (storeDialogVisibleState.value) {
+                ChainLinkListStoreOptions(
+                    storageOptions = storageOptions,
+                    onDismiss = { storeDialogVisibleState.value = false },
+                    onConfirm = { storageOptions ->
+                        storeDialogVisibleState.value = false
+
+                        onStore(storageOptions)
+                    }
+                )
             }
         }
     }

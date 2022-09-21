@@ -121,7 +121,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
         Box {
             when (appState.screenState.value) {
                 Screen.SERVER_CONNECTION -> {
-                    val serverConnectionState = ServerConnectionState(ServerAddress(), StorageType.JSON)
+                    val serverConnectionState = ServerConnectionState(ServerAddress(), StorageOptions())
 
                     ServerConnection(
                         serverConnectionState = serverConnectionState,
@@ -149,11 +149,12 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                             serverConnectionState.discoveringState.value?.cancel()
                             serverConnectionState.discoveringState.value = null
                         },
-                        onConnect = { serverAddress, storageType ->
+                        onConnect = { serverAddress, storageOptions ->
                             appState.settingsState.value = Settings(
                                 serverAddress.host.value,
                                 serverAddress.port.value.toInt(),
-                                storageType
+                                storageOptions.isPrivate,
+                                storageOptions.type
                             )
                             appState.httpClientState.value = appState.httpClientState.value.config {
                                 defaultRequest {
@@ -249,6 +250,10 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                 }
                 Screen.CHAIN_LINK_LIST -> {
                     ChainLinkList(
+                        storageOptions = StorageOptions(
+                            appState.settingsState.value.storageIsPrivate,
+                            appState.settingsState.value.storageType,
+                        ),
                         viewModel = chainLinkListViewModel,
                         onBack = {
                             scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
@@ -299,13 +304,11 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                             }
                         },
                         onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.performAction() },
-                        onStore = {
+                        onStore = { storageOptions ->
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
-                                val storageType = appState.settingsState.value.storageType
-
-                                val storage = Storage(settingsManager.dirPath, storageType)
+                                val storage = Storage(settingsManager.dirPath, storageOptions)
 
                                 chainLinkListViewModel.store(storage)
                                     .onSuccess { filePath ->

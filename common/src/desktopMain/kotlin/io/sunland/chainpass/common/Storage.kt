@@ -9,7 +9,7 @@ import kotlin.io.path.writeText
 
 actual class Storage actual constructor(
     actual val dirPath: String,
-    actual val type: StorageType
+    actual val options: StorageOptions
 ) {
     actual fun store(storable: Storable): String {
         val storePath: Path = Path.of("$dirPath/store")
@@ -24,7 +24,7 @@ actual class Storage actual constructor(
 
         val fileName = "${storable.keys.first().values.toSet().joinToString("-")}_$date"
 
-        val filePath = when (type) {
+        val filePath = when (options.type) {
             StorageType.JSON -> Path.of("$dirPath/store/$fileName.json")
             StorageType.CSV -> Path.of("$dirPath/store/$fileName.csv")
             StorageType.TXT -> Path.of("$dirPath/store/$fileName.txt")
@@ -34,7 +34,7 @@ actual class Storage actual constructor(
             Files.createFile(filePath)
         }
 
-        filePath.writeText(storable.toString(type))
+        filePath.writeText(storable.toString(options.type))
 
         return fileName
     }

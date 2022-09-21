@@ -7,7 +7,7 @@ import java.util.Date
 
 actual class Storage actual constructor(
     actual val dirPath: String,
-    actual val type: StorageType
+    actual val options: StorageOptions
 ) {
     actual fun store(storable: Storable): String {
         val storePath = "$dirPath/store"
@@ -22,7 +22,7 @@ actual class Storage actual constructor(
 
         val fileName = "${storable.keys.first().values.toSet().joinToString("-")}_$date"
 
-        val filePath = when (type) {
+        val filePath = when (options.type) {
             StorageType.JSON -> "$dirPath/store/$fileName.json"
             StorageType.CSV -> "$dirPath/store/$fileName.csv"
             StorageType.TXT -> "$dirPath/store/$fileName.txt"
@@ -32,7 +32,7 @@ actual class Storage actual constructor(
             File(filePath).createNewFile()
         }
 
-        File(filePath).writeText(storable.toString(type))
+        File(filePath).writeText(storable.toString(options.type))
 
         return fileName
     }

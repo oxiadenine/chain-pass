@@ -14,5 +14,6 @@ expect class SettingsManager(dirPath: String) {
 data class Settings(
     val serverHost: String = "",
     val serverPort: Int = 0,
+    val storageIsPrivate: Boolean = true,
     val storageType: StorageType = StorageType.JSON
 )
