@@ -187,7 +187,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                 Screen.CHAIN_LIST -> {
                     coroutineScope.launch {
                         chainListViewModel.getAll().onFailure { exception ->
-                            scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                            scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                         }
 
                         chainLinkListViewModel.chain = null
@@ -204,14 +204,14 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
                                 chainListViewModel.getAll().onFailure { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }
                         },
                         onNew = { chain ->
                             coroutineScope.launch {
                                 chainListViewModel.new(chain).onFailure { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }
                         },
@@ -224,7 +224,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                     .onFailure { exception ->
                                         chainLinkListViewModel.chain = null
 
-                                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                        scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                     }
                             }
                         },
@@ -242,7 +242,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                         chainListViewModel.remove(chain).onFailure { exception ->
                                             chainListViewModel.undoRemove(chain)
 
-                                            scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                            scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                         }
                                     }
                                 }
@@ -278,21 +278,21 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
                                 chainLinkListViewModel.getAll().onFailure { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }
                         },
                         onNew = { chainLink ->
                             coroutineScope.launch {
                                 chainLinkListViewModel.new(chainLink).onFailure { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }
                         },
                         onEdit = { chainLink ->
                             coroutineScope.launch {
                                 chainLinkListViewModel.edit(chainLink).onFailure { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }
                         },
@@ -310,7 +310,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                         chainLinkListViewModel.remove(chainLink).onFailure { exception ->
                                             chainLinkListViewModel.undoRemove(chainLink)
 
-                                            scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                            scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                         }
                                     }
                                 }
@@ -328,7 +328,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                         scaffoldState.snackbarHostState.showSnackbar("Stored to $filePath")
                                     }
                                     .onFailure { exception ->
-                                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                        scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                     }
                             }
                         },
@@ -344,7 +344,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                         scaffoldState.snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
                                     }
                                     .onFailure { exception ->
-                                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                        scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                     }
                             }
                         }
