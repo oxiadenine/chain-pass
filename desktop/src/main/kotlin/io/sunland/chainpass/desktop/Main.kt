@@ -10,8 +10,11 @@ import io.ktor.client.plugins.websocket.*
 import io.sunland.chainpass.common.*
 
 fun main() = application {
+    val settingsManager = SettingsManager("${System.getProperty("user.home")}/.chain-pass")
+
     val appState = rememberAppState(
         Settings(),
+        Storage(settingsManager.dirPath),
         HttpClient(CIO) {
             install(WebSockets)
             install(Logging)
@@ -27,5 +30,5 @@ fun main() = application {
 
             exitApplication()
         }
-    ) { App(SettingsManager("${System.getProperty("user.home")}/.chain-pass"), appState) }
+    ) { App(settingsManager, appState) }
 }

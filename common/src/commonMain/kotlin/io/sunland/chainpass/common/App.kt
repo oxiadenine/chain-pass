@@ -32,14 +32,21 @@ enum class ThemeColor(val color: Color) {
 
 class AppState(
     val settingsState: MutableState<Settings>,
+    val storageState: MutableState<Storage>,
     val httpClientState: MutableState<HttpClient>,
     val screenState: MutableState<Screen>,
     val isServerConnected: MutableState<Boolean>
 )
 
 @Composable
-fun rememberAppState(settings: Settings, httpClient: HttpClient, screen: Screen) = remember {
-    AppState(mutableStateOf(settings), mutableStateOf(httpClient), mutableStateOf(screen), mutableStateOf(false))
+fun rememberAppState(settings: Settings, storage: Storage, httpClient: HttpClient, screen: Screen) = remember {
+    AppState(
+        mutableStateOf(settings),
+        mutableStateOf(storage),
+        mutableStateOf(httpClient),
+        mutableStateOf(screen),
+        mutableStateOf(false)
+    )
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -69,6 +76,10 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
     if (!appState.isServerConnected.value) {
         settingsManager.load(appState.settingsState.value)?.let { settings ->
             appState.settingsState.value = settings
+            appState.storageState.value = Storage(
+                settingsManager.dirPath,
+                StorageOptions(settings.storageIsPrivate, settings.storageType)
+            )
             appState.httpClientState.value = appState.httpClientState.value.config {
                 defaultRequest {
                     host = settings.serverHost
@@ -156,6 +167,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                 storageOptions.isPrivate,
                                 storageOptions.type
                             )
+                            appState.storageState.value = Storage(settingsManager.dirPath, storageOptions)
                             appState.httpClientState.value = appState.httpClientState.value.config {
                                 defaultRequest {
                                     host = serverAddress.host.value
@@ -240,6 +252,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                             scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
                             appState.settingsState.value = Settings()
+                            appState.storageState.value = Storage(settingsManager.dirPath, StorageOptions())
                             appState.httpClientState.value.close()
                             appState.screenState.value = Screen.SERVER_CONNECTION
                             appState.isServerConnected.value = false
@@ -319,13 +332,11 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                     }
                             }
                         },
-                        onUnstore = { storageOptions, filePath ->
+                        onUnstore = { filePath ->
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
-                                val storage = Storage(settingsManager.dirPath, storageOptions)
-
-                                chainLinkListViewModel.unstore(storage, filePath.value)
+                                chainLinkListViewModel.unstore(appState.storageState.value, filePath.value)
                                     .mapCatching { chainLinks ->
                                         chainLinks.forEach { chainLink -> chainLinkListViewModel.new(chainLink) }
                                     }

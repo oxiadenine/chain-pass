@@ -29,7 +29,7 @@ fun ChainLinkList(
     onRemove: (ChainLink) -> Unit,
     onSearch: () -> Unit,
     onStore: (StorageOptions) -> Unit,
-    onUnstore: (StorageOptions, FilePath) -> Unit
+    onUnstore: (FilePath) -> Unit
 ) {
     val storeDialogVisibleState = remember { mutableStateOf(false) }
     val unstoreDialogVisibleState = remember { mutableStateOf(false) }
@@ -163,7 +163,7 @@ fun ChainLinkList(
                     onConfirm = { filePath ->
                         unstoreDialogVisibleState.value = false
 
-                        onUnstore(storageOptions, filePath)
+                        onUnstore(filePath)
                     }
                 )
             }
