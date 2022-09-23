@@ -13,15 +13,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.component.Dialog
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListItemKeyInput(onDismiss: () -> Unit, onConfirm: (Chain.Key) -> Unit) {
     val focusRequester = remember { FocusRequester() }
@@ -46,12 +49,30 @@ fun ChainListItemKeyInput(onDismiss: () -> Unit, onConfirm: (Chain.Key) -> Unit)
         }
     }
 
+    val onKeyEvent = { keyEvent: KeyEvent ->
+        if (keyEvent.type == KeyEventType.KeyDown) {
+            false
+        } else when (keyEvent.key) {
+            Key.Escape -> {
+                onDismiss()
+
+                true
+            }
+            Key.Enter -> {
+                onDone()
+
+                true
+            }
+            else -> false
+        }
+    }
+
     Dialog(
         onDismissRequest = onDismiss,
         onConfirmRequest = onDone
     ) {
         TextField(
-            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+            modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
             placeholder = { Text(text = "Key") },
             value = keyState.value,
             onValueChange = onKeyChange,
