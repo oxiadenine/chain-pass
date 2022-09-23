@@ -36,4 +36,14 @@ actual class Storage actual constructor(
 
         return fileName
     }
+
+    actual fun unstore(filePath: String): Storable {
+        if (!File(filePath).exists()) {
+            throw IllegalArgumentException("File $filePath does not exists")
+        }
+
+        val storageType = StorageType.valueOf(File(filePath).extension.uppercase())
+
+        return File(filePath).readText().toStorable(storageType)
+    }
 }

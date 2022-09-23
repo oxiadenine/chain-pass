@@ -1,6 +1,7 @@
 package io.sunland.chainpass.common
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
@@ -9,6 +10,7 @@ expect class Storage(dirPath: String, options: StorageOptions) {
     val options: StorageOptions
 
     fun store(storable: Storable): String
+    fun unstore(filePath: String): Storable
 }
 
 enum class StorageType { JSON, CSV, TXT }
@@ -45,4 +47,39 @@ fun Storable.toString(options: StorageOptions) = when (options.type) {
         append(this@toString.options)
         append(this@toString.items)
     }
+}
+
+fun String.toStorable(storageType: StorageType) = when (storageType) {
+    StorageType.JSON -> Json.decodeFromString(this)
+    StorageType.CSV -> {
+        val data = this.split("\n")
+
+        val optionsHeader = data[0].split(",")
+        val optionsRecord = data[1].split(",")
+
+        val options = mutableMapOf<String, String>()
+
+        for (i in optionsHeader.indices) {
+            options[optionsHeader[i]] = optionsRecord[i]
+        }
+
+        val itemsHeader = data[2].split(",")
+
+        val items = mutableListOf<Map<String, String>>()
+
+        for (i in 3 until data.size - 1) {
+            val item = mutableMapOf<String, String>()
+
+            val itemsRecord = data[i].split(",")
+
+            for (j in itemsHeader.indices) {
+                item[itemsHeader[j]] = itemsRecord[j].substringAfter("\"").substringBeforeLast("\"")
+            }
+
+            items.add(item)
+        }
+
+        Storable("", options, items)
+    }
+    StorageType.TXT -> throw IllegalArgumentException("Storage type $storageType not supported")
 }

@@ -29,15 +29,13 @@ class ChainLinkListViewModel(
 
     private var chainLinks = emptyList<ChainLink>()
 
-    fun draft() {
+    fun draft(chainLinkDraft: ChainLink = ChainLink(chain!!)) {
         val chainLinkIds = chainLinks.plus(chainLinkListState.filter { chainLink ->
             chainLink.status == ChainLink.Status.DRAFT
         }).map { chainLink -> chainLink.id }
 
-        val chainLinkDraft = ChainLink(chain!!).apply {
-            id = chainLinkIds.maxOrNull()?.let { it + 1 } ?: 1
-            isLatest = true
-        }
+        chainLinkDraft.id = chainLinkIds.maxOrNull()?.let { it + 1 } ?: 1
+        chainLinkDraft.isLatest = true
 
         chainLinkListState.add(chainLinkDraft)
 
@@ -253,6 +251,23 @@ class ChainLinkListViewModel(
         )
 
         storage.store(storable)
+    }
+
+    fun unstore(storage: Storage, filePath: String) = runCatching {
+        val storable = storage.unstore(filePath)
+
+        storable.items.map { item ->
+            val chainLink = ChainLink(chain!!).apply {
+                id = item["id"]!!.toInt()
+                name = ChainLink.Name(item["name"]!!)
+                description = ChainLink.Description(item["description"]!!)
+                password = ChainLink.Password(item["password"]!!)
+            }
+
+            draft(chainLink)
+
+            chainLink
+        }
     }
 
     suspend fun getAll() = chainRepository.key(chain!!.id).mapCatching { chainKeyEntity ->

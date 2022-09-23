@@ -28,9 +28,11 @@ fun ChainLinkList(
     onEdit: (ChainLink) -> Unit,
     onRemove: (ChainLink) -> Unit,
     onSearch: () -> Unit,
-    onStore: (StorageOptions) -> Unit
+    onStore: (StorageOptions) -> Unit,
+    onUnstore: (StorageOptions, FilePath) -> Unit
 ) {
     val storeDialogVisibleState = remember { mutableStateOf(false) }
+    val unstoreDialogVisibleState = remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         if (viewModel.isSearchState.value) {
@@ -55,7 +57,8 @@ fun ChainLinkList(
 
                     onSearch()
                 },
-                onStore = { storeDialogVisibleState.value = true }
+                onStore = { storeDialogVisibleState.value = true },
+                onUnstore = { unstoreDialogVisibleState.value = true }
             )
         }
         Box(modifier = Modifier.fillMaxSize()) {
@@ -150,6 +153,17 @@ fun ChainLinkList(
                         storeDialogVisibleState.value = false
 
                         onStore(storageOptions)
+                    }
+                )
+            }
+
+            if (unstoreDialogVisibleState.value) {
+                ChainLinkListUnstoreInput(
+                    onDismiss = { unstoreDialogVisibleState.value = false },
+                    onConfirm = { filePath ->
+                        unstoreDialogVisibleState.value = false
+
+                        onUnstore(storageOptions, filePath)
                     }
                 )
             }
