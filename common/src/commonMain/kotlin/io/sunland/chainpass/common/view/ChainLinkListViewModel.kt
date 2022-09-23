@@ -90,7 +90,7 @@ class ChainLinkListViewModel(
             .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
             .map { chainLink ->
                 if (chainLink.id == chainLinkEdit.id && chainLink.status == ChainLink.Status.EDIT) {
-                    val chainLinkNoEdit = chainLinks.first { chainLink.id == it.id }
+                    val chainLinkNoEdit = chainLinks.first { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
 
                     chainLink.description = chainLinkNoEdit.description
                     chainLink.password = chainLinkNoEdit.password
@@ -115,7 +115,7 @@ class ChainLinkListViewModel(
             .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
             .map { chainLink ->
                 if (chainLink.status == ChainLink.Status.EDIT) {
-                    val chainLinkNoEdit = chainLinks.first { chainLink.id == it.id }
+                    val chainLinkNoEdit = chainLinks.first { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
 
                     chainLink.description = chainLinkNoEdit.description
                     chainLink.password = chainLinkNoEdit.password
@@ -301,7 +301,7 @@ class ChainLinkListViewModel(
 
         val chainLinks = chainLinks
             .map { chainLink ->
-                chainLinkListState.firstOrNull { chainLink.id == it.id }?.let {
+                chainLinkListState.firstOrNull { chainLinkToFind -> chainLink.id == chainLinkToFind.id }?.let {
                     if (it.status == ChainLink.Status.EDIT) {
                         ChainLink(it)
                     } else ChainLink(chainLink)
@@ -413,13 +413,15 @@ class ChainLinkListViewModel(
     }
 
     private fun update() {
-        val chainLinksRemove = chainLinks.filter { chainLink -> !chainLinkListState.any { chainLink.id == it.id } }
+        val chainLinksRemove = chainLinks.filter { chainLink ->
+            !chainLinkListState.any { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
+        }
 
         chainLinks = chainLinkListState
             .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
             .map { chainLink ->
                 if (chainLink.status == ChainLink.Status.EDIT) {
-                    chainLinks.first { chainLink.id == it.id }
+                    chainLinks.first { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
                 } else ChainLink(chainLink)
             }
             .plus(chainLinksRemove)

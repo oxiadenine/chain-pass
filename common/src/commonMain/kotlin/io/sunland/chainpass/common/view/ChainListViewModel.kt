@@ -143,7 +143,9 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     private fun update() {
-        val chainsRemove = chains.filter { chain -> !chainListState.any { chain.id == it.id } }
+        val chainsRemove = chains.filter { chain ->
+            !chainListState.any { chainToFind -> chain.id == chainToFind.id }
+        }
 
         chains = chainListState
             .filter { chain -> chain.status != Chain.Status.DRAFT }

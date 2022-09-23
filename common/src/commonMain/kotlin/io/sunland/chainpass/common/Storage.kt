@@ -31,12 +31,12 @@ fun Storable.toString(options: StorageOptions) = when (options.type) {
 
         append("$optionsRecord\n")
 
-        val itemsHeader = this@toString.items.flatMap { it.keys }.toSet().joinToString(",")
+        val itemsHeader = this@toString.items.flatMap { item -> item.keys }.toSet().joinToString(",")
 
         append("$itemsHeader\n")
 
-        val itemsRecords = this@toString.items.map {
-            it.values.joinToString(",") { field ->
+        val itemsRecords = this@toString.items.map { item ->
+            item.values.joinToString(",") { field ->
                 "\"${field.replace("\"", "\"\"")}\""
             }
         }
