@@ -52,10 +52,16 @@ fun Storable.toString(options: StorageOptions) = when (options.type) {
 fun String.toStorable(storageType: StorageType) = when (storageType) {
     StorageType.JSON -> Json.decodeFromString(this)
     StorageType.CSV -> {
+        var isFormatValid = true
+
         val data = this.split("\n")
 
         val optionsHeader = data[0].split(",")
         val optionsRecord = data[1].split(",")
+
+        if (optionsHeader.size != 1 || optionsRecord.size != 1) {
+            isFormatValid = false
+        }
 
         val options = mutableMapOf<String, String>()
 
@@ -65,6 +71,10 @@ fun String.toStorable(storageType: StorageType) = when (storageType) {
 
         val itemsHeader = data[2].split(",")
 
+        if (itemsHeader.size != 4) {
+            isFormatValid = false
+        }
+
         val items = mutableListOf<Map<String, String>>()
 
         for (i in 3 until data.size - 1) {
@@ -72,11 +82,19 @@ fun String.toStorable(storageType: StorageType) = when (storageType) {
 
             val itemsRecord = data[i].split(",")
 
+            if (itemsRecord.size != 4) {
+                isFormatValid = false
+            }
+
             for (j in itemsHeader.indices) {
                 item[itemsHeader[j]] = itemsRecord[j].substringAfter("\"").substringBeforeLast("\"")
             }
 
             items.add(item)
+        }
+
+        if (!isFormatValid) {
+            throw IllegalArgumentException("Invalid $storageType file format")
         }
 
         Storable("", options, items)
