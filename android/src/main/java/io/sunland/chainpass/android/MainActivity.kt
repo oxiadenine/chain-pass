@@ -17,18 +17,18 @@ class MainActivity : AppCompatActivity() {
 
         val settingsManager = SettingsManager(applicationContext.getExternalFilesDir("")!!.absolutePath)
 
-        appState = rememberAppState(
-            Settings(),
-            Storage(settingsManager.dirPath),
-            HttpClient(CIO) {
-                install(WebSockets)
-                install(Logging)
-            },
-            Screen.SERVER_CONNECTION
-        )
-
         setContent {
             title = "Chain Pass"
+
+            appState = rememberAppState(
+                Settings(),
+                Storage(settingsManager.dirPath),
+                HttpClient(CIO) {
+                    install(WebSockets)
+                    install(Logging)
+                },
+                Screen.SERVER_CONNECTION
+            )
 
             App(settingsManager, appState)
         }
