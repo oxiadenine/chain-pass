@@ -36,13 +36,13 @@ fun ChainListItemKeyInput(onDismiss: () -> Unit, onConfirm: (Chain.Key) -> Unit)
         val chainKey = Chain.Key(value)
 
         keyState.value = chainKey.value
-        keyErrorState.value = chainKey.value.isEmpty()
+        keyErrorState.value = chainKey.validation.isFailure
     }
 
     val onDone = {
         val chainKey = Chain.Key(keyState.value)
 
-        keyErrorState.value = chainKey.value.isEmpty()
+        keyErrorState.value = chainKey.validation.isFailure
 
         if (!keyErrorState.value) {
             onConfirm(chainKey)
@@ -79,15 +79,15 @@ fun ChainListItemKeyInput(onDismiss: () -> Unit, onConfirm: (Chain.Key) -> Unit)
             trailingIcon = if (keyErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
             } else null,
-            visualTransformation = PasswordVisualTransformation(),
+            isError = keyErrorState.value,
             singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
             colors = TextFieldDefaults.textFieldColors(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
                 errorIndicatorColor = Color.Transparent
             ),
-            isError = keyErrorState.value,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             keyboardActions = KeyboardActions(onDone = { onDone() })
         )
