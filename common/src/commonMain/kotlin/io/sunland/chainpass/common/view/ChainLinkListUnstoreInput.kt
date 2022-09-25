@@ -28,7 +28,7 @@ class FilePath(value: String? = null) {
     val validation = value?.let {
         if (value.isEmpty()) {
             Result.failure(IllegalArgumentException("File path is empty"))
-        } else if (!value.matches("^(?:\\w:)?(/[a-z_\\-\\s\\d.]+)+\\.(csv|json|txt)\$".toRegex())) {
+        } else if (!value.matches("^(?:\\w:)?(/[a-zA-Z_\\-\\s\\d.]+)+\\.(csv|json|txt)\$".toRegex())) {
             Result.failure(IllegalArgumentException("File path is not valid"))
         } else Result.success(value)
     } ?: Result.success(this.value)
