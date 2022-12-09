@@ -1,28 +1,9 @@
-# IDE
 .idea/
-*.properties
-
-# Gradle
-!gradle*.properties
-
-# Environment
-*.env
-!.env
-
-# Configuration
-application.*.conf
-!application.conf
-
-# Database
-*.db
-
-# Security
-*.jks
-
-# Build
 build/
-out/
 .gradle/
-
-# Deployment
+*.db
+*.jks
+*.env
+local.properties
+application.*.conf
 docker-compose.*.yml

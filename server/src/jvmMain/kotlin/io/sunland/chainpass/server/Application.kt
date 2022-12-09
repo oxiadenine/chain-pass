@@ -219,7 +219,7 @@ fun Application.main() {
 }
 
 fun Application.discovery() {
-    val discovery = environment.config.property("server.discovery").getString()
+    val discoveryAddress = environment.config.property("server.discoveryAddress").getString()
 
     val socket = aSocket(ActorSelectorManager(Dispatchers.IO)).udp().bind(
         InetSocketAddress(SocketConfig.HOST, SocketConfig.PORT)
@@ -232,7 +232,7 @@ fun Application.discovery() {
             val datagram = socket.receive()
 
             if (datagram.packet.readText() == SocketConfig.MESSAGE) {
-                socket.send(Datagram(ByteReadPacket(discovery.toByteArray()), datagram.address))
+                socket.send(Datagram(ByteReadPacket(discoveryAddress.toByteArray()), datagram.address))
             }
 
             datagram.packet.close()

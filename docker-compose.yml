@@ -5,9 +5,6 @@ services:
     build:
       context: ./
       dockerfile: ./server/Dockerfile
-      args:
-        version: ${VERSION}
-        buildDir: ./server/build/libs
     ports:
       - 8080:8080
       - 8888:8888/udp

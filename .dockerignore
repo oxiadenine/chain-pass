@@ -1,0 +1,15 @@
+.idea
+.git*
+artwork
+**/.gradle
+**/build
+**/db
+**/*.jks
+**/*.pro
+**/.env.example
+**/Dockerfile
+local.properties
+docker-compose.yml
+gradlew*
+LICENSE
+README.md

@@ -1,75 +1,82 @@
-import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    kotlin("jvm")
+    kotlin("multiplatform")
     id("org.jetbrains.compose")
 }
 
-dependencies {
-    implementation(project(":common"))
-
-    implementation(compose.desktop.currentOs)
-
-    implementation(ktorDependency("server-netty"))
-    implementation(ktorDependency("server-websockets"))
-
-    implementation(exposedDependency("core"))
-    implementation(exposedDependency("dao"))
-    implementation(exposedDependency("jdbc"))
-
-    implementation(hikaricpDependency())
-    implementation(h2Dependency())
-
-    testImplementation(kotlin("test", kotlinVersion()))
-
-    testImplementation(junitDependency("jupiter-api"))
-    testRuntimeOnly(junitDependency("jupiter-engine"))
-
-    testImplementation(ktorDependency("server-test-host"))
-}
-
-java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
-}
-
 kotlin {
-    target.compilations.all {
-        kotlinOptions {
-            jvmTarget = JavaVersion.VERSION_11.toString()
+    jvm {
+        withJava()
+
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = JavaVersion.VERSION_11.toString()
+            }
+        }
+        testRuns["test"].executionTask.configure {
+            useJUnitPlatform()
         }
     }
 
-    tasks {
-        create<Jar>("fatJar") {
-            manifest {
-                attributes["Main-Class"] = "${rootProject.group}.chainpass.${project.name}.MainKt"
+    sourceSets {
+        named("jvmMain") {
+            dependencies {
+                implementation(project(":common"))
+
+                implementation(compose.desktop.currentOs)
+
+                implementation(ktorDependency("server-netty"))
+                implementation(ktorDependency("server-websockets"))
+
+                implementation(exposedDependency("core"))
+                implementation(exposedDependency("dao"))
+                implementation(exposedDependency("jdbc"))
+
+                implementation(hikaricpDependency())
+                implementation(h2Dependency())
             }
+        }
+        named("jvmTest") {
+            dependencies {
+                implementation(kotlin("test"))
 
-            archiveBaseName.set("${rootProject.name}-${project.name}")
+                implementation(junitDependency("jupiter-api"))
+                runtimeOnly(junitDependency("jupiter-engine"))
 
-            from(configurations["runtimeClasspath"].map { file: File ->
-                if (file.isDirectory) file else zipTree(file)
-            })
-            with(getByName<Jar>("jar"))
+                implementation(ktorDependency("server-test-host"))
+            }
+        }
+    }
+}
 
-            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+tasks {
+    register<Jar>("fatJar") {
+        manifest {
+            attributes["Main-Class"] = "${rootProject.group}.chainpass.${project.name}.MainKt"
         }
 
-        withType<Test> {
-            useJUnitPlatform()
-        }
+        archiveBaseName.set("${rootProject.name}-${project.name}")
+        archiveVersion.set("")
+
+        from(configurations["runtimeClasspath"].map { file: File ->
+            if (file.isDirectory) file else zipTree(file)
+        })
+        with(getByName<Jar>("jvmJar"))
+
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }
 
 compose.desktop {
     application {
+        javaHome = System.getenv("JAVA_HOME") ?: ""
+
         mainClass = "${rootProject.group}.chainpass.${project.name}.MainKt"
 
         setProperty("archivesBaseName", "${rootProject.name}-${project.name}")
 
-        args += System.getenv("APP_ENV")?.let { env -> listOf(env) } ?: listOf()
+        args += System.getenv("JAVA_ENV")?.let { env -> listOf(env) } ?: listOf()
 
         nativeDistributions {
             targetFormats(TargetFormat.Deb, TargetFormat.Exe)
@@ -78,14 +85,14 @@ compose.desktop {
             packageVersion = rootProject.version as String
             vendor = "SunLand"
 
-            val iconsDir = "${project.buildDir}/resources/main"
+            val resourcesDir = "${project.buildDir}/processedResources/jvm/main"
 
             linux {
                 packageName = "${rootProject.name}-${project.name}"
                 menuGroup = "Security"
                 appCategory = "Security"
 
-                iconFile.set(project.file("$iconsDir/icon.png"))
+                iconFile.set(project.file("$resourcesDir/icon.png"))
             }
 
             windows {
@@ -94,7 +101,7 @@ compose.desktop {
                 menu = true
                 shortcut = true
 
-                iconFile.set(project.file("$iconsDir/icon.ico"))
+                iconFile.set(project.file("$resourcesDir/icon.ico"))
             }
 
             modules("java.naming", "java.sql")
