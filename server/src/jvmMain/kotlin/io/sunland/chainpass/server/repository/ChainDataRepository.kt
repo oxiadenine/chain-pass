@@ -6,7 +6,11 @@ import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.server.ChainTable
 import io.sunland.chainpass.server.Database
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import java.security.SecureRandom
 import java.util.*
 
@@ -41,7 +45,7 @@ object ChainDataRepository : ChainRepository {
 
     override suspend fun delete(chainKeyEntity: ChainKeyEntity) = runCatching {
         Database.execute<Unit> {
-            ChainTable.deleteWhere { ChainTable.id eq chainKeyEntity.id }
+            ChainTable.deleteWhere { id eq chainKeyEntity.id }
         }
     }
 

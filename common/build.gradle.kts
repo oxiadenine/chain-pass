@@ -1,5 +1,3 @@
-import org.jetbrains.compose.compose
-
 plugins {
     id("com.android.library")
     kotlin("multiplatform")
@@ -20,21 +18,13 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(kotlinxDependency("coroutines-core"))
-                api(kotlinxDependency("serialization-json"))
-
                 api(compose.runtime)
                 api(compose.foundation)
                 api(compose.material)
                 api(compose.materialIconsExtended)
 
-                api(ktorDependency("client-core"))
-                api(ktorDependency("client-websockets"))
-                api(ktorDependency("client-cio"))
-                api(ktorDependency("client-logging"))
-
-                api(typesafeDependency("config"))
-                api(logbackDependency("classic"))
+                api(kotlinxDependency("coroutines-core"))
+                api(kotlinxDependency("serialization-json"))
             }
         }
 
@@ -48,6 +38,10 @@ kotlin {
         named("desktopMain") {
             dependencies {
                 api(compose.desktop.common)
+
+                api(ktorDependency("client-core"))
+                api(ktorDependency("client-websockets"))
+                api(ktorDependency("client-cio"))
             }
         }
         named("desktopTest") {
@@ -60,6 +54,10 @@ kotlin {
             dependencies {
                 api(androidxDependency("core-ktx"))
                 api(androidxDependency("appcompat"))
+
+                api(ktorDependency("client-core"))
+                api(ktorDependency("client-websockets"))
+                api(ktorDependency("client-cio"))
             }
         }
         named("androidTest") {
@@ -71,11 +69,11 @@ kotlin {
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 32
 
     defaultConfig {
-        minSdk = 24
-        targetSdk = 31
+        minSdk = 26
+        targetSdk = 32
     }
 
     compileOptions {

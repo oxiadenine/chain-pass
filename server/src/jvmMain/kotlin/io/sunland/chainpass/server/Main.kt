@@ -6,9 +6,9 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.isTraySupported
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueFactory
+import io.ktor.server.cio.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
-import io.ktor.server.netty.*
 import io.sunland.chainpass.common.network.DiscoverySocket
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
@@ -24,7 +24,7 @@ fun main(args: Array<String>) {
             } else config
         }.let { config -> HoconApplicationConfig(config) }
 
-    val server = embeddedServer(Netty, applicationEngineEnvironment {
+    val server = embeddedServer(CIO, applicationEngineEnvironment {
         config = appConfig
 
         module {

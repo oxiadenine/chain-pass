@@ -9,15 +9,17 @@ dependencies {
 
     implementation(androidxDependency("activity-compose"))
 
+    implementation(logbackDependency("classic"))
+
     testImplementation(kotlin("test"))
 }
 
 android {
-    compileSdk = 31
+    compileSdk = 32
 
     defaultConfig {
-        minSdk = 24
-        targetSdk = 31
+        minSdk = 26
+        targetSdk = 32
 
         applicationId = "${project.group}.chainpass.${project.name}"
         versionCode = 1
@@ -53,5 +55,9 @@ android {
 
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro")
         }
+    }
+
+    packagingOptions {
+        resources.excludes.add("META-INF/INDEX.LIST")
     }
 }
