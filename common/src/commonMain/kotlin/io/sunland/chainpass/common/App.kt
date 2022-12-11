@@ -33,17 +33,15 @@ enum class ThemeColor(val color: Color) {
 class AppState(
     val settingsState: MutableState<Settings>,
     val storageState: MutableState<Storage>,
-    val httpClientState: MutableState<HttpClient>,
     val screenState: MutableState<Screen>,
     val isServerConnected: MutableState<Boolean>
 )
 
 @Composable
-fun rememberAppState(settings: Settings, storage: Storage, httpClient: HttpClient, screen: Screen) = remember {
+fun rememberAppState(settings: Settings, storage: Storage, screen: Screen) = remember {
     AppState(
         mutableStateOf(settings),
         mutableStateOf(storage),
-        mutableStateOf(httpClient),
         mutableStateOf(screen),
         mutableStateOf(false)
     )
@@ -51,7 +49,7 @@ fun rememberAppState(settings: Settings, storage: Storage, httpClient: HttpClien
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
+fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppState) = MaterialTheme(
     colors = darkColors(
         primary = ThemeColor.QUARTZ.color,
         primaryVariant = ThemeColor.QUARTZ.color,
@@ -80,15 +78,6 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                 settingsManager.dirPath,
                 StorageOptions(settings.storageIsPrivate, settings.storageType)
             )
-            appState.httpClientState.value = appState.httpClientState.value.config {
-                defaultRequest {
-                    host = settings.serverHost
-                    port = settings.serverPort
-                    url {
-                        protocol = URLProtocol.WS
-                    }
-                }
-            }
             appState.screenState.value = Screen.CHAIN_LIST
             appState.isServerConnected.value = true
         }
@@ -98,10 +87,10 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
 
     val coroutineScope = rememberCoroutineScope()
 
-    val chainListViewModel = ChainListViewModel(ChainNetRepository(appState.httpClientState.value))
+    val chainListViewModel = ChainListViewModel(ChainNetRepository(httpClient, appState.settingsState.value))
     val chainLinkListViewModel = ChainLinkListViewModel(
-        ChainNetRepository(appState.httpClientState.value),
-        ChainLinkNetRepository(appState.httpClientState.value)
+        ChainNetRepository(httpClient, appState.settingsState.value),
+        ChainLinkNetRepository(httpClient, appState.settingsState.value)
     )
 
     Scaffold(
@@ -168,15 +157,6 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                 storageOptions.type
                             )
                             appState.storageState.value = Storage(settingsManager.dirPath, storageOptions)
-                            appState.httpClientState.value = appState.httpClientState.value.config {
-                                defaultRequest {
-                                    host = serverAddress.host.value
-                                    port = serverAddress.port.value.toInt()
-                                    url {
-                                        protocol = URLProtocol.WS
-                                    }
-                                }
-                            }
                             appState.screenState.value = Screen.CHAIN_LIST
                             appState.isServerConnected.value = true
 
@@ -253,7 +233,6 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
 
                             appState.settingsState.value = Settings()
                             appState.storageState.value = Storage(settingsManager.dirPath, StorageOptions())
-                            appState.httpClientState.value.close()
                             appState.screenState.value = Screen.SERVER_CONNECTION
                             appState.isServerConnected.value = false
 

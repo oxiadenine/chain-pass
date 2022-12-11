@@ -5,35 +5,54 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
+import io.rsocket.kotlin.core.WellKnownMimeType
+import io.rsocket.kotlin.keepalive.KeepAlive
+import io.rsocket.kotlin.ktor.client.RSocketSupport
+import io.rsocket.kotlin.payload.PayloadMimeType
 import io.sunland.chainpass.common.*
+import kotlin.time.Duration.Companion.seconds
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var appState: AppState
+    private lateinit var httpClient: HttpClient
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         val settingsManager = SettingsManager(applicationContext.getExternalFilesDir("")!!.absolutePath)
 
+        httpClient = HttpClient {
+            install(WebSockets)
+            install(RSocketSupport) {
+                connector {
+                    maxFragmentSize = 1024
+
+                    connectionConfig {
+                        keepAlive = KeepAlive(
+                            interval = 30.seconds,
+                            maxLifetime = 30.seconds
+                        )
+
+                        payloadMimeType = PayloadMimeType(
+                            data = WellKnownMimeType.ApplicationJson,
+                            metadata = WellKnownMimeType.MessageRSocketCompositeMetadata
+                        )
+                    }
+                }
+            }
+        }
+
         setContent {
             title = "Chain Pass"
 
-            appState = rememberAppState(
-                Settings(),
-                Storage(settingsManager.dirPath),
-                HttpClient {
-                    install(WebSockets)
-                },
-                Screen.SERVER_CONNECTION
-            )
+            val appState = rememberAppState(Settings(), Storage(settingsManager.dirPath), Screen.SERVER_CONNECTION)
 
-            App(settingsManager, appState)
+            App(settingsManager, httpClient, appState)
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-        appState.httpClientState.value.close()
+        httpClient.close()
     }
 }
