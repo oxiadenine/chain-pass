@@ -1,15 +1,14 @@
 package io.sunland.chainpass.server.repository
 
-import io.sunland.chainpass.common.repository.ChainKeyEntity
-import io.sunland.chainpass.common.repository.ChainLinkEntity
-import io.sunland.chainpass.common.repository.ChainLinkRepository
+import io.sunland.chainpass.common.network.ChainKeyEntity
+import io.sunland.chainpass.common.network.ChainLinkEntity
 import io.sunland.chainpass.server.ChainLinkTable
 import io.sunland.chainpass.server.Database
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
-object ChainLinkDataRepository : ChainLinkRepository {
-    override suspend fun create(chainLinkEntity: ChainLinkEntity) = runCatching {
+object ChainLinkRepository {
+    suspend fun create(chainLinkEntity: ChainLinkEntity) = runCatching {
         Database.execute<Unit> {
             ChainLinkTable.insert { statement ->
                 statement[id] = chainLinkEntity.id
@@ -21,7 +20,7 @@ object ChainLinkDataRepository : ChainLinkRepository {
         }
     }
 
-    override suspend fun read(chainKeyEntity: ChainKeyEntity) = runCatching {
+    suspend fun read(chainKeyEntity: ChainKeyEntity) = runCatching {
         Database.execute {
             ChainLinkTable.select { ChainLinkTable.chainId eq chainKeyEntity.id }.map { record ->
                 ChainLinkEntity(
@@ -35,7 +34,7 @@ object ChainLinkDataRepository : ChainLinkRepository {
         }
     }
 
-    override suspend fun update(chainLinkEntity: ChainLinkEntity) = runCatching {
+    suspend fun update(chainLinkEntity: ChainLinkEntity) = runCatching {
         Database.execute<Unit> {
             ChainLinkTable.update({
                 (ChainLinkTable.id eq chainLinkEntity.id) and (ChainLinkTable.chainId eq chainLinkEntity.chainKey.id)
@@ -46,7 +45,7 @@ object ChainLinkDataRepository : ChainLinkRepository {
         }
     }
 
-    override suspend fun delete(chainLinkEntity: ChainLinkEntity) = runCatching {
+    suspend fun delete(chainLinkEntity: ChainLinkEntity) = runCatching {
         Database.execute<Unit> {
             ChainLinkTable.deleteWhere {
                 (id eq chainLinkEntity.id) and (chainId eq chainLinkEntity.chainKey.id)

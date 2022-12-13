@@ -1,8 +1,7 @@
 package io.sunland.chainpass.server.repository
 
-import io.sunland.chainpass.common.repository.ChainEntity
-import io.sunland.chainpass.common.repository.ChainKeyEntity
-import io.sunland.chainpass.common.repository.ChainRepository
+import io.sunland.chainpass.common.network.ChainEntity
+import io.sunland.chainpass.common.network.ChainKeyEntity
 import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.server.ChainTable
 import io.sunland.chainpass.server.Database
@@ -14,10 +13,10 @@ import org.jetbrains.exposed.sql.selectAll
 import java.security.SecureRandom
 import java.util.*
 
-object ChainDataRepository : ChainRepository {
+object ChainRepository {
     private val keys = Collections.synchronizedList<ChainKeyEntity>(mutableListOf())
 
-    override suspend fun create(chainEntity: ChainEntity) = runCatching {
+    suspend fun create(chainEntity: ChainEntity) = runCatching {
         Database.execute<Unit> {
             ChainTable.insert { statement ->
                 statement[id] = chainEntity.id
@@ -27,7 +26,7 @@ object ChainDataRepository : ChainRepository {
         }
     }
 
-    override suspend fun read() = runCatching {
+    suspend fun read() = runCatching {
         Database.execute {
             ChainTable.selectAll().map { record ->
                 ChainEntity(record[ChainTable.id], record[ChainTable.name])
@@ -35,7 +34,7 @@ object ChainDataRepository : ChainRepository {
         }
     }
 
-    override suspend fun read(id: Int) = runCatching {
+    suspend fun read(id: Int) = runCatching {
         Database.execute {
             val record = ChainTable.select { ChainTable.id eq id }.first()
 
@@ -43,13 +42,13 @@ object ChainDataRepository : ChainRepository {
         }
     }
 
-    override suspend fun delete(chainKeyEntity: ChainKeyEntity) = runCatching {
+    suspend fun delete(chainKeyEntity: ChainKeyEntity) = runCatching {
         Database.execute<Unit> {
             ChainTable.deleteWhere { id eq chainKeyEntity.id }
         }
     }
 
-    override suspend fun key(id: Int) = runCatching {
+    fun key(id: Int) = runCatching {
         var key = keys.firstOrNull { key -> key.id == id }
 
         if (key == null) {

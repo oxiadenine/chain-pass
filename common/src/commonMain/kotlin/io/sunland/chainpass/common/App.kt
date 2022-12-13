@@ -16,9 +16,10 @@ import androidx.compose.ui.unit.dp
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.http.*
+import io.sunland.chainpass.common.network.ChainApi
+import io.sunland.chainpass.common.network.ChainLinkApi
 import io.sunland.chainpass.common.network.DiscoverySocket
-import io.sunland.chainpass.common.repository.ChainLinkNetRepository
-import io.sunland.chainpass.common.repository.ChainNetRepository
+import io.sunland.chainpass.common.network.discover
 import io.sunland.chainpass.common.view.*
 import kotlinx.coroutines.launch
 
@@ -87,10 +88,10 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
 
     val coroutineScope = rememberCoroutineScope()
 
-    val chainListViewModel = ChainListViewModel(ChainNetRepository(httpClient, appState.settingsState.value))
+    val chainListViewModel = ChainListViewModel(ChainApi(httpClient, appState.settingsState.value))
     val chainLinkListViewModel = ChainLinkListViewModel(
-        ChainNetRepository(httpClient, appState.settingsState.value),
-        ChainLinkNetRepository(httpClient, appState.settingsState.value)
+        ChainApi(httpClient, appState.settingsState.value),
+        ChainLinkApi(httpClient, appState.settingsState.value)
     )
 
     Scaffold(

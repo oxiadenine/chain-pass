@@ -12,40 +12,38 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-enum class PayloadRoute(val path: String) {
-    CHAIN_CREATE("chains.create"),
-    CHAIN_READ("chains.read"),
-    CHAIN_DELETE("chains.delete"),
-    CHAIN_KEY("chains.key"),
-    CHAIN_LINK_CREATE("chain.links.create"),
-    CHAIN_LINK_READ("chain.links.read"),
-    CHAIN_LINK_UPDATE("chain.links.update"),
-    CHAIN_LINK_DELETE("chain.links.delete")
+object WebSocket {
+    enum class Route(val path: String) {
+        CHAIN_CREATE("chains.create"),
+        CHAIN_READ("chains.read"),
+        CHAIN_DELETE("chains.delete"),
+        CHAIN_KEY("chains.key"),
+        CHAIN_LINK_CREATE("chain.links.create"),
+        CHAIN_LINK_READ("chain.links.read"),
+        CHAIN_LINK_UPDATE("chain.links.update"),
+        CHAIN_LINK_DELETE("chain.links.delete")
+    }
+
+    @OptIn(ExperimentalMetadataApi::class)
+    fun Payload.getRoute(): Route = metadata?.read(RoutingMetadata)?.tags?.firstOrNull()?.let { path ->
+        Route.values().first { route -> route.path == path }
+    } ?: error("No payload route provided")
+
+    @OptIn(ExperimentalMetadataApi::class)
+    fun Payload.Companion.encode(route: Route): Payload = buildPayload {
+        data(ByteReadPacket.Empty)
+        metadata(RoutingMetadata(route.path))
+    }
+
+    @OptIn(ExperimentalMetadataApi::class)
+    inline fun <reified T> Payload.Companion.encode(route: Route, value: T): Payload = buildPayload {
+        data(Json.encodeToString(value))
+        metadata(RoutingMetadata(route.path))
+    }
+
+    inline fun <reified T> Payload.Companion.encode(value: T): Payload = buildPayload {
+        data(Json.encodeToString(value))
+    }
+
+    inline fun <reified T> Payload.decode(): T = Json.decodeFromString(data.readText())
 }
-
-inline fun <reified T> Json.decodeFromPayload(payload: Payload): T = decodeFromString(payload.data.readText())
-
-@OptIn(ExperimentalMetadataApi::class)
-inline fun <reified T> Json.encodeToPayload(route: PayloadRoute, value: T): Payload = buildPayload {
-    data(encodeToString(value))
-    metadata(RoutingMetadata(route.path))
-}
-
-inline fun <reified T> Json.encodeToPayload(value: T): Payload = buildPayload {
-    data(encodeToString(value))
-}
-
-fun Payload(packet: ByteReadPacket = ByteReadPacket.Empty): Payload = buildPayload {
-    data(packet)
-}
-
-@OptIn(ExperimentalMetadataApi::class)
-fun Payload(route: PayloadRoute, packet: ByteReadPacket = ByteReadPacket.Empty): Payload = buildPayload {
-    data(packet)
-    metadata(RoutingMetadata(route.path))
-}
-
-@OptIn(ExperimentalMetadataApi::class)
-fun Payload.getRoute(): PayloadRoute = metadata?.read(RoutingMetadata)?.tags?.firstOrNull()?.let { path ->
-    PayloadRoute.values().first { route -> route.path == path }
-} ?: error("No payload route provided")

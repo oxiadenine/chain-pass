@@ -11,36 +11,34 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import kotlin.text.toByteArray
 
-actual object DiscoverySocket {
-    actual fun getLocalHost() = DatagramSocket().use { socket ->
-        socket.connect(InetAddress.getByName(SocketConfig.DNS), SocketConfig.PORT)
-        socket.localAddress.hostAddress!!
-    }
+actual fun DiscoverySocket.getLocalHost() = DatagramSocket().use { socket ->
+    socket.connect(InetAddress.getByName(DNS), PORT)
+    socket.localAddress.hostAddress!!
+}
 
-    actual suspend fun discover() = withContext(Dispatchers.IO) {
-        val socket = aSocket(ActorSelectorManager(Dispatchers.IO)).udp().bind()
+actual suspend fun DiscoverySocket.discover() = withContext(Dispatchers.IO) {
+    val socket = aSocket(ActorSelectorManager(Dispatchers.IO)).udp().bind()
 
-        (2..254).map { index -> "${getLocalHost().substringBeforeLast(".")}.$index" }.forEach { host ->
-            if (InetAddress.getByName(host).isReachable(SocketConfig.TIMEOUT)) {
-                try {
-                    val serverAddress = withTimeout(SocketConfig.TIMEOUT.toLong()) {
-                        socket.send(Datagram(
-                            ByteReadPacket(SocketConfig.MESSAGE.toByteArray()),
-                            InetSocketAddress(host, SocketConfig.PORT)
-                        ))
+    (2..254).map { index -> "${getLocalHost().substringBeforeLast(".")}.$index" }.forEach { host ->
+        if (InetAddress.getByName(host).isReachable(TIMEOUT)) {
+            try {
+                val serverAddress = withTimeout(TIMEOUT.toLong()) {
+                    socket.send(Datagram(
+                        ByteReadPacket(MESSAGE.toByteArray()),
+                        InetSocketAddress(host, PORT)
+                    ))
 
-                        return@withTimeout socket.receive().packet.readText()
-                    }
+                    return@withTimeout socket.receive().packet.readText()
+                }
 
-                    socket.close()
+                socket.close()
 
-                    return@withContext serverAddress
-                } catch (_: TimeoutCancellationException) {}
-            }
+                return@withContext serverAddress
+            } catch (_: TimeoutCancellationException) {}
         }
-
-        socket.close()
-
-        return@withContext ""
     }
+
+    socket.close()
+
+    return@withContext ""
 }
