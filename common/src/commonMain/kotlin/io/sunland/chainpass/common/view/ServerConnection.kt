@@ -25,13 +25,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import io.sunland.chainpass.common.StorageOptions
-import io.sunland.chainpass.common.StorageType
-import io.sunland.chainpass.common.component.DropdownMenu
-import io.sunland.chainpass.common.component.DropdownMenuItem
 import io.sunland.chainpass.common.component.ValidationTextField
 import io.sunland.chainpass.common.component.VerticalScrollbar
 import kotlinx.coroutines.Job
@@ -69,7 +63,7 @@ class ServerAddress {
     var port = Port()
 }
 
-class ServerConnectionState(serverAddress: ServerAddress, storageOptions: StorageOptions) {
+class ServerConnectionState(serverAddress: ServerAddress) {
     val hostState = mutableStateOf(serverAddress.host.value)
     val hostValidationState = mutableStateOf(serverAddress.host.validation)
 
@@ -77,9 +71,6 @@ class ServerConnectionState(serverAddress: ServerAddress, storageOptions: Storag
     val portValidationState = mutableStateOf(serverAddress.port.validation)
 
     val discoveringState = mutableStateOf<Job?>(null)
-
-    val storageIsPrivateState = mutableStateOf(storageOptions.isPrivate)
-    val storageTypeState = mutableStateOf(storageOptions.type)
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -88,7 +79,7 @@ fun ServerConnection(
     serverConnectionState: ServerConnectionState,
     onDiscover: () -> Unit,
     onDiscoverCancel: () -> Unit,
-    onConnect: (ServerAddress, StorageOptions) -> Unit
+    onConnect: (ServerAddress) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -108,33 +99,18 @@ fun ServerConnection(
         serverConnectionState.portValidationState.value = port.validation
     }
 
-    val onStorageIsPrivateChange = { value: Boolean ->
-        serverConnectionState.storageIsPrivateState.value = value
-    }
-
-    val storageTypeMenuExpandedState = remember { mutableStateOf(false) }
-
-    val onStorageTypeChange = { value: StorageType ->
-        serverConnectionState.storageTypeState.value = value
-    }
-
     val onDone = {
         val serverAddress = ServerAddress().apply {
             host = ServerAddress.Host(serverConnectionState.hostState.value)
             port = ServerAddress.Port(serverConnectionState.portState.value)
         }
 
-        val storageOptions = StorageOptions(
-            serverConnectionState.storageIsPrivateState.value,
-            serverConnectionState.storageTypeState.value
-        )
-
         serverConnectionState.hostValidationState.value = serverAddress.host.validation
         serverConnectionState.portValidationState.value = serverAddress.port.validation
 
         if (serverConnectionState.hostValidationState.value.isSuccess &&
             serverConnectionState.portValidationState.value.isSuccess) {
-            onConnect(serverAddress, storageOptions)
+            onConnect(serverAddress)
         }
     }
 
@@ -226,73 +202,6 @@ fun ServerConnection(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         keyboardActions = KeyboardActions(onDone = { onDone() })
                     )
-                }
-                Text(text = "Storage Options", fontWeight = FontWeight.Bold)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(space = 16.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(text = "Private")
-                        Switch(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                            checked = serverConnectionState.storageIsPrivateState.value,
-                            onCheckedChange = onStorageIsPrivateChange
-                        )
-                    }
-                    Button(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        onClick = { storageTypeMenuExpandedState.value = true },
-                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                modifier = Modifier.width(width = 60.dp).padding(start = 8.dp, end = 4.dp),
-                                text = serverConnectionState.storageTypeState.value.name
-                            )
-                            Icon(imageVector = Icons.Default.ExpandMore, contentDescription = null)
-                        }
-                        DropdownMenu(
-                            modifier = Modifier.width(width = 150.dp),
-                            expanded = storageTypeMenuExpandedState.value,
-                            onDismissRequest = { storageTypeMenuExpandedState.value = false },
-                            offset = DpOffset(x = 8.dp, y = (-16).dp)
-                        ) {
-                            DropdownMenuItem(
-                                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                                onClick = {
-                                    storageTypeMenuExpandedState.value = false
-
-                                    onStorageTypeChange(StorageType.JSON)
-                                },
-                                contentPadding = PaddingValues(horizontal = 16.dp)
-                            ) { Text(text = "JSON", fontSize = 12.sp) }
-                            DropdownMenuItem(
-                                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                                onClick = {
-                                    storageTypeMenuExpandedState.value = false
-
-                                    onStorageTypeChange(StorageType.CSV)
-                                },
-                                contentPadding = PaddingValues(horizontal = 16.dp)
-                            ) { Text(text = "CSV", fontSize = 12.sp) }
-                            DropdownMenuItem(
-                                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                                onClick = {
-                                    storageTypeMenuExpandedState.value = false
-
-                                    onStorageTypeChange(StorageType.TXT)
-                                },
-                                contentPadding = PaddingValues(horizontal = 16.dp)
-                            ) { Text(text = "TXT", fontSize = 12.sp) }
-                        }
-                    }
                 }
             }
             VerticalScrollbar(

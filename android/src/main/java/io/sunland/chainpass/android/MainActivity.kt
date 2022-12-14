@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             title = "Chain Pass"
 
-            val appState = rememberAppState(Settings(), Storage(settingsManager.dirPath), Screen.SERVER_CONNECTION)
+            val appState = rememberAppState(Settings(), Screen.SERVER_CONNECTION)
 
             App(settingsManager, httpClient, appState)
         }

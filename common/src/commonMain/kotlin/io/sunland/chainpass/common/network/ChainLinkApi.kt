@@ -18,9 +18,9 @@ data class ChainLinkEntity(
 )
 
 class ChainLinkApi(private val httpClient: HttpClient, private val settings: Settings) {
-    suspend fun create(chainLinkEntity: ChainLinkEntity) = runCatching {
+    suspend fun create(chainLinkEntities: List<ChainLinkEntity>) = runCatching {
         httpClient.rSocket(settings.serverHost, settings.serverPort).requestResponse(
-            Payload.encode(WebSocket.Route.CHAIN_LINK_CREATE, chainLinkEntity)
+            Payload.encode(WebSocket.Route.CHAIN_LINK_CREATE, chainLinkEntities)
         ).close()
     }
 

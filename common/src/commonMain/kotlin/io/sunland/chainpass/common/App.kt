@@ -33,19 +33,13 @@ enum class ThemeColor(val color: Color) {
 
 class AppState(
     val settingsState: MutableState<Settings>,
-    val storageState: MutableState<Storage>,
     val screenState: MutableState<Screen>,
     val isServerConnected: MutableState<Boolean>
 )
 
 @Composable
-fun rememberAppState(settings: Settings, storage: Storage, screen: Screen) = remember {
-    AppState(
-        mutableStateOf(settings),
-        mutableStateOf(storage),
-        mutableStateOf(screen),
-        mutableStateOf(false)
-    )
+fun rememberAppState(settings: Settings, screen: Screen) = remember {
+    AppState(mutableStateOf(settings), mutableStateOf(screen), mutableStateOf(false))
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -75,10 +69,6 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
     if (!appState.isServerConnected.value) {
         settingsManager.load(appState.settingsState.value)?.let { settings ->
             appState.settingsState.value = settings
-            appState.storageState.value = Storage(
-                settingsManager.dirPath,
-                StorageOptions(settings.storageIsPrivate, settings.storageType)
-            )
             appState.screenState.value = Screen.CHAIN_LIST
             appState.isServerConnected.value = true
         }
@@ -88,7 +78,10 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
 
     val coroutineScope = rememberCoroutineScope()
 
-    val chainListViewModel = ChainListViewModel(ChainApi(httpClient, appState.settingsState.value))
+    val chainListViewModel = ChainListViewModel(
+        ChainApi(httpClient, appState.settingsState.value),
+        ChainLinkApi(httpClient, appState.settingsState.value)
+    )
     val chainLinkListViewModel = ChainLinkListViewModel(
         ChainApi(httpClient, appState.settingsState.value),
         ChainLinkApi(httpClient, appState.settingsState.value)
@@ -122,7 +115,7 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
         Box {
             when (appState.screenState.value) {
                 Screen.SERVER_CONNECTION -> {
-                    val serverConnectionState = ServerConnectionState(ServerAddress(), StorageOptions())
+                    val serverConnectionState = ServerConnectionState(ServerAddress())
 
                     ServerConnection(
                         serverConnectionState = serverConnectionState,
@@ -150,14 +143,11 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                             serverConnectionState.discoveringState.value?.cancel()
                             serverConnectionState.discoveringState.value = null
                         },
-                        onConnect = { serverAddress, storageOptions ->
+                        onConnect = { serverAddress ->
                             appState.settingsState.value = Settings(
                                 serverAddress.host.value,
-                                serverAddress.port.value.toInt(),
-                                storageOptions.isPrivate,
-                                storageOptions.type
+                                serverAddress.port.value.toInt()
                             )
-                            appState.storageState.value = Storage(settingsManager.dirPath, storageOptions)
                             appState.screenState.value = Screen.CHAIN_LIST
                             appState.isServerConnected.value = true
 
@@ -229,11 +219,41 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                                 }
                             }
                         },
+                        onStore = { chain, storageOptions ->
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+
+                                val storage = Storage(settingsManager.dirPath, storageOptions)
+
+                                chainLinkListViewModel.chain = chain
+
+                                chainListViewModel.store(chain, storage)
+                                    .onSuccess { fileName ->
+                                        scaffoldState.snackbarHostState.showSnackbar("Stored to $fileName")
+                                    }.onFailure { exception ->
+                                        scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
+                                    }
+                            }
+                        },
+                        onUnstore = { chainKey, filePath ->
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+
+                                val storage = Storage(settingsManager.dirPath)
+
+                                chainListViewModel.unstore(chainKey, storage, filePath)
+                                    .onSuccess {
+                                        scaffoldState.snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
+                                    }
+                                    .onFailure { exception ->
+                                        scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
+                                    }
+                            }
+                        },
                         onDisconnect = {
                             scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
                             appState.settingsState.value = Settings()
-                            appState.storageState.value = Storage(settingsManager.dirPath, StorageOptions())
                             appState.screenState.value = Screen.SERVER_CONNECTION
                             appState.isServerConnected.value = false
 
@@ -243,10 +263,6 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                 }
                 Screen.CHAIN_LINK_LIST -> {
                     ChainLinkList(
-                        storageOptions = StorageOptions(
-                            appState.settingsState.value.storageIsPrivate,
-                            appState.settingsState.value.storageType,
-                        ),
                         viewModel = chainLinkListViewModel,
                         onBack = {
                             scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
@@ -296,38 +312,7 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                                 }
                             }
                         },
-                        onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.performAction() },
-                        onStore = { storageOptions ->
-                            coroutineScope.launch {
-                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
-
-                                val storage = Storage(settingsManager.dirPath, storageOptions)
-
-                                chainLinkListViewModel.store(storage)
-                                    .onSuccess { filePath ->
-                                        scaffoldState.snackbarHostState.showSnackbar("Stored to $filePath")
-                                    }
-                                    .onFailure { exception ->
-                                        scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
-                                    }
-                            }
-                        },
-                        onUnstore = { filePath ->
-                            coroutineScope.launch {
-                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
-
-                                chainLinkListViewModel.unstore(appState.storageState.value, filePath.value)
-                                    .mapCatching { chainLinks ->
-                                        chainLinks.forEach { chainLink -> chainLinkListViewModel.new(chainLink) }
-                                    }
-                                    .onSuccess {
-                                        scaffoldState.snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
-                                    }
-                                    .onFailure { exception ->
-                                        scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
-                                    }
-                            }
-                        }
+                        onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.performAction() }
                     )
                 }
             }

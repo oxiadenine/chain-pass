@@ -4,8 +4,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
-import io.sunland.chainpass.common.Storable
-import io.sunland.chainpass.common.Storage
 import io.sunland.chainpass.common.network.ChainApi
 import io.sunland.chainpass.common.network.ChainKeyEntity
 import io.sunland.chainpass.common.network.ChainLinkApi
@@ -27,7 +25,7 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
             return chainLinkListState.indexOfFirst { chainLink -> chainLink.isLatest }
         }
 
-    private var chainLinks = emptyList<ChainLink>()
+    var chainLinks = emptyList<ChainLink>()
 
     fun draft(chainLinkDraft: ChainLink = ChainLink(chain!!)) {
         val chainLinkIds = chainLinks.plus(chainLinkListState.filter { chainLink ->
@@ -68,7 +66,7 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
             .map { chainLink ->
                 if (chainLink.id == chainLinkEdit.id) {
                     if (chainLink.password.isPrivate) {
-                        unlockPassword(chainLink)
+                        chainLink.password = chainLink.unlockPassword()
                     }
 
                     chainLink.status = ChainLink.Status.EDIT
@@ -134,10 +132,6 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
     }
 
     fun removeLater(chainLink: ChainLink) {
-        if (!chainLink.password.isPrivate) {
-            lockPassword(chainLink)
-        }
-
         chainLinkListState.remove(chainLink)
     }
 
@@ -156,34 +150,6 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
         if (isSearchState.value) {
             search(searchKeywordState.value)
         }
-    }
-
-    fun unlockPassword(chainLink: ChainLink) {
-        val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(
-            PasswordEncoder.Base64.encode(chainLink.chain.key.value.encodeToByteArray()),
-            PasswordEncoder.Base64.encode(chainLink.chain.name.value.encodeToByteArray())
-        ))
-
-        val password = PasswordEncoder.decrypt(
-            chainLink.password.value,
-            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chainLink.name.value.encodeToByteArray()))
-        )
-
-        chainLink.password = ChainLink.Password(PasswordEncoder.Base64.decode(password).decodeToString(), false)
-    }
-
-    fun lockPassword(chainLink: ChainLink) {
-        val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(
-            PasswordEncoder.Base64.encode(chainLink.chain.key.value.encodeToByteArray()),
-            PasswordEncoder.Base64.encode(chainLink.chain.name.value.encodeToByteArray())
-        ))
-
-        val privatePassword = PasswordEncoder.encrypt(
-            PasswordEncoder.Base64.encode(chainLink.password.value.encodeToByteArray()),
-            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chainLink.name.value.encodeToByteArray()))
-        )
-
-        chainLink.password = ChainLink.Password(privatePassword)
     }
 
     fun startSearch() {
@@ -216,58 +182,6 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
         searchKeywordState.value = ""
 
         chainLinkSearchListState.clear()
-    }
-
-    fun store(storage: Storage) = runCatching {
-        val chainLinks = chainLinkListState
-            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
-            .map { chainLink ->
-                ChainLink(chain!!).apply {
-                    id = chainLink.id
-                    name = chainLink.name
-                    description = chainLink.description
-                    password = chainLink.password
-
-                    if (chainLink.password.isPrivate && !storage.options.isPrivate) {
-                        unlockPassword(this)
-                    } else if (!chainLink.password.isPrivate && storage.options.isPrivate) {
-                        lockPassword(this)
-                    }
-                }
-            }
-            .map { chainLink ->
-                mapOf(
-                    "id" to chainLink.id.toString(),
-                    "name" to chainLink.name.value,
-                    "description" to chainLink.description.value,
-                    "password" to chainLink.password.value
-                )
-            }
-
-        val storable = Storable(
-            "${chain!!.name.value}${chain!!.id}",
-            mapOf("isPrivate" to storage.options.isPrivate.toString()),
-            chainLinks
-        )
-
-        storage.store(storable)
-    }
-
-    fun unstore(storage: Storage, filePath: String) = runCatching {
-        val storable = storage.unstore(filePath)
-
-        storable.items.map { item ->
-            val chainLink = ChainLink(chain!!).apply {
-                id = item["id"]!!.toInt()
-                name = ChainLink.Name(item["name"]!!)
-                description = ChainLink.Description(item["description"]!!)
-                password = ChainLink.Password(item["password"]!!)
-            }
-
-            draft(chainLink)
-
-            chainLink
-        }
     }
 
     suspend fun getAll() = chainApi.key(chain!!.id).mapCatching { chainKeyEntity ->
@@ -344,7 +258,7 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
             ChainKeyEntity(chainLink.chain.id, saltKey)
         )
 
-        chainLinkApi.create(chainLinkEntity).getOrThrow()
+        chainLinkApi.create(listOf(chainLinkEntity)).getOrThrow()
 
         chainLink.status = ChainLink.Status.ACTUAL
 

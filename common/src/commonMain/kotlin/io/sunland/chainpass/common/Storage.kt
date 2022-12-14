@@ -3,7 +3,7 @@ package io.sunland.chainpass.common
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
 
 expect class Storage(dirPath: String, options: StorageOptions = StorageOptions()) {
     val dirPath: String
@@ -18,7 +18,11 @@ enum class StorageType { JSON, CSV, TXT }
 data class StorageOptions(val isPrivate: Boolean = true, val type: StorageType = StorageType.JSON)
 
 @Serializable
-data class Storable(val id: String, val options: Map<String, String>, val items: List<Map<String, String>>)
+data class Storable(
+    val options: Map<String, String>,
+    val chain: Map<String, String>,
+    val chainLinks: List<Map<String, String>>
+)
 
 fun Storable.toString(options: StorageOptions) = when (options.type) {
     StorageType.JSON -> Json.encodeToString(value = this)
@@ -31,21 +35,32 @@ fun Storable.toString(options: StorageOptions) = when (options.type) {
 
         append("$optionsRecord\n")
 
-        val itemsHeader = this@toString.items.flatMap { item -> item.keys }.toSet().joinToString(",")
+        val chainHeader = this@toString.chain.keys.toSet().joinToString(",")
 
-        append("$itemsHeader\n")
+        append("$chainHeader\n")
 
-        val itemsRecords = this@toString.items.map { item ->
-            item.values.joinToString(",") { field ->
-                "\"${field.replace("\"", "\"\"")}\""
+        val chainRecord = this@toString.chain.values.joinToString(",") { value ->
+            "\"${value.replace("\"", "\"\"")}\""
+        }
+
+        append("$chainRecord\n")
+
+        val chainLinkHeader = this@toString.chainLinks.flatMap { chainLink -> chainLink.keys }.toSet().joinToString(",")
+
+        append("$chainLinkHeader\n")
+
+        val chainLinkRecords = this@toString.chainLinks.map { chainLink ->
+            chainLink.values.joinToString(",") { value ->
+                "\"${value.replace("\"", "\"\"")}\""
             }
         }
 
-        itemsRecords.forEach { record -> append("$record\n") }
+        chainLinkRecords.forEach { chainLinkRecord -> append("$chainLinkRecord\n") }
     }
     StorageType.TXT -> buildString {
-        append(this@toString.options)
-        append(this@toString.items)
+        append("${this@toString.options}\n")
+        append("${this@toString.chain}\n")
+        append("${this@toString.chainLinks}\n")
     }
 }
 
@@ -69,35 +84,53 @@ fun String.toStorable(storageType: StorageType) = when (storageType) {
             options[optionsHeader[i]] = optionsRecord[i]
         }
 
-        val itemsHeader = data[2].split(",")
+        val chainHeader = data[2].split(",")
 
-        if (itemsHeader.size != 4) {
+        if (chainHeader.size != 2) {
             isFormatValid = false
         }
 
-        val items = mutableListOf<Map<String, String>>()
+        val chain = mutableMapOf<String, String>()
 
-        for (i in 3 until data.size - 1) {
-            val item = mutableMapOf<String, String>()
+        val chainRecord = data[3].split(",")
 
-            val itemsRecord = data[i].split(",")
+        if (chainRecord.size != 2) {
+            isFormatValid = false
+        }
 
-            if (itemsRecord.size != 4) {
+        for (j in chainHeader.indices) {
+            chain[chainHeader[j]] = chainRecord[j].substringAfter("\"").substringBeforeLast("\"")
+        }
+
+        val chainLinkHeader = data[4].split(",")
+
+        if (chainLinkHeader.size != 3) {
+            isFormatValid = false
+        }
+
+        val chainLinks = mutableListOf<Map<String, String>>()
+
+        for (i in 5 until data.size - 1) {
+            val chainLink = mutableMapOf<String, String>()
+
+            val chainLinkRecord = data[i].split(",")
+
+            if (chainLinkRecord.size != 3) {
                 isFormatValid = false
             }
 
-            for (j in itemsHeader.indices) {
-                item[itemsHeader[j]] = itemsRecord[j].substringAfter("\"").substringBeforeLast("\"")
+            for (j in chainLinkHeader.indices) {
+                chainLink[chainLinkHeader[j]] = chainLinkRecord[j].substringAfter("\"").substringBeforeLast("\"")
             }
 
-            items.add(item)
+            chainLinks.add(chainLink)
         }
 
         if (!isFormatValid) {
             throw IllegalArgumentException("Invalid $storageType file format")
         }
 
-        Storable("", options, items)
+        Storable(options, chain, chainLinks)
     }
     StorageType.TXT -> throw IllegalArgumentException("Storage type $storageType not supported")
 }

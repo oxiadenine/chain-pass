@@ -53,16 +53,16 @@ fun Application.main() {
                         }
                         WebSocket.Route.CHAIN_KEY -> ChainRepository.key(payload.decode())
                             .mapCatching { chainKeyEntity -> Payload.encode(chainKeyEntity) }
-                        WebSocket.Route.CHAIN_LINK_CREATE -> payload.decode<ChainLinkEntity>().let { chainLinkEntity ->
-                            ChainRepository.read(chainLinkEntity.chainKey.id)
+                        WebSocket.Route.CHAIN_LINK_CREATE -> payload.decode<List<ChainLinkEntity>>().let { chainLinkEntities ->
+                            ChainRepository.read(chainLinkEntities[0].chainKey.id)
                                 .mapCatching { chainEntity ->
                                     val key = ChainRepository.key(chainEntity.id).map { key ->
                                         PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
                                     }.getOrThrow()
 
-                                    Chain.Key(key).matches(chainLinkEntity.chainKey.key).getOrThrow()
+                                    Chain.Key(key).matches(chainLinkEntities[0].chainKey.key).getOrThrow()
                                 }
-                                .mapCatching { ChainLinkRepository.create(chainLinkEntity).getOrThrow() }
+                                .mapCatching { ChainLinkRepository.create(chainLinkEntities).getOrThrow() }
                                 .mapCatching { Payload.Empty }
                         }
                         WebSocket.Route.CHAIN_LINK_READ -> payload.decode<ChainKeyEntity>().let { chainKeyEntity ->

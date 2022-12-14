@@ -3,7 +3,7 @@ package io.sunland.chainpass.common
 import java.io.File
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.*
 
 actual class Storage actual constructor(
     actual val dirPath: String,
@@ -20,7 +20,7 @@ actual class Storage actual constructor(
             applyPattern("yyyy.MM.dd-HH.mm.ss")
         }.format(Date())
 
-        val fileName = "${storable.id}_$date"
+        val fileName = "${storable.chain["name"]}_$date"
 
         val filePath = when (options.type) {
             StorageType.JSON -> "$dirPath/store/$fileName.json"
@@ -39,7 +39,7 @@ actual class Storage actual constructor(
 
     actual fun unstore(filePath: String): Storable {
         if (!File(filePath).exists()) {
-            throw IllegalArgumentException("File $filePath does not exists")
+            error("File $filePath does not exists")
         }
 
         val storageType = StorageType.valueOf(File(filePath).extension.uppercase())

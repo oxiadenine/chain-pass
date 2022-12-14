@@ -1,5 +1,8 @@
 package io.sunland.chainpass.common
 
+import io.sunland.chainpass.common.security.EncoderSpec
+import io.sunland.chainpass.common.security.PasswordEncoder
+
 class ChainLink(val chain: Chain) {
     constructor(chainLink: ChainLink) : this(chainLink.chain) {
         id = chainLink.id
@@ -55,4 +58,19 @@ class ChainLink(val chain: Chain) {
     var password = Password()
     var status = Status.DRAFT
     var isLatest = false
+
+    fun unlockPassword(): Password {
+        val secretKey = PasswordEncoder.hash(
+            EncoderSpec.Passphrase(
+                PasswordEncoder.Base64.encode(chain.key.value.encodeToByteArray()),
+                PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
+            ))
+
+        val password = PasswordEncoder.decrypt(
+            password.value,
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(name.value.encodeToByteArray()))
+        )
+
+        return Password(PasswordEncoder.Base64.decode(password).decodeToString(), false)
+    }
 }
