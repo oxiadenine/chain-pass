@@ -3,6 +3,7 @@ package io.sunland.chainpass.server.repository
 import io.sunland.chainpass.common.network.ChainEntity
 import io.sunland.chainpass.common.network.ChainKeyEntity
 import io.sunland.chainpass.common.security.PasswordEncoder
+import io.sunland.chainpass.server.ChainLinkTable
 import io.sunland.chainpass.server.ChainTable
 import io.sunland.chainpass.server.Database
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -44,6 +45,7 @@ object ChainRepository {
 
     suspend fun delete(chainKeyEntity: ChainKeyEntity) = runCatching {
         Database.execute<Unit> {
+            ChainLinkTable.deleteWhere { chainId eq chainKeyEntity.id }
             ChainTable.deleteWhere { id eq chainKeyEntity.id }
         }
     }

@@ -5,7 +5,6 @@ import com.zaxxer.hikari.HikariDataSource
 import io.ktor.server.config.*
 import kotlinx.coroutines.Dispatchers
 import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.ReferenceOption
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
@@ -25,7 +24,7 @@ object ChainLinkTable : Table("chain_link") {
     val description = varchar("description", 24).index()
     val password = varchar("password", 64)
 
-    val chainId = integer("chain_id").references(ChainTable.id, onDelete = ReferenceOption.CASCADE).index()
+    val chainId = integer("chain_id").references(ChainTable.id).index()
 
     override val primaryKey = PrimaryKey(id, chainId)
 }
