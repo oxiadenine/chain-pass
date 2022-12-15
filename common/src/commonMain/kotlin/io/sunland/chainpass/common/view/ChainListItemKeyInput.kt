@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -156,7 +157,11 @@ fun ChainListItemKeyInput(
                         IconButton(
                             modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                             onClick = onKeyVisibleChange
-                        ) { Icon(imageVector = Icons.Default.Visibility, contentDescription = null) }
+                        ) {
+                            Icon(imageVector = if (keyVisibleState.value) {
+                                Icons.Default.Visibility
+                            } else Icons.Default.VisibilityOff, contentDescription = null)
+                        }
                     }
                 },
                 isError = keyErrorState.value,
