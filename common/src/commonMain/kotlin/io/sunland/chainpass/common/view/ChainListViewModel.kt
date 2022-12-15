@@ -23,12 +23,10 @@ class ChainListViewModel(private val chainApi: ChainApi, private val chainLinkAp
     private var chains = emptyList<Chain>()
 
     fun draft() {
-        val chainIds = chains.plus(chainListState.filter { chain ->
-            chain.status == Chain.Status.DRAFT
-        }).map { chain -> chain.id }
-
         val chainDraft = Chain().apply {
-            id = chainIds.maxOrNull()?.let { it + 1 } ?: 1
+            id = chains.plus(chainListState.filter { chain ->
+                chain.status == Chain.Status.DRAFT
+            }).maxOfOrNull { chain -> chain.id }?.let { it + 1 } ?: 1
             isLatest = true
         }
 
