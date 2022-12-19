@@ -22,13 +22,13 @@ actual class SettingsManager actual constructor(actual val dirPath: String) {
         filePath.writeText(Json.encodeToString(settings))
     }
 
-    actual fun load(settings: Settings): Settings? {
+    actual fun load(): Settings? {
         return if (Files.exists(filePath)) {
             Json.decodeFromString(Files.readString(filePath))
         } else null
     }
 
-    actual fun delete(settings: Settings) {
+    actual fun delete() {
         Files.deleteIfExists(filePath)
     }
 }

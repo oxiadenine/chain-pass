@@ -5,11 +5,8 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-actual class Storage actual constructor(
-    actual val dirPath: String,
-    actual val options: StorageOptions
-) {
-    actual fun store(storable: Storable): String {
+actual class Storage actual constructor(actual val dirPath: String) {
+    actual fun store(storable: Storable, storageType: StorageType): String {
         val storePath = "$dirPath/store"
 
         if (!File(storePath).exists()) {
@@ -22,7 +19,7 @@ actual class Storage actual constructor(
 
         val fileName = "${storable.chain["name"]}_$date"
 
-        val filePath = when (options.type) {
+        val filePath = when (storageType) {
             StorageType.JSON -> "$dirPath/store/$fileName.json"
             StorageType.CSV -> "$dirPath/store/$fileName.csv"
             StorageType.TXT -> "$dirPath/store/$fileName.txt"
@@ -32,7 +29,7 @@ actual class Storage actual constructor(
             File(filePath).createNewFile()
         }
 
-        File(filePath).writeText(storable.toString(options))
+        File(filePath).writeText(storable.toString(storageType))
 
         return fileName
     }

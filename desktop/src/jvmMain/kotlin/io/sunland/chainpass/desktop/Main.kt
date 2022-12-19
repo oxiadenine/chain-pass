@@ -9,12 +9,11 @@ import io.rsocket.kotlin.core.WellKnownMimeType
 import io.rsocket.kotlin.keepalive.KeepAlive
 import io.rsocket.kotlin.ktor.client.RSocketSupport
 import io.rsocket.kotlin.payload.PayloadMimeType
-import io.sunland.chainpass.common.*
+import io.sunland.chainpass.common.App
+import io.sunland.chainpass.common.SettingsManager
 import kotlin.time.Duration.Companion.seconds
 
 fun main() = application {
-    val settingsManager = SettingsManager("${System.getProperty("user.home")}/.chain-pass")
-
     val httpClient = HttpClient {
         install(WebSockets)
         install(RSocketSupport) {
@@ -24,7 +23,6 @@ fun main() = application {
                         interval = 30.seconds,
                         maxLifetime = 30.seconds
                     )
-
                     payloadMimeType = PayloadMimeType(
                         data = WellKnownMimeType.ApplicationJson,
                         metadata = WellKnownMimeType.MessageRSocketCompositeMetadata
@@ -34,7 +32,7 @@ fun main() = application {
         }
     }
 
-    val appState = rememberAppState(Settings(), Screen.SERVER_CONNECTION)
+    val settingsManager = SettingsManager("${System.getProperty("user.home")}/.chain-pass")
 
     Window(
         icon = painterResource("icon.png"),
@@ -44,5 +42,5 @@ fun main() = application {
 
             exitApplication()
         }
-    ) { App(settingsManager, httpClient, appState) }
+    ) { App(httpClient, settingsManager) }
 }

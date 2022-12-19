@@ -15,7 +15,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ServerConnectionTopBar(serverConnectionState: ServerConnectionState, onConnect: () -> Unit) {
+fun ServerConnectionTopBar(connectEnabled: Boolean, onConnect: () -> Unit) {
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
         title = { Text(text = "Chain Pass") },
@@ -23,7 +23,7 @@ fun ServerConnectionTopBar(serverConnectionState: ServerConnectionState, onConne
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 onClick = onConnect,
-                enabled = serverConnectionState.discoveringState.value?.isActive != true
+                enabled = connectEnabled
             ) { Icon(imageVector = Icons.Default.Login, contentDescription = null) }
         }
     )

@@ -27,7 +27,7 @@ object WebSocket {
     @OptIn(ExperimentalMetadataApi::class)
     fun Payload.getRoute(): Route = metadata?.read(RoutingMetadata)?.tags?.firstOrNull()?.let { path ->
         Route.values().first { route -> route.path == path }
-    } ?: error("No payload route provided")
+    } ?: throw IllegalStateException("No payload route provided")
 
     @OptIn(ExperimentalMetadataApi::class)
     fun Payload.Companion.encode(route: Route): Payload = buildPayload {

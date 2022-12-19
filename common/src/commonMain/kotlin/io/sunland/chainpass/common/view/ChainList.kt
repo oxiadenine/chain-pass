@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
-import io.sunland.chainpass.common.StorageOptions
 
 enum class InputActionType { SELECT, REMOVE, STORE, UNSTORE }
 
@@ -25,7 +24,7 @@ fun ChainList(
     onNew: (Chain) -> Unit,
     onSelect: (Chain) -> Unit,
     onRemove: (Chain) -> Unit,
-    onStore: (Chain, StorageOptions) -> Unit,
+    onStore: (Chain, StoreOptions) -> Unit,
     onUnstore: (Chain.Key, FilePath) -> Unit,
     onDisconnect: () -> Unit
 ) {
@@ -63,19 +62,19 @@ fun ChainList(
                                 ChainListItem(
                                     chain = chain,
                                     onSelect = {
-                                        viewModel.chainState.value = chain
+                                        viewModel.select(chain)
 
                                         inputActionTypeState.value = InputActionType.SELECT
                                         inputActionDialogVisibleState.value = true
                                     },
                                     onRemove = {
-                                        viewModel.chainState.value = chain
+                                        viewModel.select(chain)
 
                                         inputActionTypeState.value = InputActionType.REMOVE
                                         inputActionDialogVisibleState.value = true
                                     },
                                     onStore = {
-                                        viewModel.chainState.value = chain
+                                        viewModel.select(chain)
 
                                         inputActionTypeState.value = InputActionType.STORE
                                         inputActionDialogVisibleState.value = true
@@ -103,22 +102,20 @@ fun ChainList(
                     inputActionType = inputActionTypeState.value,
                     onDismiss = { inputActionDialogVisibleState.value = false },
                     onConfirm = { chainKey, storageOptions, filePath ->
-                        val chain = viewModel.chainState.value?.let { chain ->
-                            Chain(chain).apply { key = chainKey }
-                        }
+                        val chain = viewModel.chainSelected?.apply { key = chainKey }
 
                         when (inputActionTypeState.value) {
                             InputActionType.SELECT -> onSelect(chain!!)
                             InputActionType.REMOVE -> {
-                                viewModel.removeLater(viewModel.chainState.value!!)
+                                viewModel.removeLater(chain!!)
 
-                                onRemove(chain!!)
+                                onRemove(chain)
                             }
                             InputActionType.STORE -> onStore(chain!!, storageOptions!!)
                             InputActionType.UNSTORE -> onUnstore(chainKey, filePath!!)
                         }
 
-                        viewModel.chainState.value = null
+                        viewModel.select()
 
                         inputActionDialogVisibleState.value = false
                     }
