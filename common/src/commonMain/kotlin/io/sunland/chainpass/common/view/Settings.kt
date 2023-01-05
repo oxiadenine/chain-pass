@@ -34,7 +34,7 @@ class DeviceIp(value: String? = null) {
 
     val validation = value?.let {
         if (value.isNotEmpty() && !value.matches("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\$".toRegex())) {
-            Result.failure(IllegalArgumentException("Device IP is not a valid IPv4 address"))
+            Result.failure(IllegalArgumentException("Device Address is not a valid IPv4 address"))
         } else Result.success(value)
     } ?: Result.success(this.value)
 }
@@ -46,14 +46,14 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
 
     val scrollState = rememberScrollState()
 
-    val deviceIpState = remember { mutableStateOf(settings.deviceIp) }
-    val deviceIpErrorState = remember { mutableStateOf(false) }
+    val deviceAddressState = remember { mutableStateOf(settings.deviceAddress) }
+    val deviceAddressErrorState = remember { mutableStateOf(false) }
 
-    val onDeviceIpChange = { value: String ->
-        val deviceIp = DeviceIp(value)
+    val onDeviceAddressChange = { value: String ->
+        val deviceAddress = DeviceIp(value)
 
-        deviceIpState.value = deviceIp.value
-        deviceIpErrorState.value = deviceIp.validation.isFailure
+        deviceAddressState.value = deviceAddress.value
+        deviceAddressErrorState.value = deviceAddress.validation.isFailure
     }
 
     val passwordLengthState = remember { mutableStateOf(settings.passwordLength.toFloat()) }
@@ -68,10 +68,14 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
     }
 
     val onDone = {
-        deviceIpErrorState.value = DeviceIp(deviceIpState.value).validation.isFailure
+        deviceAddressErrorState.value = DeviceIp(deviceAddressState.value).validation.isFailure
 
-        if (!deviceIpErrorState.value) {
-            onSave(Settings(deviceIpState.value, passwordLengthState.value.toInt(), passwordIsAlphanumericState.value))
+        if (!deviceAddressErrorState.value) {
+            onSave(Settings(
+                deviceAddressState.value,
+                passwordLengthState.value.toInt(),
+                passwordIsAlphanumericState.value
+            ))
         }
     }
 
@@ -121,15 +125,15 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
                 ) {
                     ValidationTextField(
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
-                        placeholder = { Text(text = "Device IP") },
-                        value = deviceIpState.value,
-                        onValueChange = onDeviceIpChange,
+                        placeholder = { Text(text = "Device Address") },
+                        value = deviceAddressState.value,
+                        onValueChange = onDeviceAddressChange,
                         singleLine = true,
-                        trailingIcon = if (deviceIpErrorState.value) {
+                        trailingIcon = if (deviceAddressErrorState.value) {
                             { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                         } else null,
-                        isError = deviceIpErrorState.value,
-                        errorMessage = DeviceIp(deviceIpState.value).validation.exceptionOrNull()?.message,
+                        isError = deviceAddressErrorState.value,
+                        errorMessage = DeviceIp(deviceAddressState.value).validation.exceptionOrNull()?.message,
                         colors = TextFieldDefaults.textFieldColors(
                             backgroundColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,

@@ -154,14 +154,14 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         onSettings = { screenState.value = Screen.SETTINGS },
                         onSync = {
                             coroutineScope.launch {
-                                if (settingsState.value.deviceIp.isEmpty()) {
+                                if (settingsState.value.deviceAddress.isEmpty()) {
                                     scaffoldState.snackbarHostState.showSnackbar("You have to set sync options on Settings")
                                 } else runCatching {
                                     loadingState.value = true
 
                                     scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
-                                    val tcpSocket = WebSocket.connect(settingsState.value.deviceIp)
+                                    val tcpSocket = WebSocket.connect(settingsState.value.deviceAddress)
 
                                     ChainApi(chainRepository, chainLinkRepository, tcpSocket).sync().onSuccess {
                                         loadingState.value = false
@@ -257,14 +257,14 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         },
                         onSync = { chain ->
                             coroutineScope.launch {
-                                if (settingsState.value.deviceIp.isEmpty()) {
+                                if (settingsState.value.deviceAddress.isEmpty()) {
                                     scaffoldState.snackbarHostState.showSnackbar("You have to set sync options on Settings")
                                 } else runCatching {
                                     loadingState.value = true
 
                                     scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
-                                    val tcpSocket = WebSocket.connect(settingsState.value.deviceIp)
+                                    val tcpSocket = WebSocket.connect(settingsState.value.deviceAddress)
 
                                     ChainLinkApi(chainLinkRepository, tcpSocket).sync(chain.id).onSuccess {
                                         loadingState.value = false
