@@ -1,12 +1,5 @@
 package io.sunland.chainpass.common.security
 
-expect object RandomInt {
-    fun next(): Int
-    fun next(range: Pair<Int, Int>): Int
-
-    fun nextArray(size: Int, range: Pair<Int, Int>): Array<Int>
-}
-
 object GeneratorSpec {
     enum class CharCodeRanges(val ranges: Array<Pair<Int, Int>>) {
         ALPHABET(arrayOf(65 to 90, 97 to 122)),
@@ -51,11 +44,11 @@ class PasswordGenerator(private val strength: GeneratorSpec.Strength) {
                     GeneratorSpec.CharCodeRanges.SYMBOL -> charCodeRanges.ranges[count % 2]
                 }
 
-                charNumbers.add(RandomInt.next(charCodeRange))
+                charNumbers.add(Random.nextInt(charCodeRange))
             }
 
             if (length % 2 != 0 && charCount == 0) {
-                charNumbers.add(RandomInt.next(charCodeRanges.ranges[0]))
+                charNumbers.add(Random.nextInt(charCodeRanges.ranges[0]))
             }
         }
 

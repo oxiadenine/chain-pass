@@ -25,8 +25,6 @@ kotlin {
                 implementation(project(":common"))
 
                 implementation(compose.desktop.currentOs)
-
-                implementation(logbackDependency("classic"))
             }
         }
         named("jvmTest") {

@@ -1,0 +1,19 @@
+CREATE TABLE IF NOT EXISTS chain (
+  id TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL,
+  key TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS chain_name_index ON chain (name);
+
+insert:
+INSERT INTO chain (id, name, key) VALUES (?, ?, ?);
+
+selectAll:
+SELECT * FROM chain;
+
+selectOne:
+SELECT * FROM chain WHERE id = ?;
+
+delete:
+DELETE FROM chain WHERE id = ?;

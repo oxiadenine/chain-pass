@@ -1,41 +1,41 @@
 package io.sunland.chainpass.common.network
 
-import io.ktor.client.*
-import io.rsocket.kotlin.ktor.client.rSocket
+import io.rsocket.kotlin.RSocket
 import io.rsocket.kotlin.payload.Payload
-import io.sunland.chainpass.common.Settings
-import io.sunland.chainpass.common.network.WebSocket.decode
-import io.sunland.chainpass.common.network.WebSocket.encode
-import kotlinx.serialization.Serializable
+import io.sunland.chainpass.common.repository.ChainEntity
+import io.sunland.chainpass.common.repository.ChainLinkEntity
+import io.sunland.chainpass.common.repository.ChainLinkRepository
+import io.sunland.chainpass.common.repository.ChainRepository
 
-@Serializable
-data class ChainEntity(var id: Int, val name: String, val key: String = "")
-
-@Serializable
-data class ChainKeyEntity(val id: Int, val key: String)
-
-class ChainApi(private val httpClient: HttpClient, private val settings: Settings) {
-    suspend fun create(chainEntity: ChainEntity) = runCatching {
-        httpClient.rSocket(settings.serverHost, settings.serverPort).requestResponse(
-            Payload.encode(WebSocket.Route.CHAIN_CREATE, chainEntity)
-        ).close()
-    }
-
-    suspend fun read() = runCatching {
-        httpClient.rSocket(settings.serverHost, settings.serverPort).requestResponse(
-            Payload.encode(WebSocket.Route.CHAIN_READ)
+class ChainApi(
+    private val chainRepository: ChainRepository,
+    private val chainLinkRepository: ChainLinkRepository,
+    private val tcpSocket: RSocket
+) {
+    suspend fun sync() = runCatching {
+        val chainEntities = tcpSocket.requestResponse(
+            Payload.encode(WebSocket.Route.CHAIN_SYNC)
         ).decode<List<ChainEntity>>()
-    }
 
-    suspend fun delete(chainKeyEntity: ChainKeyEntity) = runCatching {
-        httpClient.rSocket(settings.serverHost, settings.serverPort).requestResponse(
-            Payload.encode(WebSocket.Route.CHAIN_DELETE, chainKeyEntity)
-        ).close()
-    }
+        chainEntities.forEach { chainEntity ->
+            chainRepository.getOne(chainEntity.id).onFailure {
+                chainRepository.create(chainEntity).getOrThrow()
+            }
 
-    suspend fun key(id: Int) = runCatching {
-        httpClient.rSocket(settings.serverHost, settings.serverPort).requestResponse(
-            Payload.encode(WebSocket.Route.CHAIN_KEY, id)
-        ).decode<ChainKeyEntity>()
+            val chainLinkEntities = tcpSocket.requestResponse(
+                Payload.encode(WebSocket.Route.CHAIN_LINK_SYNC, chainEntity.id)
+            ).decode<List<ChainLinkEntity>>()
+
+            chainLinkEntities.forEach { chainLinkEntity ->
+                chainLinkRepository.getOne(chainLinkEntity.id).onSuccess { chainLinkEntityFound ->
+                    if (chainLinkEntity.password != chainLinkEntityFound.password
+                        || chainLinkEntity.description != chainLinkEntityFound.description) {
+                        chainLinkRepository.update(chainLinkEntity).getOrThrow()
+                    }
+                }.onFailure {
+                    chainLinkRepository.create(chainLinkEntity).getOrThrow()
+                }
+            }
+        }
     }
 }

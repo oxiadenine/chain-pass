@@ -1,8 +1,6 @@
 package io.sunland.chainpass.common
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -13,14 +11,14 @@ import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import io.ktor.client.*
-import io.ktor.client.plugins.*
-import io.ktor.http.*
-import io.sunland.chainpass.common.network.ChainApi
-import io.sunland.chainpass.common.network.ChainLinkApi
-import io.sunland.chainpass.common.network.DiscoverySocket
-import io.sunland.chainpass.common.network.discover
+import io.rsocket.kotlin.RSocketRequestHandler
+import io.rsocket.kotlin.payload.Payload
+import io.sunland.chainpass.common.network.*
+import io.sunland.chainpass.common.repository.ChainLinkRepository
+import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.common.view.*
+import io.sunland.chainpass.sqldelight.Database
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 object Theme {
@@ -31,18 +29,11 @@ object Theme {
     }
 }
 
-enum class Screen { SERVER_CONNECTION, CHAIN_LIST, CHAIN_LINK_LIST }
-
-class NavigationState(val screenState: MutableState<Screen>)
-
-@Composable
-fun rememberNavigationState(): NavigationState = remember {
-    NavigationState(mutableStateOf(Screen.SERVER_CONNECTION))
-}
+enum class Screen { SETTINGS, CHAIN_LIST, CHAIN_LINK_LIST }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun App(httpClient: HttpClient, settingsManager: SettingsManager) = MaterialTheme(
+fun App(settingsManager: SettingsManager, database: Database, storage: Storage) = MaterialTheme(
     colors = darkColors(
         primary = Theme.Palette.QUARTZ.color,
         primaryVariant = Theme.Palette.QUARTZ.color,
@@ -66,28 +57,44 @@ fun App(httpClient: HttpClient, settingsManager: SettingsManager) = MaterialThem
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    val settingsState = remember { mutableStateOf(Settings()) }
-    val navigationState = rememberNavigationState()
-    val scaffoldState = rememberScaffoldState()
+    val settingsState = remember {
+        settingsManager.load()?.let { settings ->
+            mutableStateOf(settings)
+        } ?: run {
+            val settings = Settings("")
 
-    settingsManager.load()?.let { settings ->
-        settingsState.value = settings
+            settingsManager.save(settings)
 
-        navigationState.screenState.value = if (settings.isServerConnected) {
-            Screen.CHAIN_LIST
-        } else Screen.SERVER_CONNECTION
+            mutableStateOf(settings)
+        }
     }
 
-    val chainListViewModel = ChainListViewModel(
-        Storage(settingsManager.dirPath),
-        ChainApi(httpClient, settingsState.value),
-        ChainLinkApi(httpClient,settingsState.value)
-    )
+    val screenState = remember { mutableStateOf(Screen.CHAIN_LIST) }
 
-    val chainLinkListViewModel = ChainLinkListViewModel(
-        ChainApi(httpClient, settingsState.value),
-        ChainLinkApi(httpClient,settingsState.value)
-    )
+    val scaffoldState = rememberScaffoldState()
+
+    val chainRepository = ChainRepository(database)
+    val chainLinkRepository = ChainLinkRepository(database)
+
+    val chainListViewModel = ChainListViewModel(chainRepository, chainLinkRepository, storage)
+    val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository)
+
+    coroutineScope.launch(Dispatchers.IO) {
+        WebSocket.start(WebSocket.getLocalHost()) {
+            RSocketRequestHandler {
+                requestResponse { payload ->
+                    when (payload.getRoute()) {
+                        WebSocket.Route.CHAIN_SYNC -> {
+                            Payload.encode(chainRepository.getAll().getOrThrow())
+                        }
+                        WebSocket.Route.CHAIN_LINK_SYNC -> {
+                            Payload.encode(chainLinkRepository.getBy(payload.decode()).getOrThrow())
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     Scaffold(
         scaffoldState = scaffoldState,
@@ -115,45 +122,16 @@ fun App(httpClient: HttpClient, settingsManager: SettingsManager) = MaterialThem
         }
     ) {
         Box {
-            when (navigationState.screenState.value) {
-                Screen.SERVER_CONNECTION -> {
-                    val serverConnectionState = ServerConnectionState(ServerAddress())
+            when (screenState.value) {
+                Screen.SETTINGS -> {
+                    Settings(
+                        settings = settingsState.value,
+                        onBack = { screenState.value = Screen.CHAIN_LIST },
+                        onSave = { settings ->
+                            settingsManager.save(settings)
 
-                    ServerConnection(
-                        serverConnectionState = serverConnectionState,
-                        onDiscover = {
-                            serverConnectionState.discoveringState.value = coroutineScope.launch {
-                                val serverAddress = DiscoverySocket.discover()
-
-                                if (serverAddress.isEmpty()) {
-                                    scaffoldState.snackbarHostState.showSnackbar("Server address cannot be discovered")
-                                } else {
-                                    val host = ServerAddress.Host(serverAddress.substringBefore(":"))
-                                    val port = ServerAddress.Port(serverAddress.substringAfter(":"))
-
-                                    serverConnectionState.hostState.value = host.value
-                                    serverConnectionState.hostValidationState.value = host.validation
-
-                                    serverConnectionState.portState.value = port.value
-                                    serverConnectionState.portValidationState.value = port.validation
-                                }
-
-                                serverConnectionState.discoveringState.value = null
-                            }
-                        },
-                        onDiscoverCancel = {
-                            serverConnectionState.discoveringState.value?.cancel()
-                            serverConnectionState.discoveringState.value = null
-                        },
-                        onConnect = { serverAddress ->
-                            settingsState.value = Settings(
-                                serverAddress.host.value,
-                                serverAddress.port.value.toInt(),
-                                true
-                            )
-                            navigationState.screenState.value = Screen.CHAIN_LIST
-
-                            settingsManager.save(settingsState.value)
+                            settingsState.value = settings
+                            screenState.value = Screen.CHAIN_LIST
                         }
                     )
                 }
@@ -165,16 +143,21 @@ fun App(httpClient: HttpClient, settingsManager: SettingsManager) = MaterialThem
                     }
 
                     ChainList(
-                        serverAddress = ServerAddress().apply {
-                            host = ServerAddress.Host(settingsState.value.serverHost)
-                            port = ServerAddress.Port(settingsState.value.serverPort.toString())
-                        },
                         viewModel = chainListViewModel,
+                        onSettings = { screenState.value = Screen.SETTINGS },
                         onSync = {
                             coroutineScope.launch {
-                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+                                if (settingsState.value.deviceIp.isEmpty()) {
+                                    scaffoldState.snackbarHostState.showSnackbar("You have to set sync options on Settings")
+                                } else runCatching {
+                                    scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
-                                chainListViewModel.getAll().onFailure { exception ->
+                                    val tcpSocket = WebSocket.connect(settingsState.value.deviceIp)
+
+                                    ChainApi(chainRepository, chainLinkRepository, tcpSocket).sync().onSuccess {
+                                        chainListViewModel.getAll().getOrThrow()
+                                    }
+                                }.onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }
@@ -190,14 +173,13 @@ fun App(httpClient: HttpClient, settingsManager: SettingsManager) = MaterialThem
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                                chainLinkListViewModel.chain = chain
+                                chainListViewModel.select(chain).onSuccess {
+                                    chainLinkListViewModel.chain = chain
 
-                                chainLinkListViewModel.getAll()
-                                    .onSuccess {
-                                        navigationState.screenState.value = Screen.CHAIN_LINK_LIST
-                                    }.onFailure { exception ->
-                                        scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
-                                    }
+                                    screenState.value = Screen.CHAIN_LINK_LIST
+                                }.onFailure { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
+                                }
                             }
                         },
                         onRemove = { chain ->
@@ -224,57 +206,55 @@ fun App(httpClient: HttpClient, settingsManager: SettingsManager) = MaterialThem
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                                chainListViewModel.store(chain, storeOptions)
-                                    .onSuccess { fileName ->
-                                        scaffoldState.snackbarHostState.showSnackbar("Stored to $fileName")
-                                    }.onFailure { exception ->
-                                        scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
-                                    }
+                                chainListViewModel.store(chain, storeOptions).onSuccess { fileName ->
+                                    scaffoldState.snackbarHostState.showSnackbar("Stored to $fileName")
+                                }.onFailure { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
+                                }
                             }
                         },
                         onUnstore = { chainKey, filePath ->
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                                val storage = Storage(settingsManager.dirPath)
-
-                                chainListViewModel.unstore(chainKey, storage, filePath)
-                                    .onSuccess {
-                                        scaffoldState.snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
-                                    }
-                                    .onFailure { exception ->
-                                        scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
-                                    }
+                                chainListViewModel.unstore(chainKey, storage, filePath).onSuccess {
+                                    scaffoldState.snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
+                                }.onFailure { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
+                                }
                             }
-                        },
-                        onDisconnect = {
-                            scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-
-                            settingsState.value = Settings()
-                            navigationState.screenState.value = Screen.SERVER_CONNECTION
-
-                            settingsManager.delete()
                         }
                     )
                 }
                 Screen.CHAIN_LINK_LIST -> {
+                    coroutineScope.launch {
+                        chainLinkListViewModel.getAll().onFailure { exception ->
+                            scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
+                        }
+                    }
+
                     ChainLinkList(
                         viewModel = chainLinkListViewModel,
                         onBack = {
                             scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
                             chainLinkListViewModel.chain = null
-                            chainLinkListViewModel.chainLinks = emptyList()
 
-                            navigationState.screenState.value = Screen.CHAIN_LIST
+                            screenState.value = Screen.CHAIN_LIST
                         },
-                        onSync = {
+                        onSync = { chain ->
                             coroutineScope.launch {
-                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+                                if (settingsState.value.deviceIp.isEmpty()) {
+                                    scaffoldState.snackbarHostState.showSnackbar("You have to set sync options on Settings")
+                                } else runCatching {
+                                    scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
-                                chainLinkListViewModel.chainLinks = emptyList()
+                                    val tcpSocket = WebSocket.connect(settingsState.value.deviceIp)
 
-                                chainLinkListViewModel.getAll().onFailure { exception ->
+                                    ChainLinkApi(chainLinkRepository, tcpSocket).sync(chain.id).onSuccess {
+                                        chainLinkListViewModel.getAll().getOrThrow()
+                                    }
+                                }.onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }

@@ -2,6 +2,7 @@ package io.sunland.chainpass.common
 
 import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
+import io.sunland.chainpass.common.security.Random
 
 class ChainLink(val chain: Chain) {
     constructor(chainLink: ChainLink) : this(chainLink.chain) {
@@ -44,7 +45,7 @@ class ChainLink(val chain: Chain) {
         val validation = value?.let {
             if (value.isEmpty()) {
                 Result.failure(IllegalArgumentException("Password is empty"))
-            } else if (value.length > 16) {
+            } else if (value.length > 32) {
                 Result.failure(IllegalArgumentException("Password is too long"))
             } else Result.success(value)
         } ?: Result.success(this.value)
@@ -52,7 +53,7 @@ class ChainLink(val chain: Chain) {
 
     enum class Status { ACTUAL, DRAFT, EDIT }
 
-    var id = 0
+    var id = Random.uuid()
     var name = Name()
     var description = Description()
     var password = Password()
