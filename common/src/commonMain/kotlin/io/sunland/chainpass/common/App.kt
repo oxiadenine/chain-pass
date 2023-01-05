@@ -71,6 +71,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
     }
 
     val screenState = remember { mutableStateOf(Screen.CHAIN_LIST) }
+    val loadingState = remember { mutableStateOf(false) }
 
     val scaffoldState = rememberScaffoldState()
 
@@ -156,14 +157,20 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                                 if (settingsState.value.deviceIp.isEmpty()) {
                                     scaffoldState.snackbarHostState.showSnackbar("You have to set sync options on Settings")
                                 } else runCatching {
+                                    loadingState.value = true
+
                                     scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
                                     val tcpSocket = WebSocket.connect(settingsState.value.deviceIp)
 
                                     ChainApi(chainRepository, chainLinkRepository, tcpSocket).sync().onSuccess {
+                                        loadingState.value = false
+
                                         chainListViewModel.getAll().getOrThrow()
                                     }
                                 }.onFailure { exception ->
+                                    loadingState.value = false
+
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }
@@ -253,14 +260,20 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                                 if (settingsState.value.deviceIp.isEmpty()) {
                                     scaffoldState.snackbarHostState.showSnackbar("You have to set sync options on Settings")
                                 } else runCatching {
+                                    loadingState.value = true
+
                                     scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
                                     val tcpSocket = WebSocket.connect(settingsState.value.deviceIp)
 
                                     ChainLinkApi(chainLinkRepository, tcpSocket).sync(chain.id).onSuccess {
+                                        loadingState.value = false
+
                                         chainLinkListViewModel.getAll().getOrThrow()
                                     }
                                 }.onFailure { exception ->
+                                    loadingState.value = false
+
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }
@@ -302,6 +315,10 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.dismiss() }
                     )
                 }
+            }
+
+            if (loadingState.value) {
+                LoadingIndicator()
             }
         }
     }
