@@ -60,6 +60,8 @@ class ChainLink(val chain: Chain) {
     var status = Status.DRAFT
     var isLatest = false
 
+    fun generatePassword() = chain.passwordGenerator.generate()
+
     fun privatePassword(secretKey: Chain.Key) = Password(PasswordEncoder.encrypt(
         PasswordEncoder.Base64.encode(password.value.encodeToByteArray()),
         EncoderSpec.Passphrase(secretKey.value, PasswordEncoder.Base64.encode(name.value.encodeToByteArray()))

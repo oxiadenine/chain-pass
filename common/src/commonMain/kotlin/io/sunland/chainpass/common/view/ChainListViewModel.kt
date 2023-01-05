@@ -9,10 +9,12 @@ import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
+import io.sunland.chainpass.common.security.PasswordGenerator
 
 class ChainListViewModel(
     private val chainRepository: ChainRepository,
     private val chainLinkRepository: ChainLinkRepository,
+    private val passwordGenerator: PasswordGenerator,
     private val storage: Storage
 ) {
     val chainListState = mutableStateListOf<Chain>()
@@ -26,7 +28,7 @@ class ChainListViewModel(
     private var chains = emptyList<Chain>()
 
     fun draft() {
-        val chainDraft = Chain().apply {
+        val chainDraft = Chain(passwordGenerator).apply {
             isLatest = true
         }
 
@@ -82,7 +84,7 @@ class ChainListViewModel(
 
     fun getAll() = chainRepository.getAll().mapCatching { chainEntities ->
         chains = chainEntities.map { chainEntity ->
-            Chain().apply {
+            Chain(passwordGenerator).apply {
                 id = chainEntity.id
                 name = Chain.Name(chainEntity.name)
                 status = Chain.Status.ACTUAL
@@ -120,7 +122,7 @@ class ChainListViewModel(
         val secretKey = chain.secretKey()
         val privateKey = chain.privateKey(secretKey)
 
-        Chain().apply {
+        Chain(passwordGenerator).apply {
             id = chainEntity.id
             name = Chain.Name(chainEntity.name)
             key = Chain.Key(chainEntity.key)
@@ -131,7 +133,7 @@ class ChainListViewModel(
         val secretKey = chain.secretKey()
         val privateKey = chain.privateKey(secretKey)
 
-        Chain().apply {
+        Chain(passwordGenerator).apply {
             id = chainEntity.id
             name = Chain.Name(chainEntity.name)
             key = Chain.Key(chainEntity.key)
@@ -146,7 +148,7 @@ class ChainListViewModel(
         val secretKey = chain.secretKey()
         val privateKey = chain.privateKey(secretKey)
 
-        Chain().apply {
+        Chain(passwordGenerator).apply {
             id = chainEntity.id
             name = Chain.Name(chainEntity.name)
             key = Chain.Key(chainEntity.key)
@@ -183,7 +185,7 @@ class ChainListViewModel(
     fun unstore(chainKey: Chain.Key, storage: Storage, filePath: FilePath) = runCatching {
         val storable = storage.unstore(filePath.value)
 
-        val chain = Chain().apply {
+        val chain = Chain(passwordGenerator).apply {
             name = Chain.Name(storable.chain["name"]!!)
             key = chainKey
         }

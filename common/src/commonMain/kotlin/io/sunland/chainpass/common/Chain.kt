@@ -2,10 +2,11 @@ package io.sunland.chainpass.common
 
 import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
+import io.sunland.chainpass.common.security.PasswordGenerator
 import io.sunland.chainpass.common.security.Random
 
-class Chain constructor() {
-    constructor(chain: Chain) : this() {
+class Chain constructor(val passwordGenerator: PasswordGenerator) {
+    constructor(chain: Chain) : this(chain.passwordGenerator) {
         id = chain.id
         name = chain.name
         key = chain.key
@@ -47,6 +48,8 @@ class Chain constructor() {
     var status = Status.DRAFT
     var isSelected = false
     var isLatest = false
+
+    fun generateKey() = passwordGenerator.generate()
 
     fun secretKey() = Key(PasswordEncoder.hash(EncoderSpec.Passphrase(
         PasswordEncoder.Base64.encode(key.value.encodeToByteArray()),

@@ -56,11 +56,22 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
         deviceIpErrorState.value = deviceIp.validation.isFailure
     }
 
+    val passwordLengthState = remember { mutableStateOf(settings.passwordLength.toFloat()) }
+    val passwordIsAlphanumericState = remember { mutableStateOf(settings.passwordIsAlphanumeric) }
+
+    val onPasswordLengthChange = { value: Float ->
+        passwordLengthState.value = value
+    }
+
+    val onPasswordIsAlphanumericChange = { value: Boolean ->
+        passwordIsAlphanumericState.value = value
+    }
+
     val onDone = {
         deviceIpErrorState.value = DeviceIp(deviceIpState.value).validation.isFailure
 
         if (!deviceIpErrorState.value) {
-            onSave(Settings(deviceIpState.value))
+            onSave(Settings(deviceIpState.value, passwordLengthState.value.toInt(), passwordIsAlphanumericState.value))
         }
     }
 
@@ -127,6 +138,36 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
                         ),
                         keyboardActions = KeyboardActions(onDone = { onDone() })
                     )
+                }
+                Text(text = "Password", fontWeight = FontWeight.Bold)
+                Column(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(space = 32.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "Length:")
+                        Text(text = passwordLengthState.value.toInt().toString())
+                        Slider(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            value = passwordLengthState.value,
+                            onValueChange = onPasswordLengthChange,
+                            valueRange = 8f..32f
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(space = 32.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "Alphanumeric:")
+                        Switch(
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            checked = passwordIsAlphanumericState.value,
+                            onCheckedChange = onPasswordIsAlphanumericChange
+                        )
+                    }
                 }
             }
             VerticalScrollbar(

@@ -29,8 +29,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
 import io.sunland.chainpass.common.component.ValidationTextField
-import io.sunland.chainpass.common.security.GeneratorSpec
-import io.sunland.chainpass.common.security.PasswordGenerator
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -45,8 +43,6 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
 
     val passwordState = remember { mutableStateOf(chainLink.password.value) }
     val passwordValidationState = remember { mutableStateOf(chainLink.password.validation)}
-
-    val passwordGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
 
     val onNameChange = { value: String ->
         chainLink.name = ChainLink.Name(value)
@@ -105,7 +101,7 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
 
     val onPreviewKeyEvent = { keyEvent: KeyEvent ->
         if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-            onPasswordChange(passwordGenerator.generate())
+            onPasswordChange(chainLink.generatePassword())
 
             true
         } else false
@@ -177,7 +173,7 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
                             .onPreviewKeyEvent(onPreviewKeyEvent),
-                        onClick = { onPasswordChange(passwordGenerator.generate()) }
+                        onClick = { onPasswordChange(chainLink.generatePassword()) }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
                 trailingIcon = if (passwordValidationState.value.isFailure) {

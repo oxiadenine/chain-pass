@@ -11,4 +11,4 @@ expect class SettingsManager(dirPath: String) {
 }
 
 @Serializable
-data class Settings(val deviceIp: String)
+data class Settings(val deviceIp: String, val passwordLength: Int, val passwordIsAlphanumeric: Boolean)
