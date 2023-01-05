@@ -109,7 +109,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
             settingsManager.load()?.let { settings ->
                 mutableStateOf(settings)
             } ?: run {
-                val settings = Settings("", 16, false)
+                val settings = Settings("", "", 16, false)
 
                 settingsManager.save(settings)
 
@@ -127,6 +127,15 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
 
         val chainListViewModel = ChainListViewModel(chainRepository, chainLinkRepository, passwordGenerator, storage)
         val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository)
+
+        LaunchedEffect(settingsState.value.hostAddress) {
+            settingsState.value = Settings(
+                hostAddress = WebSocket.getLocalHost(),
+                deviceAddress = settingsState.value.deviceAddress,
+                passwordLength = settingsState.value.passwordLength,
+                passwordIsAlphanumeric = settingsState.value.passwordIsAlphanumeric
+            )
+        }
 
         Box {
             when (screenState.value) {
@@ -155,7 +164,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         onSync = {
                             coroutineScope.launch {
                                 if (settingsState.value.deviceAddress.isEmpty()) {
-                                    scaffoldState.snackbarHostState.showSnackbar("You have to set sync options on Settings")
+                                    scaffoldState.snackbarHostState.showSnackbar("You have to set Device Address on Settings")
                                 } else runCatching {
                                     loadingState.value = true
 
