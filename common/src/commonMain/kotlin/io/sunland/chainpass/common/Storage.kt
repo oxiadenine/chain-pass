@@ -4,12 +4,49 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.File
+import java.text.DateFormat
+import java.text.SimpleDateFormat
+import java.util.*
 
-expect class Storage(dirPath: String) {
-    val dirPath: String
+class Storage(private val dirPath: String) {
+    fun store(storable: Storable, storageType: StorageType): String {
+        val storePath = "$dirPath/store"
 
-    fun store(storable: Storable, storageType: StorageType): String
-    fun unstore(filePath: String): Storable
+        if (!File(storePath).exists()) {
+            File(storePath).mkdir()
+        }
+
+        val date = (DateFormat.getDateTimeInstance() as SimpleDateFormat).apply {
+            applyPattern("yyyy.MM.dd-HH.mm.ss")
+        }.format(Date())
+
+        val fileName = "${storable.chain["name"]}_$date"
+
+        val filePath = when (storageType) {
+            StorageType.JSON -> "$dirPath/store/$fileName.json"
+            StorageType.CSV -> "$dirPath/store/$fileName.csv"
+            StorageType.TXT -> "$dirPath/store/$fileName.txt"
+        }
+
+        if (!File(filePath).exists()) {
+            File(filePath).createNewFile()
+        }
+
+        File(filePath).writeText(storable.toString(storageType))
+
+        return fileName
+    }
+
+    fun unstore(filePath: String): Storable {
+        if (!File(filePath).exists()) {
+            error("File $filePath does not exists")
+        }
+
+        val storageType = StorageType.valueOf(File(filePath).extension.uppercase())
+
+        return File(filePath).readText().toStorable(storageType)
+    }
 }
 
 enum class StorageType { JSON, CSV, TXT }
