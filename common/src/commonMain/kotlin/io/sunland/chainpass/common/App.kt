@@ -32,6 +32,13 @@ object Theme {
 
 enum class Screen { SETTINGS, CHAIN_LIST, CHAIN_LINK_LIST }
 
+class NavigationState(val screenState: MutableState<Screen>, val chainState: MutableState<Chain?>)
+
+@Composable
+fun rememberNavigationState(screen: Screen) = remember {
+    NavigationState(mutableStateOf(screen), mutableStateOf(null))
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun App(settingsManager: SettingsManager, database: Database, storage: Storage) = MaterialTheme(
@@ -59,6 +66,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
     val coroutineScope = rememberCoroutineScope()
 
     val scaffoldState = rememberScaffoldState()
+    val navigationState = rememberNavigationState(Screen.CHAIN_LIST)
 
     val chainRepository = ChainRepository(database)
     val chainLinkRepository = ChainLinkRepository(database)
@@ -123,7 +131,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
             }
         }
 
-        val screenState = remember { mutableStateOf(Screen.CHAIN_LIST) }
+        val screenState = remember { navigationState.screenState }
         val loadingState = remember { mutableStateOf(false) }
 
         val passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
@@ -202,9 +210,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                                 scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
                                 chainListViewModel.select(chain).onSuccess {
-                                    chainLinkListViewModel.chain = chain
-
-                                    screenState.value = Screen.CHAIN_LINK_LIST
+                                    navigationState.chainState.value = chain
+                                    navigationState.screenState.value = Screen.CHAIN_LINK_LIST
                                 }.onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
@@ -256,6 +263,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                 }
                 Screen.CHAIN_LINK_LIST -> {
                     coroutineScope.launch {
+                        chainLinkListViewModel.chain = navigationState.chainState.value
+
                         chainLinkListViewModel.getAll().onFailure { exception ->
                             scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                         }
@@ -266,9 +275,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         onBack = {
                             scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                            chainLinkListViewModel.chain = null
-
-                            screenState.value = Screen.CHAIN_LIST
+                            navigationState.screenState.value = Screen.CHAIN_LIST
                         },
                         onSync = { chain ->
                             coroutineScope.launch {
