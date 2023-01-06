@@ -68,6 +68,8 @@ compose.desktop {
 
                 iconFile.set(project.file("$resourcesDir/icon.ico"))
             }
+
+            modules("java.naming", "java.sql")
         }
     }
 }
