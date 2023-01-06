@@ -86,7 +86,8 @@ fun Settings(settings: Settings, onBack: (Settings) -> Unit) {
             hostAddress = settings.hostAddress,
             deviceAddress = deviceAddressState.value,
             passwordLength = passwordLengthState.value.toInt(),
-            passwordIsAlphanumeric = passwordIsAlphanumericState.value
+            passwordIsAlphanumeric = passwordIsAlphanumericState.value,
+            storePath = settings.storePath
         ))
     }
 
@@ -110,6 +111,7 @@ fun Settings(settings: Settings, onBack: (Settings) -> Unit) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth(fraction = 0.8f)
+                    .padding(vertical = 16.dp)
                     .align(Alignment.Center)
                     .verticalScroll(state = scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -204,6 +206,22 @@ fun Settings(settings: Settings, onBack: (Settings) -> Unit) {
                             onCheckedChange = onPasswordIsAlphanumericChange
                         )
                     }
+                }
+                Text(text = "Store", fontWeight = FontWeight.Bold)
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+                ) {
+                    Text(
+                        text = buildAnnotatedString {
+                            append("Files are stored at ")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                                append(settings.storePath)
+                            }
+                            append(" directory.")
+                        },
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
             VerticalScrollbar(

@@ -7,8 +7,6 @@ plugins {
 dependencies {
     implementation(project(":common"))
 
-    implementation(androidxDependency("activity-compose"))
-
     testImplementation(kotlin("test"))
 }
 

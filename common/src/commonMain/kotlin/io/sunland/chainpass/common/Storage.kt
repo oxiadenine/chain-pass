@@ -10,13 +10,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class Storage(private val dirPath: String) {
-    fun store(storable: Storable, storageType: StorageType): String {
-        val storePath = "$dirPath/store"
-
+    val storePath = "$dirPath/Chain Pass/Store"
+    init {
         if (!File(storePath).exists()) {
-            File(storePath).mkdir()
+            File(storePath).mkdirs()
         }
-
+    }
+    fun store(storable: Storable, storageType: StorageType): String {
         val date = (DateFormat.getDateTimeInstance() as SimpleDateFormat).apply {
             applyPattern("yyyy.MM.dd-HH.mm.ss")
         }.format(Date())
@@ -24,9 +24,9 @@ class Storage(private val dirPath: String) {
         val fileName = "${storable.chain["name"]}_$date"
 
         val filePath = when (storageType) {
-            StorageType.JSON -> "$dirPath/store/$fileName.json"
-            StorageType.CSV -> "$dirPath/store/$fileName.csv"
-            StorageType.TXT -> "$dirPath/store/$fileName.txt"
+            StorageType.JSON -> "$storePath/$fileName.json"
+            StorageType.CSV -> "$storePath/$fileName.csv"
+            StorageType.TXT -> "$storePath/$fileName.txt"
         }
 
         if (!File(filePath).exists()) {
