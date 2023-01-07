@@ -237,24 +237,38 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                                 }
                             }
                         },
-                        onStore = { chain, storeOptions ->
+                        onStore = { storeOptions ->
                             coroutineScope.launch {
+                                loadingState.value = true
+
                                 scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                                chainListViewModel.store(chain, storeOptions).onSuccess { fileName ->
+                                chainListViewModel.store(storeOptions).onSuccess { fileName ->
+                                    loadingState.value = false
+
                                     scaffoldState.snackbarHostState.showSnackbar("Stored to $fileName")
                                 }.onFailure { exception ->
+                                    loadingState.value = false
+
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }
                         },
-                        onUnstore = { chainKey, filePath ->
+                        onUnstore = { filePath ->
                             coroutineScope.launch {
+                                loadingState.value = true
+
                                 scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                                chainListViewModel.unstore(chainKey, storage, filePath).onSuccess {
+                                chainListViewModel.unstore(storage, filePath).onSuccess {
+                                    chainListViewModel.getAll().getOrThrow()
+
+                                    loadingState.value = false
+
                                     scaffoldState.snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
                                 }.onFailure { exception ->
+                                    loadingState.value = false
+
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                 }
                             }

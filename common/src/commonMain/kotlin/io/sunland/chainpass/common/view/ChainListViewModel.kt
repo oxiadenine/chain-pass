@@ -1,10 +1,7 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.runtime.mutableStateListOf
-import io.sunland.chainpass.common.Chain
-import io.sunland.chainpass.common.ChainLink
-import io.sunland.chainpass.common.Storable
-import io.sunland.chainpass.common.Storage
+import io.sunland.chainpass.common.*
 import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
@@ -144,97 +141,89 @@ class ChainListViewModel(
         update()
     }
 
-    fun store(chain: Chain, storeOptions: StoreOptions) = chainRepository.getOne(chain.id).mapCatching { chainEntity ->
-        val secretKey = chain.secretKey()
-        val privateKey = chain.privateKey(secretKey)
-
-        Chain(passwordGenerator).apply {
-            id = chainEntity.id
-            name = Chain.Name(chainEntity.name)
-            key = Chain.Key(chainEntity.key)
-        }.validateKey(privateKey)
-
-        val chainLinks = chainLinkRepository.getBy(chain.id).map { chainLinkEntities ->
-            chainLinkEntities.map { chainLinkEntity ->
-                ChainLink(chain).apply {
-                    id = chainLinkEntity.id
-                    name = ChainLink.Name(chainLinkEntity.name)
-                    description = ChainLink.Description(chainLinkEntity.description)
-                    password = ChainLink.Password(chainLinkEntity.password)
+    fun store(storeOptions: StoreOptions) = runCatching {
+        val chains = chainRepository.getAll().mapCatching { chainEntities ->
+            chainEntities.map { chainEntity ->
+                Chain(passwordGenerator).apply {
+                    id = chainEntity.id
+                    name = Chain.Name(chainEntity.name)
+                    key = Chain.Key(chainEntity.key)
                 }
             }
         }.getOrThrow()
 
-        val storable = Storable(
-            mapOf("isPrivate" to storeOptions.isPrivate.toString()),
-            mapOf("name" to chain.name.value, "key" to privateKey.value),
-            chainLinks.map { chainLink ->
-                mapOf(
-                    "name" to chainLink.name.value,
-                    "description" to chainLink.description.value,
-                    "password" to if (!storeOptions.isPrivate) {
-                        chainLink.plainPassword(secretKey).value
-                    } else chainLink.password.value
-                )
-            }
-        )
+        val chainLinks = chains.flatMap { chain ->
+            chainLinkRepository.getBy(chain.id).mapCatching { chainLinkEntities ->
+                chainLinkEntities.map { chainLinkEntity ->
+                    ChainLink(chain).apply {
+                        id = chainLinkEntity.id
+                        name = ChainLink.Name(chainLinkEntity.name)
+                        description = ChainLink.Description(chainLinkEntity.description)
+                        password = ChainLink.Password(chainLinkEntity.password)
+                    }
+                }
+            }.getOrThrow()
+        }
+
+        val storableOptions = StorableOptions(storeOptions.isPrivate)
+        val storableChains = chains.map { chain ->
+            val storableChainLinks = chainLinks
+                .filter { chainLink -> chainLink.chain.id == chain.id }
+                .map { chainLink ->
+                    StorableChainLink(
+                        chainLink.name.value,
+                        chainLink.description.value,
+                        chainLink.password.value
+                    )
+                }
+
+            StorableChain(chain.name.value, chain.key.value, storableChainLinks)
+        }
+
+        val storable = Storable(storableOptions, storableChains)
 
         storage.store(storable, storeOptions.type)
     }
 
-    fun unstore(chainKey: Chain.Key, storage: Storage, filePath: FilePath) = runCatching {
+    fun unstore(storage: Storage, filePath: FilePath) = runCatching {
         val storable = storage.unstore(filePath.value)
 
-        val chain = Chain(passwordGenerator).apply {
-            name = Chain.Name(storable.chain["name"]!!)
-            key = chainKey
+        val chains = mutableStateListOf<Chain>()
+        val chainLinks = mutableStateListOf<ChainLink>()
+
+        storable.chains.forEach { storableChain ->
+            val chain = Chain(passwordGenerator).apply {
+                name = Chain.Name(storableChain.name)
+                key = Chain.Key(storableChain.key)
+            }
+
+            chains.add(chain)
+            chainLinks.addAll(storableChain.chainLinks.map { storableChainlink ->
+                ChainLink(chain).apply {
+                    name = ChainLink.Name(storableChainlink.name)
+                    description = ChainLink.Description(storableChainlink.description)
+                    password = ChainLink.Password(storableChainlink.password)
+                }
+            })
         }
 
-        val secretKey = chain.secretKey()
-        val privateKey = chain.privateKey(secretKey)
+        chains.forEach { chain ->
+            val chainEntity = ChainEntity(chain.id, chain.name.value, chain.key.value)
 
-        chain.key = privateKey
-
-        chain.validateKey(Chain.Key(storable.chain["key"]!!))
-
-        val chainLinks = storable.chainLinks.map { chainLink ->
-            ChainLink(chain).apply {
-                name = ChainLink.Name(chainLink["name"]!!)
-                description = ChainLink.Description(chainLink["description"]!!)
-                password = ChainLink.Password(chainLink["password"]!!)
-            }
-        }.map { chainLink ->
-            chainLink.password = if (!storable.options["isPrivate"]!!.toBoolean()) {
-                chainLink.privatePassword(secretKey)
-            } else chainLink.password
-
-            chainLink
+            chainRepository.create(chainEntity).getOrThrow()
         }
 
-        val chainEntity = ChainEntity(chain.id, chain.name.value, chain.key.value)
+        chainLinks.forEach { chainLink ->
+            val chainLinkEntity = ChainLinkEntity(
+                chainLink.id,
+                chainLink.name.value,
+                chainLink.description.value,
+                chainLink.password.value,
+                chainLink.chain.id
+            )
 
-        chainRepository.create(chainEntity).map {
-            val chainLinkEntities = chainLinks.map { chainLink ->
-                ChainLinkEntity(
-                    chainLink.id,
-                    chainLink.name.value,
-                    chainLink.description.value,
-                    chainLink.password.value,
-                    chainLink.chain.id
-                )
-            }
-
-            chainLinkEntities.forEach { chainLinkEntity ->
-                chainLinkRepository.create(chainLinkEntity)
-            }
-        }.getOrThrow()
-
-        chain.key = Chain.Key()
-        chain.status = Chain.Status.ACTUAL
-
-        chainListState.add(chain)
-
-        update()
+            chainLinkRepository.create(chainLinkEntity).getOrThrow()
+        }
     }
 
     private fun update() {

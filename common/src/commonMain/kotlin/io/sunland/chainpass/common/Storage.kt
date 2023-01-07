@@ -8,20 +8,24 @@ import java.io.File
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 
 class Storage(dirPath: String) {
     val storePath = "$dirPath/Chain Pass/Store"
+
     init {
         if (!File(storePath).exists()) {
             File(storePath).mkdirs()
         }
     }
+
     fun store(storable: Storable, storageType: StorageType): String {
         val date = (DateFormat.getDateTimeInstance() as SimpleDateFormat).apply {
             applyPattern("yyyy.MM.dd-HH.mm.ss")
         }.format(Date())
 
-        val fileName = "${storable.chain["name"]}_$date"
+        val fileName = "chains-$date"
 
         val filePath = when (storageType) {
             StorageType.JSON -> "$storePath/$fileName.json"
@@ -52,117 +56,82 @@ class Storage(dirPath: String) {
 enum class StorageType { JSON, CSV, TXT }
 
 @Serializable
-data class Storable(
-    val options: Map<String, String>,
-    val chain: Map<String, String>,
-    val chainLinks: List<Map<String, String>>
-)
+data class StorableOptions(val isPrivate: Boolean)
+
+@Serializable
+data class StorableChain(val name: String, val key: String, val chainLinks: List<StorableChainLink>)
+
+@Serializable
+data class StorableChainLink(val name: String, val description: String, val password: String)
+
+@Serializable
+data class Storable(val options: StorableOptions, val chains: List<StorableChain>)
 
 fun Storable.toString(storageType: StorageType) = when (storageType) {
     StorageType.JSON -> Json.encodeToString(value = this)
     StorageType.CSV -> buildString {
-        val optionsHeader = this@toString.options.keys.toSet().joinToString(",")
+        val optionsHeader = StorableOptions::class.primaryConstructor!!.parameters
+            .joinToString(",") { parameter -> parameter.name!! }
 
         append("$optionsHeader\n")
 
-        val optionsRecord = this@toString.options.values.joinToString(",")
+        val optionsRecord = options::class.primaryConstructor!!.parameters
+            .map { parameter ->
+                options::class.memberProperties.first { property ->
+                    property.name == parameter.name
+                }.getter.call(options)
+            }
+            .joinToString(",")
 
         append("$optionsRecord\n")
 
-        val chainHeader = this@toString.chain.keys.toSet().joinToString(",")
+        chains.forEach { chain ->
+            val chainHeader = StorableChain::class.primaryConstructor!!.parameters
+                .dropLast(1)
+                .joinToString(",") { property -> property.name!! }
 
-        append("$chainHeader\n")
+            append("$chainHeader\n")
 
-        val chainRecord = this@toString.chain.values.joinToString(",") { value ->
-            "\"${value.replace("\"", "\"\"")}\""
-        }
+            val chainRecord = chain::class.primaryConstructor!!.parameters
+                .dropLast(1)
+                .map { parameter ->
+                    chain::class.memberProperties.first { property ->
+                        property.name == parameter.name
+                    }.getter.call(chain)
+                }
+                .joinToString(",") { value ->
+                    "\"${value.toString().replace("\"", "\"\"")}\""
+                }
 
-        append("$chainRecord\n")
+            append("$chainRecord\n")
 
-        val chainLinkHeader = this@toString.chainLinks.flatMap { chainLink -> chainLink.keys }.toSet().joinToString(",")
+            val chainLinkHeader = StorableChainLink::class.primaryConstructor!!.parameters
+                .joinToString(",") { property -> property.name!! }
 
-        append("$chainLinkHeader\n")
+            append("$chainLinkHeader\n")
 
-        val chainLinkRecords = this@toString.chainLinks.map { chainLink ->
-            chainLink.values.joinToString(",") { value ->
-                "\"${value.replace("\"", "\"\"")}\""
+            chain.chainLinks.map { chainLink ->
+                val chainLinkRecord = chainLink::class.primaryConstructor!!.parameters
+                    .map { parameter ->
+                        chainLink::class.memberProperties.first { property ->
+                            property.name == parameter.name
+                        }.getter.call(chainLink)
+                    }
+                    .joinToString(",") { value ->
+                        "\"${value.toString().replace("\"", "\"\"")}\""
+                    }
+
+                append("$chainLinkRecord\n")
             }
         }
-
-        chainLinkRecords.forEach { chainLinkRecord -> append("$chainLinkRecord\n") }
     }
     StorageType.TXT -> buildString {
-        append("${this@toString.options}\n")
-        append("${this@toString.chain}\n")
-        append("${this@toString.chainLinks}\n")
+        append("${options}\n")
+        append("${chains}\n")
     }
 }
 
 fun String.toStorable(storageType: StorageType) = when (storageType) {
-    StorageType.JSON -> Json.decodeFromString(this)
-    StorageType.CSV -> {
-        var isFormatValid = true
-
-        val data = this.split("\n")
-
-        val optionsHeader = data[0].split(",")
-        val optionsRecord = data[1].split(",")
-
-        if (optionsHeader.size != 1 || optionsRecord.size != 1) {
-            isFormatValid = false
-        }
-
-        val options = mutableMapOf<String, String>()
-
-        for (i in optionsHeader.indices) {
-            options[optionsHeader[i]] = optionsRecord[i]
-        }
-
-        val chainHeader = data[2].split(",")
-
-        if (chainHeader.size != 2) {
-            isFormatValid = false
-        }
-
-        val chain = mutableMapOf<String, String>()
-
-        val chainRecord = data[3].split(",")
-
-        if (chainRecord.size != 2) {
-            isFormatValid = false
-        }
-
-        for (j in chainHeader.indices) {
-            chain[chainHeader[j]] = chainRecord[j].substringAfter("\"").substringBeforeLast("\"")
-        }
-
-        val chainLinkHeader = data[4].split(",")
-
-        val chainLinks = mutableListOf<Map<String, String>>()
-
-        if (chainLinkHeader.size == 3) {
-            for (i in 5 until data.size - 1) {
-                val chainLink = mutableMapOf<String, String>()
-
-                val chainLinkRecord = data[i].split(",")
-
-                if (chainLinkRecord.size != 3) {
-                    isFormatValid = false
-                }
-
-                for (j in chainLinkHeader.indices) {
-                    chainLink[chainLinkHeader[j]] = chainLinkRecord[j].substringAfter("\"").substringBeforeLast("\"")
-                }
-
-                chainLinks.add(chainLink)
-            }
-        }
-
-        if (!isFormatValid) {
-            throw IllegalArgumentException("Invalid $storageType file format")
-        }
-
-        Storable(options, chain, chainLinks)
-    }
-    StorageType.TXT -> throw IllegalArgumentException("Storage type $storageType not supported")
+    StorageType.JSON -> Json.decodeFromString<Storable>(this)
+    else -> throw IllegalArgumentException("Storage type $storageType not supported")
 }
