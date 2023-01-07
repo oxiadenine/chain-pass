@@ -51,7 +51,7 @@ actual fun ValidationTextField(
         Text(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
             text = errorMessage,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             color = MaterialTheme.colors.error
         )
     }
