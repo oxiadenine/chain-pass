@@ -71,6 +71,7 @@ actual fun ChainListItemKeyInput(
     }
 
     val filePathState = remember { mutableStateOf("") }
+    val filePathErrorState = remember { mutableStateOf(false) }
 
     val onDone = {
         val chainKey = Chain.Key(keyState.value)
@@ -78,6 +79,7 @@ actual fun ChainListItemKeyInput(
         val filePath = FilePath(filePathState.value)
 
         keyErrorState.value = chainKey.validation.isFailure
+        filePathErrorState.value = filePath.value.isEmpty()
 
         when (inputActionType) {
             InputActionType.SELECT, InputActionType.REMOVE -> if (!keyErrorState.value) {
@@ -86,7 +88,7 @@ actual fun ChainListItemKeyInput(
             InputActionType.STORE -> if (!keyErrorState.value) {
                 onConfirm(chainKey, storeOptions, null)
             }
-            InputActionType.UNSTORE -> if (!keyErrorState.value) {
+            InputActionType.UNSTORE -> if (!keyErrorState.value && !filePathErrorState.value) {
                 onConfirm(chainKey, storeOptions, filePath)
             }
         }
@@ -243,6 +245,9 @@ actual fun ChainListItemKeyInput(
                     if (filePathState.value.isNotEmpty()) {
                         Text(text = FilePath(filePathState.value).fileName)
                     }
+                    if (filePathErrorState.value) {
+                        Text(text = "File is not selected", fontSize = 12.sp, color = MaterialTheme.colors.error)
+                    }
                 }
 
                 if (fileDialogOpenState.value) {
@@ -258,6 +263,8 @@ actual fun ChainListItemKeyInput(
                     if (fileDialog.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                         filePathState.value = fileDialog.selectedFile.absolutePath
                     } else filePathState.value = ""
+
+                    filePathErrorState.value = filePathState.value.isEmpty()
 
                     fileDialogOpenState.value = false
                 }
