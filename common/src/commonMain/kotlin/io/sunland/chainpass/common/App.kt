@@ -187,9 +187,9 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                                     val tcpSocket = WebSocket.connect(settingsState.value.deviceAddress)
 
                                     ChainApi(chainRepository, chainLinkRepository, tcpSocket).sync().onSuccess {
-                                        loadingState.value = false
-
                                         chainListViewModel.getAll().getOrThrow()
+
+                                        loadingState.value = false
                                     }
                                 }.onFailure { exception ->
                                     loadingState.value = false
@@ -303,9 +303,9 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                                     val tcpSocket = WebSocket.connect(settingsState.value.deviceAddress)
 
                                     ChainLinkApi(chainLinkRepository, tcpSocket).sync(chain.id).onSuccess {
-                                        loadingState.value = false
-
                                         chainLinkListViewModel.getAll().getOrThrow()
+
+                                        loadingState.value = false
                                     }
                                 }.onFailure { exception ->
                                     loadingState.value = false
