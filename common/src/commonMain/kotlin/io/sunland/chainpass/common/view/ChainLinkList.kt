@@ -14,9 +14,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.component.PopupText
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun ChainLinkList(
@@ -28,6 +32,19 @@ fun ChainLinkList(
     onRemove: (ChainLink) -> Unit,
     onSearch: () -> Unit
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
+    val toastMessageState = remember { mutableStateOf("") }
+    val isToastVisibleState = remember { mutableStateOf(false) }
+
+    if (isToastVisibleState.value) {
+        PopupText(
+            alignment = Alignment.BottomCenter,
+            offset = IntOffset(x = 0, y = -80),
+            text = toastMessageState.value
+        )
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         if (viewModel.isSearchState.value) {
             ChainLinkSearchListTopBar(
@@ -83,10 +100,10 @@ fun ChainLinkList(
                                 onSelect = { viewModel.endSearch(chainLink) }
                             )
                         } else {
+                            val clipboardManager = LocalClipboardManager.current
+
                             when (chainLink.status) {
                                 ChainLink.Status.ACTUAL -> {
-                                    val clipboardManager = LocalClipboardManager.current
-
                                     ChainLinkListItem(
                                         chainLink = chainLink,
                                         onEdit = { viewModel.startEdit(chainLink) },
@@ -96,7 +113,19 @@ fun ChainLinkList(
                                             onRemove(chainLink)
                                         },
                                         onPasswordCopy = {
-                                            clipboardManager.setText(AnnotatedString(viewModel.copyPassword(chainLink).value))
+                                            val password = viewModel.copyPassword(chainLink).value
+
+                                            clipboardManager.setText(AnnotatedString(password))
+
+                                            coroutineScope.launch {
+                                                toastMessageState.value = "Password copied"
+                                                isToastVisibleState.value = true
+
+                                                delay(1000L)
+
+                                                toastMessageState.value = ""
+                                                isToastVisibleState.value = false
+                                            }
                                         }
                                     )
                                 }

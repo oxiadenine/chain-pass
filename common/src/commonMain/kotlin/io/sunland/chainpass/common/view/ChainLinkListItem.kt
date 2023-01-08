@@ -15,9 +15,6 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
-import io.sunland.chainpass.common.component.PopupText
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -27,10 +24,6 @@ fun ChainLinkListItem(
     onDelete: () -> Unit,
     onPasswordCopy: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
-    val passwordCopiedTextVisibleState = remember { mutableStateOf(false) }
-
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -44,17 +37,7 @@ fun ChainLinkListItem(
             ) {
                 IconButton(
                     modifier = Modifier.padding(horizontal = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = {
-                        onPasswordCopy()
-
-                        coroutineScope.launch {
-                            passwordCopiedTextVisibleState.value = true
-
-                            delay(1000L)
-
-                            passwordCopiedTextVisibleState.value = false
-                        }
-                    }
+                    onClick = onPasswordCopy
                 ) { Icon(imageVector = Icons.Default.ContentCopy, contentDescription = null) }
                 Text(text = chainLink.name.value)
             }
@@ -80,10 +63,6 @@ fun ChainLinkListItem(
                 text = chainLink.description.value,
                 fontSize = 14.sp
             )
-        }
-
-        if (passwordCopiedTextVisibleState.value) {
-            PopupText(alignment = Alignment.Center, text = "Copied")
         }
     }
 }
