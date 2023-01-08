@@ -33,8 +33,6 @@ import io.sunland.chainpass.common.component.ValidationTextField
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: () -> Unit) {
-    val focusRequester = remember { FocusRequester() }
-
     val nameState = remember { mutableStateOf(chainLink.name.value) }
     val nameValidationState = remember { mutableStateOf(chainLink.name.validation) }
 
@@ -123,6 +121,12 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
             ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
         }
         Column(modifier = Modifier.padding(horizontal = 4.dp)) {
+            val focusRequester = remember { FocusRequester() }
+
+            if (chainLink.isLatest) {
+                LaunchedEffect(Unit) { focusRequester.requestFocus() }
+            }
+
             ValidationTextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
                 placeholder = { Text(text = "Name") },
@@ -192,9 +196,5 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
                 keyboardActions = KeyboardActions(onDone = { onDone() })
             )
         }
-    }
-
-    if (chainLink.isLatest) {
-        LaunchedEffect(Unit) { focusRequester.requestFocus() }
     }
 }

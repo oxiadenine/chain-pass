@@ -45,8 +45,6 @@ class DeviceAddress(value: String? = null) {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Settings(settings: Settings, onBack: (Settings) -> Unit) {
-    val focusRequester = remember { FocusRequester() }
-
     val scrollState = rememberScrollState()
 
     val isDeviceAddressEditState = remember { mutableStateOf(false) }
@@ -134,11 +132,14 @@ fun Settings(settings: Settings, onBack: (Settings) -> Unit) {
                             textAlign = TextAlign.Center
                         )
                     }
+
                     if (isDeviceAddressEditState.value) {
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            val focusRequester = remember { FocusRequester() }
+
                             ValidationTextField(
                                 modifier = Modifier.focusRequester(focusRequester),
                                 placeholder = { Text(text = "Device Address") },
@@ -158,9 +159,9 @@ fun Settings(settings: Settings, onBack: (Settings) -> Unit) {
                                 ),
                                 keyboardActions = KeyboardActions(onDone = { onDone() })
                             )
-                        }
 
-                        LaunchedEffect(isDeviceAddressEditState.value) { focusRequester.requestFocus() }
+                            LaunchedEffect(isDeviceAddressEditState.value) { focusRequester.requestFocus() }
+                        }
                     } else {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(space = 16.dp),

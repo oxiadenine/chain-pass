@@ -31,7 +31,7 @@ fun ChainLinkListTopBar(
     onStore: () -> Unit,
     onUnstore: () -> Unit
 ) {
-    val actionMenuExpandedState = remember { mutableStateOf(false) }
+    val isActionMenuExpandedState = remember { mutableStateOf(false) }
 
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
@@ -45,18 +45,18 @@ fun ChainLinkListTopBar(
         actions = {
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = { actionMenuExpandedState.value = true }
+                onClick = { isActionMenuExpandedState.value = true }
             ) { Icon(imageVector = Icons.Default.MoreVert, contentDescription = null) }
             DropdownMenu(
                 modifier = Modifier.width(width = 150.dp),
-                expanded = actionMenuExpandedState.value,
-                onDismissRequest = { actionMenuExpandedState.value = false },
+                expanded = isActionMenuExpandedState.value,
+                onDismissRequest = { isActionMenuExpandedState.value = false },
                 offset = DpOffset(x = 4.dp, y = (-48).dp)
             ) {
                 DropdownMenuItem(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
-                        actionMenuExpandedState.value = false
+                        isActionMenuExpandedState.value = false
 
                         onSync()
                     },
@@ -73,7 +73,7 @@ fun ChainLinkListTopBar(
                 DropdownMenuItem(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
-                        actionMenuExpandedState.value = false
+                        isActionMenuExpandedState.value = false
 
                         onAdd()
                     },
@@ -90,7 +90,7 @@ fun ChainLinkListTopBar(
                 DropdownMenuItem(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
-                        actionMenuExpandedState.value = false
+                        isActionMenuExpandedState.value = false
 
                         onSearch()
                     },
@@ -107,7 +107,7 @@ fun ChainLinkListTopBar(
                 DropdownMenuItem(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
-                        actionMenuExpandedState.value = false
+                        isActionMenuExpandedState.value = false
 
                         onStore()
                     },
@@ -124,7 +124,7 @@ fun ChainLinkListTopBar(
                 DropdownMenuItem(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
-                        actionMenuExpandedState.value = false
+                        isActionMenuExpandedState.value = false
 
                         onUnstore()
                     },
