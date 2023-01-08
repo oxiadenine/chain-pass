@@ -43,11 +43,11 @@ fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCa
         onStore(storeOptions)
     }
 
-    InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
-        Text(
-            modifier = Modifier.padding(bottom = 32.dp),
-            text = if (isSingle) "Single Store" else "Multiple Store"
-        )
+    InputDialog(
+        onDismissRequest = onCancel,
+        onConfirmRequest = onDone,
+        title = if (isSingle) "Single Store" else "Multiple Store"
+    ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,

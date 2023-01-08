@@ -38,11 +38,11 @@ actual fun ChainListUnstoreInput(isSingle: Boolean, onUnstore: (FilePath) -> Uni
         }
     }
 
-    InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
-        Text(
-            modifier = Modifier.padding(bottom = 32.dp),
-            text = if (isSingle) "Single Unstore" else "Multiple Unstore"
-        )
+    InputDialog(
+        onDismissRequest = onCancel,
+        onConfirmRequest = onDone,
+        title = if (isSingle) "Single Unstore" else "Multiple Unstore"
+    ) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
