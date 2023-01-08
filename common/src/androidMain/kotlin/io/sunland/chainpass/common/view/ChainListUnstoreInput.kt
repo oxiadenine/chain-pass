@@ -54,7 +54,7 @@ actual fun ChainListUnstoreInput(isSingle: Boolean, onUnstore: (FilePath) -> Uni
                     val fileExtensions = mutableListOf("application/${StorageType.JSON.name.lowercase()}")
 
                     if (isSingle) {
-                        fileExtensions.add("application/comma-separated-values")
+                        fileExtensions.add("text/comma-separated-values")
                     }
 
                     resultLauncher.launch(fileExtensions.toTypedArray())
