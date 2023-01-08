@@ -17,7 +17,7 @@ import io.sunland.chainpass.common.Screen
 import io.sunland.chainpass.common.Settings
 import kotlinx.coroutines.launch
 
-enum class ChainListAction { SELECT, REMOVE, STORE, UNSTORE }
+enum class ChainListAction { NONE, SELECT, REMOVE, STORE, UNSTORE }
 
 @Composable
 fun ChainList(
@@ -40,8 +40,7 @@ fun ChainList(
     if (isInputDialogVisibleState.value) {
         when (chainListActionState.value) {
             ChainListAction.SELECT -> ChainListItemKeyInput(
-                onCancel = { isInputDialogVisibleState.value = false },
-                onSelect = { chainKey ->
+                onKey = { chainKey ->
                     snackbarHostState.currentSnackbarData?.dismiss()
 
                     isInputDialogVisibleState.value = false
@@ -58,11 +57,11 @@ fun ChainList(
                             snackbarHostState.showSnackbar(exception.message ?: "Error")
                         }
                     }
-                }
+                },
+                onCancel = { isInputDialogVisibleState.value = false }
             )
             ChainListAction.REMOVE -> ChainListItemKeyInput(
-                onCancel = { isInputDialogVisibleState.value = false },
-                onSelect = { chainKey ->
+                onKey = { chainKey ->
                     snackbarHostState.currentSnackbarData?.dismiss()
 
                     isInputDialogVisibleState.value = false
@@ -85,11 +84,12 @@ fun ChainList(
                             }
                         }
                     }
-                }
+                },
+                onCancel = { isInputDialogVisibleState.value = false }
             )
             ChainListAction.STORE -> ChainListStoreInput(
-                onCancel = { isInputDialogVisibleState.value = false },
-                onSelect = { storeOptions ->
+                isSingle = false,
+                onStore = { storeOptions ->
                     snackbarHostState.currentSnackbarData?.dismiss()
 
                     isInputDialogVisibleState.value = false
@@ -107,11 +107,12 @@ fun ChainList(
                             snackbarHostState.showSnackbar(exception.message ?: "Error")
                         }
                     }
-                }
+                },
+                onCancel = { isInputDialogVisibleState.value = false }
             )
             ChainListAction.UNSTORE -> ChainListUnstoreInput(
-                onCancel = { isInputDialogVisibleState.value = false },
-                onSelect = { filePath ->
+                isSingle = false,
+                onUnstore = { filePath ->
                     snackbarHostState.currentSnackbarData?.dismiss()
 
                     isInputDialogVisibleState.value = false
@@ -131,8 +132,10 @@ fun ChainList(
                             snackbarHostState.showSnackbar(exception.message ?: "Error")
                         }
                     }
-                }
+                },
+                onCancel = { isInputDialogVisibleState.value = false }
             )
+            ChainListAction.NONE -> Unit
         }
     }
 

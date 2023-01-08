@@ -22,7 +22,9 @@ import javax.swing.filechooser.FileNameExtensionFilter
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-actual fun ChainListUnstoreInput(onSelect: (FilePath) -> Unit, onCancel: () -> Unit) {
+actual fun ChainListUnstoreInput(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onCancel: () -> Unit) {
+    val fileDialogOpenState = remember { mutableStateOf(false) }
+
     val filePathState = remember { mutableStateOf("") }
     val filePathErrorState = remember { mutableStateOf(false) }
 
@@ -32,13 +34,15 @@ actual fun ChainListUnstoreInput(onSelect: (FilePath) -> Unit, onCancel: () -> U
         filePathErrorState.value = filePath.value.isEmpty()
 
         if (!filePathErrorState.value) {
-            onSelect(filePath)
+            onUnstore(filePath)
         }
     }
 
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
-        val fileDialogOpenState = remember { mutableStateOf(false) }
-
+        Text(
+            modifier = Modifier.padding(bottom = 32.dp),
+            text = if (isSingle) "Single Unstore" else "Multiple Unstore"
+        )
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -64,23 +68,31 @@ actual fun ChainListUnstoreInput(onSelect: (FilePath) -> Unit, onCancel: () -> U
                 Text(text = "File is not selected", fontSize = 14.sp, color = MaterialTheme.colors.error)
             }
         }
+    }
 
-        if (fileDialogOpenState.value) {
-            val fileDialog = JFileChooser().apply {
-                dialogType = JFileChooser.OPEN_DIALOG
-                fileSelectionMode = JFileChooser.FILES_ONLY
-                isAcceptAllFileFilterUsed = false
+    if (fileDialogOpenState.value) {
+        val fileExtensionFilters = mutableListOf(FileNameExtensionFilter(StorageType.JSON.name, StorageType.JSON.name))
 
-                addChoosableFileFilter(FileNameExtensionFilter(StorageType.JSON.name, StorageType.JSON.name))
-            }
-
-            if (fileDialog.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                filePathState.value = fileDialog.selectedFile.absolutePath
-            } else filePathState.value = ""
-
-            filePathErrorState.value = filePathState.value.isEmpty()
-
-            fileDialogOpenState.value = false
+        if (isSingle) {
+            fileExtensionFilters.add(FileNameExtensionFilter(StorageType.CSV.name, StorageType.CSV.name))
         }
+
+        val fileDialog = JFileChooser().apply {
+            dialogType = JFileChooser.OPEN_DIALOG
+            fileSelectionMode = JFileChooser.FILES_ONLY
+            isAcceptAllFileFilterUsed = false
+
+            fileExtensionFilters.forEach { fileExtensionFilter ->
+                addChoosableFileFilter(fileExtensionFilter)
+            }
+        }
+
+        if (fileDialog.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            filePathState.value = fileDialog.selectedFile.absolutePath
+        } else filePathState.value = ""
+
+        filePathErrorState.value = filePathState.value.isEmpty()
+
+        fileDialogOpenState.value = false
     }
 }

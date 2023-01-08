@@ -20,6 +20,8 @@ import io.sunland.chainpass.common.component.PopupText
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+enum class ChainLinkListAction { NONE, STORE, UNSTORE }
+
 @Composable
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
@@ -29,13 +31,70 @@ fun ChainLinkList(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
+    val chainLinkListActionState = remember { mutableStateOf(ChainLinkListAction.NONE) }
+
     val isWorkInProgressState = remember { mutableStateOf(false) }
+    val isInputDialogVisibleState = remember { mutableStateOf(false) }
 
     val popupMessageState = remember { mutableStateOf("") }
     val isPopupVisibleState = remember { mutableStateOf(false) }
 
     if (isWorkInProgressState.value) {
         LoadingIndicator()
+    }
+
+    if (isInputDialogVisibleState.value) {
+        when (chainLinkListActionState.value) {
+            ChainLinkListAction.STORE -> ChainListStoreInput(
+                isSingle = true,
+                onStore = { storeOptions ->
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
+                    isInputDialogVisibleState.value = false
+
+                    coroutineScope.launch {
+                        isWorkInProgressState.value = true
+
+                        viewModel.store(storeOptions).onSuccess { fileName ->
+                            isWorkInProgressState.value = false
+
+                            snackbarHostState.showSnackbar("Stored to $fileName")
+                        }.onFailure { exception ->
+                            isWorkInProgressState.value = false
+
+                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                        }
+                    }
+                },
+                onCancel = { isInputDialogVisibleState.value = false }
+            )
+            ChainLinkListAction.UNSTORE -> ChainListUnstoreInput(
+                isSingle = true,
+                onUnstore = { filePath ->
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
+                    isInputDialogVisibleState.value = false
+
+                    coroutineScope.launch {
+                        isWorkInProgressState.value = true
+
+                        viewModel.unstore(filePath).onSuccess {
+                            viewModel.getAll()
+
+                            isWorkInProgressState.value = false
+
+                            snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
+                        }.onFailure { exception ->
+                            isWorkInProgressState.value = false
+
+                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                        }
+                    }
+                },
+                onCancel = { isInputDialogVisibleState.value = false }
+            )
+            ChainLinkListAction.NONE -> Unit
+        }
     }
 
     if (isPopupVisibleState.value) {
@@ -95,6 +154,14 @@ fun ChainLinkList(
                     viewModel.rejectDrafts()
                     viewModel.cancelEdits()
                     viewModel.startSearch()
+                },
+                onStore = {
+                    chainLinkListActionState.value = ChainLinkListAction.STORE
+                    isInputDialogVisibleState.value = true
+                },
+                onUnstore = {
+                    chainLinkListActionState.value = ChainLinkListAction.UNSTORE
+                    isInputDialogVisibleState.value = true
                 }
             )
         }
