@@ -15,10 +15,10 @@ class ChainLinkApi(private val chainLinkRepository: ChainLinkRepository, private
             chainLinkRepository.getOne(chainLinkEntity.id).onSuccess { chainLinkEntityFound ->
                 if (chainLinkEntity.password != chainLinkEntityFound.password
                     || chainLinkEntity.description != chainLinkEntityFound.description) {
-                    chainLinkRepository.update(chainLinkEntity).getOrThrow()
+                    chainLinkRepository.update(chainLinkEntity)
                 }
             }.onFailure {
-                chainLinkRepository.create(chainLinkEntity).getOrThrow()
+                chainLinkRepository.create(chainLinkEntity)
             }
         }
     }

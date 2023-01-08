@@ -7,21 +7,13 @@ import kotlinx.serialization.Serializable
 data class ChainEntity(val id: String, val name: String, val key: String = "")
 
 class ChainRepository(private val database: Database) {
-    fun create(chainEntity: ChainEntity) = runCatching {
-        database.chainQueries.transaction {
-            database.chainQueries.insert(
-                id = chainEntity.id,
-                name = chainEntity.name,
-                key = chainEntity.key
-            )
-        }
+    fun create(chainEntity: ChainEntity) = database.chainQueries.transaction {
+        database.chainQueries.insert(chainEntity.id, chainEntity.name, chainEntity.key)
     }
 
-    fun getAll() = runCatching {
-        database.chainQueries.transactionWithResult {
-            database.chainQueries.selectAll().executeAsList().map { record ->
-                ChainEntity(record.id, record.name, record.key)
-            }
+    fun getAll() = database.chainQueries.transactionWithResult {
+        database.chainQueries.selectAll().executeAsList().map { record ->
+            ChainEntity(record.id, record.name, record.key)
         }
     }
 
@@ -33,9 +25,7 @@ class ChainRepository(private val database: Database) {
         }
     }
 
-    fun delete(id: String) = runCatching {
-        database.chainQueries.transaction {
-            database.chainQueries.delete(id)
-        }
+    fun delete(id: String) = database.chainQueries.transaction {
+        database.chainQueries.delete(id)
     }
 }
