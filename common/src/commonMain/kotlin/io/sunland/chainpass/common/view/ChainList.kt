@@ -15,6 +15,7 @@ import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.NavigationState
 import io.sunland.chainpass.common.Screen
 import io.sunland.chainpass.common.Settings
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 enum class ChainListAction { NONE, SELECT, REMOVE, STORE, UNSTORE }
@@ -45,15 +46,20 @@ fun ChainList(
 
                     isInputDialogVisibleState.value = false
 
-                    val chain = viewModel.chainSelected!!.apply { key = chainKey }
+                    coroutineScope.launch(Dispatchers.IO) {
+                        isWorkInProgressState.value = true
 
-                    viewModel.setSelected()
+                        val chain = viewModel.chainSelected!!.apply { key = chainKey }
 
-                    coroutineScope.launch {
+                        viewModel.setSelected()
                         viewModel.select(chain).onSuccess {
+                            isWorkInProgressState.value = false
+
                             navigationState.chainState.value = chain
                             navigationState.screenState.value = Screen.CHAIN_LINK_LIST
                         }.onFailure { exception ->
+                            isWorkInProgressState.value = false
+
                             snackbarHostState.showSnackbar(exception.message ?: "Error")
                         }
                     }
@@ -66,11 +72,11 @@ fun ChainList(
 
                     isInputDialogVisibleState.value = false
 
-                    val chain = viewModel.chainSelected!!.apply { key = chainKey }
+                    coroutineScope.launch(Dispatchers.IO) {
+                        val chain = viewModel.chainSelected!!.apply { key = chainKey }
 
-                    viewModel.removeLater(chain)
+                        viewModel.removeLater(chain)
 
-                    coroutineScope.launch {
                         when (snackbarHostState.showSnackbar(
                             message = "${chain.name.value} removed",
                             actionLabel = "Dismiss",
@@ -94,7 +100,7 @@ fun ChainList(
 
                     isInputDialogVisibleState.value = false
 
-                    coroutineScope.launch {
+                    coroutineScope.launch(Dispatchers.IO) {
                         isWorkInProgressState.value = true
 
                         viewModel.store(storeOptions).onSuccess { fileName ->
@@ -117,7 +123,7 @@ fun ChainList(
 
                     isInputDialogVisibleState.value = false
 
-                    coroutineScope.launch {
+                    coroutineScope.launch(Dispatchers.IO) {
                         isWorkInProgressState.value = true
 
                         viewModel.unstore(filePath).onSuccess {
@@ -139,7 +145,13 @@ fun ChainList(
         }
     }
 
-    LaunchedEffect(Unit) { viewModel.getAll() }
+    LaunchedEffect(Unit) {
+        isWorkInProgressState.value = true
+
+        viewModel.getAll()
+
+        isWorkInProgressState.value = false
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         ChainListTopBar(
@@ -147,7 +159,7 @@ fun ChainList(
             onSync = {
                 snackbarHostState.currentSnackbarData?.performAction()
 
-                coroutineScope.launch {
+                coroutineScope.launch(Dispatchers.IO) {
                     if (settingsState.value.deviceAddress.isEmpty()) {
                         snackbarHostState.showSnackbar("You have to set Device Address on Settings")
                     } else {
@@ -211,7 +223,15 @@ fun ChainList(
                             Chain.Status.DRAFT -> key(chain.id) {
                                 ChainListItemDraft(
                                     chain = chain,
-                                    onNew = { viewModel.new(chain) },
+                                    onNew = {
+                                        coroutineScope.launch(Dispatchers.IO) {
+                                            isWorkInProgressState.value = true
+
+                                            viewModel.new(chain)
+
+                                            isWorkInProgressState.value = false
+                                        }
+                                    },
                                     onCancel = { viewModel.rejectDraft(chain) }
                                 )
                             }
