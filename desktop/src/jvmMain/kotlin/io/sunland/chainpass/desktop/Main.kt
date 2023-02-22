@@ -4,6 +4,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import io.sunland.chainpass.common.*
+import java.awt.Dimension
 
 fun main() {
     val settingsManager = SettingsManager("${System.getProperty("user.home")}/.chain-pass")
@@ -15,6 +16,10 @@ fun main() {
             icon = painterResource("icon.png"),
             title = "Chain Pass",
             onCloseRequest = ::exitApplication
-        ) { App(settingsManager, database, storage) }
+        ) {
+            window.minimumSize = Dimension(360, 480)
+
+            App(settingsManager, database, storage)
+        }
     }
 }
