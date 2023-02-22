@@ -142,7 +142,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                 Screen.SETTINGS -> {
                     Settings(
                         settings = settingsState.value,
-                        onBack = { settings ->
+                        onBack = { navigationState.screenState.value = Screen.CHAIN_LIST },
+                        onSave = { settings ->
                             settingsManager.save(settings)
 
                             settingsState.value = settings
