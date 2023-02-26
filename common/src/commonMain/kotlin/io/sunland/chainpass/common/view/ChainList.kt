@@ -240,7 +240,7 @@ fun ChainList(
                 }
 
                 viewModel.chainLatestIndex.takeIf { index -> index != -1 }?.let { index ->
-                    LaunchedEffect(index) { lazyListState.scrollToItem(index) }
+                    LaunchedEffect(index) { lazyListState.animateScrollToItem(index) }
                 }
             }
         }
