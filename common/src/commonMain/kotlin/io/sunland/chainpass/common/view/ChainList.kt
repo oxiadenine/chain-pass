@@ -1,5 +1,8 @@
 package io.sunland.chainpass.common.view
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,17 +12,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
-import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.NavigationState
 import io.sunland.chainpass.common.Screen
 import io.sunland.chainpass.common.Settings
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-enum class ChainListAction { NONE, SELECT, REMOVE, STORE, UNSTORE }
+enum class ChainListAction { NONE, NEW, SELECT, REMOVE, STORE, UNSTORE }
 
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun ChainList(
     viewModel: ChainListViewModel,
@@ -34,12 +41,35 @@ fun ChainList(
     val isWorkInProgressState = remember { mutableStateOf(false) }
     val isInputDialogVisibleState = remember { mutableStateOf(false) }
 
+    val isSnackbarVisibleState = remember {
+        snapshotFlow { snackbarHostState.currentSnackbarData != null }
+    }.collectAsState(false)
+
     if (isWorkInProgressState.value) {
         LoadingIndicator()
     }
 
     if (isInputDialogVisibleState.value) {
         when (chainListActionState.value) {
+            ChainListAction.NEW -> {
+                val chain = viewModel.draft()
+
+                ChainListItemNewInput(
+                    chain = chain,
+                    onNew = {
+                        isInputDialogVisibleState.value = false
+
+                        coroutineScope.launch(Dispatchers.IO) {
+                            isWorkInProgressState.value = true
+
+                            viewModel.new(chain)
+
+                            isWorkInProgressState.value = false
+                        }
+                    },
+                    onCancel = { isInputDialogVisibleState.value = false }
+                )
+            }
             ChainListAction.SELECT -> ChainListItemKeyInput(
                 onKey = { chainKey ->
                     snackbarHostState.currentSnackbarData?.dismiss()
@@ -177,7 +207,6 @@ fun ChainList(
                     }
                 }
             },
-            onAdd = { viewModel.draft() },
             onStore = {
                 chainListActionState.value = ChainListAction.STORE
                 isInputDialogVisibleState.value = true
@@ -187,7 +216,30 @@ fun ChainList(
                 isInputDialogVisibleState.value = true
             }
         )
+
         Box(modifier = Modifier.fillMaxSize()) {
+            val lazyListState = rememberLazyListState()
+
+            val prevFirstVisibleItemIndexState = remember {
+                mutableStateOf(lazyListState.firstVisibleItemIndex)
+            }
+            val prevFirstVisibleItemScrollOffsetState = remember {
+                mutableStateOf(lazyListState.firstVisibleItemScrollOffset)
+            }
+
+            val isLazyListScrollingUpState = remember {
+                derivedStateOf {
+                    if (prevFirstVisibleItemIndexState.value != lazyListState.firstVisibleItemIndex) {
+                        prevFirstVisibleItemIndexState.value > lazyListState.firstVisibleItemIndex
+                    } else {
+                        prevFirstVisibleItemScrollOffsetState.value >= lazyListState.firstVisibleItemScrollOffset
+                    }.also {
+                        prevFirstVisibleItemIndexState.value = lazyListState.firstVisibleItemIndex
+                        prevFirstVisibleItemScrollOffsetState.value = lazyListState.firstVisibleItemScrollOffset
+                    }
+                }
+            }
+
             if (viewModel.chainListState.isEmpty()) {
                 Row(
                     modifier = Modifier.align(Alignment.Center),
@@ -198,49 +250,66 @@ fun ChainList(
                     Icon(imageVector = Icons.Default.Add, contentDescription = null)
                 }
             } else {
-                val lazyListState = rememberLazyListState()
-
                 LazyColumn(modifier = Modifier.fillMaxSize(), state = lazyListState) {
                     items(viewModel.chainListState.toTypedArray(), key = { chain -> chain.id }) { chain ->
-                        when (chain.status) {
-                            Chain.Status.ACTUAL -> {
-                                ChainListItem(
-                                    chain = chain,
-                                    onSelect = {
-                                        viewModel.setSelected(chain)
+                        ChainListItem(
+                            chain = chain,
+                            onSelect = {
+                                viewModel.setSelected(chain)
 
-                                        chainListActionState.value = ChainListAction.SELECT
-                                        isInputDialogVisibleState.value = true
-                                    },
-                                    onRemove = {
-                                        viewModel.setSelected(chain)
+                                chainListActionState.value = ChainListAction.SELECT
+                                isInputDialogVisibleState.value = true
+                            },
+                            onRemove = {
+                                viewModel.setSelected(chain)
 
-                                        chainListActionState.value = ChainListAction.REMOVE
-                                        isInputDialogVisibleState.value = true
-                                    }
-                                )
+                                chainListActionState.value = ChainListAction.REMOVE
+                                isInputDialogVisibleState.value = true
                             }
-                            Chain.Status.DRAFT -> key(chain.id) {
-                                ChainListItemDraft(
-                                    chain = chain,
-                                    onNew = {
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            isWorkInProgressState.value = true
-
-                                            viewModel.new(chain)
-
-                                            isWorkInProgressState.value = false
-                                        }
-                                    },
-                                    onCancel = { viewModel.rejectDraft(chain) }
-                                )
-                            }
-                        }
+                        )
                     }
                 }
 
                 viewModel.chainLatestIndex.takeIf { index -> index != -1 }?.let { index ->
                     LaunchedEffect(index) { lazyListState.animateScrollToItem(index) }
+                }
+            }
+
+            Column(modifier = Modifier.align(alignment = Alignment.BottomEnd)) {
+                val density = LocalDensity.current
+
+                AnimatedContent(
+                    targetState = isSnackbarVisibleState.value,
+                    transitionSpec = {
+                        slideInVertically(animationSpec = tween(easing = LinearEasing, durationMillis = 150)) {
+                            with(density) {
+                                if (targetState && !initialState) {
+                                    16.dp.roundToPx()
+                                } else -16.dp.roundToPx()
+                            }
+                        } with ExitTransition.None
+                    }
+                ) { isSnackbarVisible ->
+                    AnimatedVisibility(
+                        visible = if (isSnackbarVisible) true else isLazyListScrollingUpState.value,
+                        enter = slideInVertically {
+                            with(density) { -16.dp.roundToPx() }
+                        } + expandVertically(expandFrom = Alignment.Top),
+                        exit = slideOutVertically {
+                            with(density) { 16.dp.roundToPx() }
+                        } + shrinkVertically(shrinkTowards = Alignment.Top)
+                    ) {
+                        FloatingActionButton(
+                            modifier = Modifier
+                                .padding(end = 16.dp, bottom = if (isSnackbarVisible) 80.dp else 16.dp)
+                                .pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            backgroundColor = MaterialTheme.colors.surface,
+                            onClick = {
+                                chainListActionState.value = ChainListAction.NEW
+                                isInputDialogVisibleState.value = true
+                            }
+                        ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
+                    }
                 }
             }
         }

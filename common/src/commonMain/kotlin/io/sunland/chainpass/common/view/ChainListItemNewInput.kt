@@ -26,11 +26,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
+import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListItemDraft(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
+fun ChainListItemNewInput(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
     val nameState = remember { mutableStateOf(chain.name.value) }
     val nameValidationState = remember { mutableStateOf(chain.name.validation) }
 
@@ -63,14 +64,12 @@ fun ChainListItemDraft(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
         }
     }
 
-    val onClear = { onCancel() }
-
     val onKeyEvent = { keyEvent: KeyEvent ->
         if (keyEvent.type == KeyEventType.KeyDown) {
             false
         } else when (keyEvent.key) {
             Key.Escape -> {
-                onClear()
+                onCancel()
 
                 true
             }
@@ -83,22 +82,20 @@ fun ChainListItemDraft(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
         }
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(all = 4.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
+    val onPreviewKeyEvent = { keyEvent: KeyEvent ->
+        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+            onKeyChange(chain.generateKey())
+
+            true
+        } else false
+    }
+
+    InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onDone
-            ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
-            IconButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onClear
-            ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
-        }
-        Column(modifier = Modifier.padding(horizontal = 4.dp)) {
             val focusRequester = remember { FocusRequester() }
 
             if (chain.isLatest) {
@@ -117,9 +114,9 @@ fun ChainListItemDraft(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
                 errorMessage = nameValidationState.value.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
@@ -134,13 +131,7 @@ fun ChainListItemDraft(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                            .onPreviewKeyEvent { keyEvent ->
-                                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                                    onKeyChange(chain.generateKey())
-
-                                    true
-                                } else false
-                            },
+                            .onPreviewKeyEvent(onPreviewKeyEvent = onPreviewKeyEvent),
                         onClick = { onKeyChange(chain.generateKey()) }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
@@ -151,9 +142,9 @@ fun ChainListItemDraft(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
                 errorMessage = keyValidationState.value.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
