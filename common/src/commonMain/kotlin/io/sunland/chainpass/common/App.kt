@@ -163,6 +163,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                 }
                 Screen.CHAIN_LINK_LIST -> {
                     val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository, storage)
+                    chainLinkListViewModel.chain = navigationState.chainState.value
 
                     ChainLinkList(chainLinkListViewModel, settingsState, navigationState, scaffoldState.snackbarHostState)
                 }

@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListTopBar(
+    title: String,
     onSettings: () -> Unit,
     onSync: () -> Unit,
     onStore: () -> Unit,
@@ -28,12 +29,7 @@ fun ChainListTopBar(
 
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
-        title = {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) { Text(text = "Chains") }
-        },
+        title = { Text(text = title) },
         navigationIcon = {
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),

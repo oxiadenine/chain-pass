@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListTopBar(
+    title: String,
     onBack: () -> Unit,
     onSync: () -> Unit,
     onSearch: () -> Unit,
@@ -29,7 +30,7 @@ fun ChainLinkListTopBar(
 
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
-        title = { Text("Chain Links") },
+        title = { Text(text = title) },
         navigationIcon = {
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
@@ -37,6 +38,10 @@ fun ChainLinkListTopBar(
             ) { Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null) }
         },
         actions = {
+            IconButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onSearch
+            ) { Icon(imageVector = Icons.Default.Search, contentDescription = null) }
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 onClick = { isActionMenuExpandedState.value = true }
@@ -62,23 +67,6 @@ fun ChainLinkListTopBar(
                     ) {
                         Icon(imageVector = Icons.Default.Sync, contentDescription = null)
                         Text(text = "Sync", fontSize = 12.sp)
-                    }
-                }
-                DropdownMenuItem(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = {
-                        isActionMenuExpandedState.value = false
-
-                        onSearch()
-                    },
-                    contentPadding = PaddingValues(horizontal = 16.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Icons.Default.Search, contentDescription = null)
-                        Text(text = "Search", fontSize = 12.sp)
                     }
                 }
                 DropdownMenuItem(
