@@ -323,7 +323,7 @@ fun ChainLinkList(
                         enter = fadeIn(animationSpec = tween(easing = LinearEasing, durationMillis = 150)),
                         exit = fadeOut(animationSpec = tween(easing = LinearEasing, durationMillis = 75))
                     ) {
-                        Surface(elevation = 2.dp) {
+                        Surface(elevation = 4.dp) {
                             Text(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                                 text = "Password copied",
