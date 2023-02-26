@@ -27,13 +27,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: () -> Unit) {
-    val isEditedState = remember { mutableStateOf(chainLink.description.isEdited || chainLink.password.isEdited) }
-
+fun ChainLinkListItemEditInput(chainLink: ChainLink, onEdit: () -> Unit, onCancel: () -> Unit) {
     val descriptionState = remember { mutableStateOf(chainLink.description.value) }
     val descriptionValidationState = remember { mutableStateOf(chainLink.description.validation) }
 
@@ -41,21 +40,17 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
     val passwordValidationState = remember { mutableStateOf(chainLink.password.validation) }
 
     val onDescriptionChange = { value: String ->
-        chainLink.description = ChainLink.Description(value, isEdited = true)
+        chainLink.description = ChainLink.Description(value)
 
         descriptionState.value = chainLink.description.value
         descriptionValidationState.value = chainLink.description.validation
-
-        isEditedState.value = chainLink.password.isEdited || chainLink.description.isEdited
     }
 
     val onPasswordChange = { value: String ->
-        chainLink.password = ChainLink.Password(value, isEdited = true)
+        chainLink.password = ChainLink.Password(value)
 
         passwordState.value = chainLink.password.value
         passwordValidationState.value = chainLink.password.validation
-
-        isEditedState.value = chainLink.password.isEdited || chainLink.description.isEdited
     }
 
     val onDone = {
@@ -90,9 +85,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                 true
             }
             Key.Enter -> {
-                if (isEditedState.value) {
-                    onDone()
-                }
+                onDone()
 
                 true
             }
@@ -108,31 +101,12 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
         } else false
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
+    InputDialog(onDismissRequest = onClear, onConfirmRequest = onDone) {
+        Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(modifier = Modifier.padding(horizontal = 16.dp), text = chainLink.name.value)
-            Row(
-                modifier = Modifier.padding(all = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (isEditedState.value) {
-                    IconButton(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        onClick = onDone
-                    ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
-                }
-                IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onClear
-                ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
-            }
-        }
-        Column(modifier = Modifier.padding(horizontal = 4.dp)) {
             val focusRequester = remember { FocusRequester() }
 
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -149,9 +123,9 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                 errorMessage = descriptionValidationState.value.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
@@ -177,17 +151,13 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onEdit: () -> Unit, onCancel: ()
                 errorMessage = passwordValidationState.value.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions(onDone = {
-                    if (isEditedState.value) {
-                        onDone()
-                    }
-                })
+                keyboardActions = KeyboardActions(onDone = { onDone() })
             )
         }
     }

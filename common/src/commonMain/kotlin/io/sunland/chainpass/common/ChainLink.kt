@@ -10,7 +10,6 @@ class ChainLink(val chain: Chain) {
         name = chainLink.name
         description = chainLink.description
         password = chainLink.password
-        status = chainLink.status
         isLatest = chainLink.isLatest
     }
 
@@ -27,7 +26,7 @@ class ChainLink(val chain: Chain) {
         } ?: Result.success(this.value)
     }
 
-    class Description(value: String? = null, val isEdited: Boolean = false) {
+    class Description(value: String? = null) {
         var value = value ?: ""
             private set
 
@@ -38,7 +37,7 @@ class ChainLink(val chain: Chain) {
         } ?: Result.success(this.value)
     }
 
-    class Password(value: String? = null, val isPrivate: Boolean = true, val isEdited: Boolean = false) {
+    class Password(value: String? = null) {
         var value = value ?: ""
             private set
 
@@ -51,13 +50,11 @@ class ChainLink(val chain: Chain) {
         } ?: Result.success(this.value)
     }
 
-    enum class Status { ACTUAL, EDIT }
-
     var id = Random.uuid()
     var name = Name()
     var description = Description()
     var password = Password()
-    var status = Status.ACTUAL
+    var isSelected = false
     var isLatest = false
 
     fun generatePassword() = chain.passwordGenerator.generate()
