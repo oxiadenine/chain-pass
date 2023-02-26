@@ -51,13 +51,13 @@ class ChainLink(val chain: Chain) {
         } ?: Result.success(this.value)
     }
 
-    enum class Status { ACTUAL, DRAFT, EDIT }
+    enum class Status { ACTUAL, EDIT }
 
     var id = Random.uuid()
     var name = Name()
     var description = Description()
     var password = Password()
-    var status = Status.DRAFT
+    var status = Status.ACTUAL
     var isLatest = false
 
     fun generatePassword() = chain.passwordGenerator.generate()

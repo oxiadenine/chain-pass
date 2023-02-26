@@ -32,39 +32,10 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         chainLinkListState.addAll(chainLinks)
     }
 
-    fun draft() {
-        val chainLinkDraft = ChainLink(chain!!).apply {
-            isLatest = true
-        }
-
-        chainLinkListState.add(chainLinkDraft)
-
-        val chainLinks = chainLinkListState.map { chainLink ->
-            if (chainLink.id != chainLinkDraft.id) {
-                chainLink.apply { isLatest = false }
-            } else chainLink
-        }
-
-        chainLinkListState.clear()
-        chainLinkListState.addAll(chainLinks)
-    }
-
-    fun rejectDraft(chainLink: ChainLink) {
-        chainLinkListState.remove(chainLink)
-    }
-
-    fun rejectDrafts() {
-        val chainLinks = chainLinkListState.filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
-
-        chainLinkListState.clear()
-        chainLinkListState.addAll(chainLinks)
-    }
+    fun draft()  = ChainLink(chain!!).apply { isLatest = true }
 
     fun startEdit(chainLinkEdit: ChainLink) {
-        val chainLinksDraft = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
-
         val chainLinks = chainLinkListState
-            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
             .map { chainLink ->
                 if (chainLink.id == chainLinkEdit.id) {
                     if (chainLink.password.isPrivate) {
@@ -79,57 +50,44 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
                 chainLink
             }
             .sortedBy { chainLink -> chainLink.name.value }
-            .plus(chainLinksDraft)
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)
     }
 
     fun cancelEdit(chainLinkEdit: ChainLink) {
-        val chainLinksDraft = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
+        val chainLinks = chainLinkListState.map { chainLink ->
+            if (chainLink.id == chainLinkEdit.id && chainLink.status == ChainLink.Status.EDIT) {
+                val chainLinkNoEdit = chainLinks.first { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
 
-        val chainLinks = chainLinkListState
-            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
-            .map { chainLink ->
-                if (chainLink.id == chainLinkEdit.id && chainLink.status == ChainLink.Status.EDIT) {
-                    val chainLinkNoEdit = chainLinks.first { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
-
-                    chainLink.description = chainLinkNoEdit.description
-                    chainLink.password = chainLinkNoEdit.password
-                    chainLink.status = chainLinkNoEdit.status
-                }
-
-                chainLink.isLatest = false
-
-                chainLink
+                chainLink.description = chainLinkNoEdit.description
+                chainLink.password = chainLinkNoEdit.password
+                chainLink.status = chainLinkNoEdit.status
             }
-            .sortedBy { chainLink -> chainLink.name.value }
-            .plus(chainLinksDraft)
+
+            chainLink.isLatest = false
+
+            chainLink
+        }.sortedBy { chainLink -> chainLink.name.value }
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)
     }
 
     fun cancelEdits() {
-        val chainLinksDraft = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
+        val chainLinks = chainLinkListState.map { chainLink ->
+            if (chainLink.status == ChainLink.Status.EDIT) {
+                val chainLinkNoEdit = chainLinks.first { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
 
-        val chainLinks = chainLinkListState
-            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
-            .map { chainLink ->
-                if (chainLink.status == ChainLink.Status.EDIT) {
-                    val chainLinkNoEdit = chainLinks.first { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
-
-                    chainLink.description = chainLinkNoEdit.description
-                    chainLink.password = chainLinkNoEdit.password
-                    chainLink.status = chainLinkNoEdit.status
-                }
-
-                chainLink.isLatest = false
-
-                chainLink
+                chainLink.description = chainLinkNoEdit.description
+                chainLink.password = chainLinkNoEdit.password
+                chainLink.status = chainLinkNoEdit.status
             }
-            .sortedBy { chainLink -> chainLink.name.value }
-            .plus(chainLinksDraft)
+
+            chainLink.isLatest = false
+
+            chainLink
+        }.sortedBy { chainLink -> chainLink.name.value }
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)
@@ -140,13 +98,9 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
     }
 
     fun undoRemove(chainLinkRemove: ChainLink) {
-        val chainLinksDraft = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
-
         val chainLinks = chainLinkListState
-            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
-            .plus(chainLinkRemove)
+            .plus(chainLinkRemove.apply { isLatest = true })
             .sortedBy { chainLink -> chainLink.name.value }
-            .plus(chainLinksDraft)
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)
@@ -205,10 +159,6 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
             }
         }
 
-        val chainLinksDraft = chainLinkListState
-            .filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
-            .filter { chainLink -> chainLink.chain.id == chain!!.id }
-
         val chainLinks = chainLinks
             .map { chainLink ->
                 chainLinkListState.firstOrNull { chainLinkToFind -> chainLink.id == chainLinkToFind.id }?.let {
@@ -218,7 +168,6 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
                 } ?: ChainLink(chainLink)
             }
             .sortedBy { chainLink -> chainLink.name.value }
-            .plus(chainLinksDraft)
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)
@@ -240,6 +189,8 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         chainLinkRepository.create(chainLinkEntity)
 
         chainLink.status = ChainLink.Status.ACTUAL
+
+        chainLinkListState.add(chainLink)
 
         update()
     }
@@ -361,21 +312,13 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
             !chainLinkListState.any { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
         }
 
-        chainLinks = chainLinkListState
-            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
-            .map { chainLink ->
-                if (chainLink.status == ChainLink.Status.EDIT) {
-                    chainLinks.first { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
-                } else ChainLink(chainLink)
-            }
-            .plus(chainLinksRemove)
+        chainLinks = chainLinkListState.map { chainLink ->
+            if (chainLink.status == ChainLink.Status.EDIT) {
+                chainLinks.first { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
+            } else ChainLink(chainLink)
+        }.plus(chainLinksRemove)
 
-        val chainLinksDraft = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
-
-        val chainLinks = chainLinkListState
-            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
-            .sortedBy { chainLink -> chainLink.name.value }
-            .plus(chainLinksDraft)
+        val chainLinks = chainLinkListState.sortedBy { chainLink -> chainLink.name.value }
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)

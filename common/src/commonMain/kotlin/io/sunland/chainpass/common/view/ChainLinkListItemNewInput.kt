@@ -28,11 +28,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: () -> Unit) {
+fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: () -> Unit, onCancel: () -> Unit) {
     val nameState = remember { mutableStateOf(chainLink.name.value) }
     val nameValidationState = remember { mutableStateOf(chainLink.name.validation) }
 
@@ -105,22 +106,12 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
         } else false
     }
 
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(all = 4.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
+    InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onDone
-            ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
-            IconButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onCancel
-            ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
-        }
-        Column(modifier = Modifier.padding(horizontal = 4.dp)) {
             val focusRequester = remember { FocusRequester() }
 
             if (chainLink.isLatest) {
@@ -139,9 +130,9 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
                 errorMessage = nameValidationState.value.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
@@ -159,9 +150,9 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
                 singleLine = true,
                 textStyle = TextStyle(fontSize = 14.sp),
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
@@ -176,7 +167,7 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                            .onPreviewKeyEvent(onPreviewKeyEvent),
+                            .onPreviewKeyEvent(onPreviewKeyEvent = onPreviewKeyEvent),
                         onClick = { onPasswordChange(chainLink.generatePassword()) }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
@@ -187,9 +178,9 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
                 errorMessage = passwordValidationState.value.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
