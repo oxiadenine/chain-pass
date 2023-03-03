@@ -5,13 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerIconDefaults
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.dp
 import io.rsocket.kotlin.RSocketRequestHandler
 import io.rsocket.kotlin.payload.Payload
 import io.sunland.chainpass.common.component.PopupHostState
@@ -41,7 +37,6 @@ fun rememberNavigationState(screen: Screen) = remember {
     NavigationState(mutableStateOf(screen), mutableStateOf(null))
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun App(settingsManager: SettingsManager, database: Database, storage: Storage) = MaterialTheme(
     colors = darkColors(
@@ -67,7 +62,6 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    val scaffoldState = rememberScaffoldState()
     val navigationState = rememberNavigationState(Screen.CHAIN_LIST)
 
     val chainRepository = ChainRepository(database)
@@ -86,31 +80,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
         }
     }
 
-    Scaffold(
-        scaffoldState = scaffoldState,
-        modifier = Modifier.fillMaxSize(),
-        snackbarHost = { snackbarHostState ->
-            SnackbarHost(
-                hostState = snackbarHostState,
-                snackbar = { snackbarData ->
-                    Snackbar(
-                        modifier = Modifier.padding(all = 16.dp),
-                        content = { Text(text = snackbarData.message) },
-                        action = {
-                            snackbarData.actionLabel?.let { label ->
-                                TextButton(
-                                    modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand),
-                                    onClick = { snackbarHostState.currentSnackbarData?.performAction() }
-                                ) { Text(text = label, color = MaterialTheme.colors.error) }
-                            }
-                        },
-                        backgroundColor = MaterialTheme.colors.background,
-                        contentColor = MaterialTheme.colors.primary
-                    )
-                }
-            )
-        }
-    ) { paddingValues ->
+    Surface(modifier = Modifier.fillMaxSize()) {
         val settingsState = remember {
             settingsManager.load()?.let { settings ->
                 mutableStateOf(settings)
@@ -139,10 +109,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
             )
         }
 
-        Crossfade(
-            modifier = Modifier.padding(paddingValues = paddingValues),
-            targetState = navigationState.screenState.value
-        ) { screen ->
+        Crossfade(targetState = navigationState.screenState.value) { screen ->
             when (screen) {
                 Screen.SETTINGS -> {
                     Settings(
@@ -171,7 +138,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         viewModel = chainListViewModel,
                         settingsState = settingsState,
                         navigationState = navigationState,
-                        snackbarHostState = scaffoldState.snackbarHostState
+                        snackbarHostState = SnackbarHostState()
                     )
                 }
                 Screen.CHAIN_LINK_LIST -> {
@@ -183,7 +150,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         viewModel = chainLinkListViewModel,
                         settingsState = settingsState,
                         navigationState = navigationState,
-                        snackbarHostState = scaffoldState.snackbarHostState,
+                        snackbarHostState = SnackbarHostState(),
                         popupHostState = PopupHostState()
                     )
                 }
