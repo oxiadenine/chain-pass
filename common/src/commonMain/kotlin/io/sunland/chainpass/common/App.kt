@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.rsocket.kotlin.RSocketRequestHandler
 import io.rsocket.kotlin.payload.Payload
+import io.sunland.chainpass.common.component.PopupHostState
 import io.sunland.chainpass.common.network.*
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
@@ -182,7 +183,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         viewModel = chainLinkListViewModel,
                         settingsState = settingsState,
                         navigationState = navigationState,
-                        snackbarHostState = scaffoldState.snackbarHostState
+                        snackbarHostState = scaffoldState.snackbarHostState,
+                        popupHostState = PopupHostState()
                     )
                 }
             }
