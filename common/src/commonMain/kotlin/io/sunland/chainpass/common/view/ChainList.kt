@@ -10,10 +10,12 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Undo
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
@@ -110,7 +112,7 @@ fun ChainList(
 
                         when (snackbarHostState.showSnackbar(
                             message = "${chain.name.value} removed",
-                            actionLabel = "Dismiss",
+                            actionLabel = "Undo",
                             duration = SnackbarDuration.Short
                         )) {
                             SnackbarResult.ActionPerformed -> viewModel.undoRemove(chain)
@@ -326,13 +328,21 @@ fun ChainList(
                 snackbar = { snackbarData ->
                     Snackbar(
                         modifier = Modifier.padding(all = 16.dp),
-                        content = { Text(text = snackbarData.message) },
+                        content = { Text(text = snackbarData.message, fontSize = 14.sp) },
                         action = {
                             snackbarData.actionLabel?.let { label ->
                                 TextButton(
+                                    onClick = { snackbarHostState.currentSnackbarData?.performAction() },
                                     modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand),
-                                    onClick = { snackbarHostState.currentSnackbarData?.performAction() }
-                                ) { Text(text = label, color = MaterialTheme.colors.error) }
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.rotate(degrees = 90f),
+                                        imageVector = Icons.Default.Undo,
+                                        contentDescription = null,
+                                    )
+                                    Spacer(modifier = Modifier.size(size = ButtonDefaults.IconSpacing))
+                                    Text(text = label, fontSize = 14.sp)
+                                }
                             }
                         },
                         backgroundColor = MaterialTheme.colors.background,
