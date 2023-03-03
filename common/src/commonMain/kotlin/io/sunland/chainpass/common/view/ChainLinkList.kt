@@ -23,10 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.*
-import io.sunland.chainpass.common.component.LazyListScrollDirection
-import io.sunland.chainpass.common.component.PopupHost
-import io.sunland.chainpass.common.component.PopupHostState
-import io.sunland.chainpass.common.component.scrollDirection
+import io.sunland.chainpass.common.component.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -47,10 +44,6 @@ fun ChainLinkList(
 
     val isWorkInProgressState = remember { mutableStateOf(false) }
     val isInputDialogVisibleState = remember { mutableStateOf(false) }
-
-    val isSnackbarVisibleState = remember {
-        snapshotFlow { snackbarHostState.currentSnackbarData != null }
-    }.collectAsState(false)
 
     if (isWorkInProgressState.value) {
         LoadingIndicator()
@@ -310,7 +303,7 @@ fun ChainLinkList(
 
                 Column(modifier = Modifier.align(alignment = Alignment.BottomEnd)) {
                     AnimatedContent(
-                        targetState = isSnackbarVisibleState.value,
+                        targetState = snackbarHostState.isSnackbarVisible(),
                         transitionSpec = {
                             if (targetState && !initialState) {
                                 slideInVertically(

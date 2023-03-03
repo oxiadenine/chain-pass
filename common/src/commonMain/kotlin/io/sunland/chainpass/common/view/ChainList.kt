@@ -22,6 +22,7 @@ import io.sunland.chainpass.common.NavigationState
 import io.sunland.chainpass.common.Screen
 import io.sunland.chainpass.common.Settings
 import io.sunland.chainpass.common.component.LazyListScrollDirection
+import io.sunland.chainpass.common.component.isSnackbarVisible
 import io.sunland.chainpass.common.component.scrollDirection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -42,10 +43,6 @@ fun ChainList(
 
     val isWorkInProgressState = remember { mutableStateOf(false) }
     val isInputDialogVisibleState = remember { mutableStateOf(false) }
-
-    val isSnackbarVisibleState = remember {
-        snapshotFlow { snackbarHostState.currentSnackbarData != null }
-    }.collectAsState(false)
 
     if (isWorkInProgressState.value) {
         LoadingIndicator()
@@ -262,7 +259,7 @@ fun ChainList(
 
             Column(modifier = Modifier.align(alignment = Alignment.BottomEnd)) {
                 AnimatedContent(
-                    targetState = isSnackbarVisibleState.value,
+                    targetState = snackbarHostState.isSnackbarVisible(),
                     transitionSpec = {
                         if (targetState && !initialState) {
                             slideInVertically(
