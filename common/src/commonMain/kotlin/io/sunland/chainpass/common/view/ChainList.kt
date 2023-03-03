@@ -17,13 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.NavigationState
 import io.sunland.chainpass.common.Screen
 import io.sunland.chainpass.common.Settings
-import io.sunland.chainpass.common.component.LazyListScrollDirection
-import io.sunland.chainpass.common.component.isSnackbarVisible
-import io.sunland.chainpass.common.component.scrollDirection
+import io.sunland.chainpass.common.component.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -35,7 +35,8 @@ fun ChainList(
     viewModel: ChainListViewModel,
     settingsState: MutableState<Settings>,
     navigationState: NavigationState,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    popupHostState: PopupHostState
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -89,7 +90,8 @@ fun ChainList(
                         }.onFailure { exception ->
                             isWorkInProgressState.value = false
 
-                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = exception.message ?: "Error")
                         }
                     }
                 },
@@ -115,7 +117,8 @@ fun ChainList(
                             SnackbarResult.Dismissed -> viewModel.remove(chain).onFailure { exception ->
                                 viewModel.undoRemove(chain)
 
-                                snackbarHostState.showSnackbar(exception.message ?: "Error")
+                                popupHostState.currentPopupData?.dismiss()
+                                popupHostState.showPopup(message = exception.message ?: "Error")
                             }
                         }
                     }
@@ -135,11 +138,13 @@ fun ChainList(
                         viewModel.store(storeOptions).onSuccess { fileName ->
                             isWorkInProgressState.value = false
 
-                            snackbarHostState.showSnackbar("Stored to $fileName")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = "Stored to $fileName")
                         }.onFailure { exception ->
                             isWorkInProgressState.value = false
 
-                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = exception.message ?: "Error")
                         }
                     }
                 },
@@ -160,11 +165,13 @@ fun ChainList(
 
                             isWorkInProgressState.value = false
 
-                            snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = "Unstored from ${filePath.fileName}")
                         }.onFailure { exception ->
                             isWorkInProgressState.value = false
 
-                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = exception.message ?: "Error")
                         }
                     }
                 },
@@ -185,13 +192,18 @@ fun ChainList(
     Column(modifier = Modifier.fillMaxSize()) {
         ChainListTopBar(
             title = "Chain Pass",
-            onSettings = { navigationState.screenState.value = Screen.SETTINGS },
+            onSettings = {
+                snackbarHostState.currentSnackbarData?.dismiss()
+
+                navigationState.screenState.value = Screen.SETTINGS
+            },
             onSync = {
                 snackbarHostState.currentSnackbarData?.performAction()
 
                 coroutineScope.launch(Dispatchers.IO) {
                     if (settingsState.value.deviceAddress.isEmpty()) {
-                        snackbarHostState.showSnackbar("You have to set Device Address on Settings")
+                        popupHostState.currentPopupData?.dismiss()
+                        popupHostState.showPopup(message = "You have to set Device Address on Settings")
                     } else {
                         isWorkInProgressState.value = true
 
@@ -202,7 +214,8 @@ fun ChainList(
                         }.onFailure { exception ->
                             isWorkInProgressState.value = false
 
-                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = exception.message ?: "Error")
                         }
                     }
                 }
@@ -293,6 +306,17 @@ fun ChainList(
                             backgroundColor = MaterialTheme.colors.background
                         ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
                     }
+                }
+            }
+
+            PopupHost(hostState = popupHostState) { popupData ->
+                Surface(modifier = Modifier.padding(horizontal = 16.dp), elevation = 4.dp) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        text = popupData.message,
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp
+                    )
                 }
             }
 

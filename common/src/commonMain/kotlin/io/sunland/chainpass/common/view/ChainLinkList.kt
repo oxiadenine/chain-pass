@@ -106,11 +106,13 @@ fun ChainLinkList(
                         viewModel.store(storeOptions).onSuccess { fileName ->
                             isWorkInProgressState.value = false
 
-                            snackbarHostState.showSnackbar("Stored to $fileName")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = "Stored to $fileName")
                         }.onFailure { exception ->
                             isWorkInProgressState.value = false
 
-                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = exception.message ?: "Error")
                         }
                     }
                 },
@@ -131,11 +133,13 @@ fun ChainLinkList(
 
                             isWorkInProgressState.value = false
 
-                            snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = "Unstored from ${filePath.fileName}")
                         }.onFailure { exception ->
                             isWorkInProgressState.value = false
 
-                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = exception.message ?: "Error")
                         }
                     }
                 },
@@ -175,7 +179,8 @@ fun ChainLinkList(
 
                     coroutineScope.launch(Dispatchers.IO) {
                         if (settingsState.value.deviceAddress.isEmpty()) {
-                            snackbarHostState.showSnackbar("You have to set sync options on Settings")
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = "You have to set sync options on Settings")
                         } else {
                             isWorkInProgressState.value = true
 
@@ -186,13 +191,15 @@ fun ChainLinkList(
                             }.onFailure { exception ->
                                 isWorkInProgressState.value = false
 
-                                snackbarHostState.showSnackbar(exception.message ?: "Error")
+                                popupHostState.currentPopupData?.dismiss()
+                                popupHostState.showPopup(message = exception.message ?: "Error")
                             }
                         }
                     }
                 },
                 onSearch = {
                     snackbarHostState.currentSnackbarData?.dismiss()
+                    popupHostState.currentPopupData?.dismiss()
 
                     viewModel.startSearch()
                 },
@@ -339,16 +346,16 @@ fun ChainLinkList(
                         }
                     }
                 }
+            }
 
-                PopupHost(hostState = popupHostState) { popupData ->
-                    Surface(modifier = Modifier.padding(horizontal = 16.dp), elevation = 4.dp) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            text = popupData.message,
-                            textAlign = TextAlign.Center,
-                            fontSize = 14.sp
-                        )
-                    }
+            PopupHost(hostState = popupHostState) { popupData ->
+                Surface(modifier = Modifier.padding(horizontal = 16.dp), elevation = 4.dp) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        text = popupData.message,
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp
+                    )
                 }
             }
 
