@@ -8,10 +8,14 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -35,38 +39,48 @@ actual fun ValidationTextField(
     keyboardActions: KeyboardActions,
     singleLine: Boolean,
     colors: TextFieldColors?
-) = TextField(
-    value = value,
-    onValueChange = onValueChange,
-    modifier = modifier,
-    textStyle = textStyle ?: LocalTextStyle.current,
-    placeholder = placeholder,
-    leadingIcon = leadingIcon,
-    trailingIcon = if (isError && errorMessage != null) {
-        { TooltipArea(
-            tooltip = {
-                Surface(modifier = Modifier.shadow(4.dp), elevation = 4.dp) {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        text = errorMessage,
-                        fontSize = 14.sp,
-                        color = MaterialTheme.colors.error
-                    )
-                }
-            },
-            delayMillis = 100,
-            tooltipPlacement = TooltipPlacement.CursorPoint(
-                alignment = Alignment.CenterStart,
-                offset = DpOffset((-32).dp, 0.dp)
-            ),
-            content = trailingIcon!!
-        ) }
-    } else trailingIcon,
-    enabled = enabled,
-    isError = isError,
-    visualTransformation = visualTransformation,
-    keyboardOptions = keyboardOptions,
-    keyboardActions = keyboardActions,
-    singleLine = singleLine,
-    colors = colors ?: TextFieldDefaults.textFieldColors()
-)
+) {
+    val textFieldValueState = remember {
+        mutableStateOf(TextFieldValue(text = value, selection = TextRange(value.length)))
+    }
+
+    TextField(
+        value = textFieldValueState.value,
+        onValueChange = { textFieldValue ->
+            textFieldValueState.value = textFieldValue
+
+            onValueChange(textFieldValue.text)
+        },
+        modifier = modifier,
+        textStyle = textStyle ?: LocalTextStyle.current,
+        placeholder = placeholder,
+        leadingIcon = leadingIcon,
+        trailingIcon = if (isError && errorMessage != null) {
+            { TooltipArea(
+                tooltip = {
+                    Surface(modifier = Modifier.shadow(4.dp), elevation = 4.dp) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            text = errorMessage,
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colors.error
+                        )
+                    }
+                },
+                delayMillis = 100,
+                tooltipPlacement = TooltipPlacement.CursorPoint(
+                    alignment = Alignment.CenterStart,
+                    offset = DpOffset((-32).dp, 0.dp)
+                ),
+                content = trailingIcon!!
+            ) }
+        } else trailingIcon,
+        enabled = enabled,
+        isError = isError,
+        visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
+        singleLine = singleLine,
+        colors = colors ?: TextFieldDefaults.textFieldColors()
+    )
+}
