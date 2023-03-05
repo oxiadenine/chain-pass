@@ -49,8 +49,8 @@ actual fun ChainListUnstoreInput(isSingle: Boolean, onUnstore: (FilePath) -> Uni
             verticalArrangement = Arrangement.spacedBy(space = 16.dp)
         ) {
             Button(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 onClick = { fileDialogOpenState.value = true },
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
             ) {
                 Row(

@@ -18,27 +18,22 @@ import io.sunland.chainpass.common.Chain
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListItem(chain: Chain, onSelect: () -> Unit, onRemove: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onSelect)
-            .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-    ) {
+fun ChainListItem(chain: Chain, onSelect: () -> Unit, onRemove: () -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.clickable(onClick = onSelect).pointerHoverIcon(icon = PointerIconDefaults.Hand)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(modifier = Modifier.padding(horizontal = 16.dp), text = chain.name.value)
+            Text(text = chain.name.value, modifier = Modifier.padding(horizontal = 16.dp))
             Row(
                 modifier = Modifier.padding(all = 4.dp),
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onRemove
+                    onClick = onRemove,
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                 ) { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
             }
         }

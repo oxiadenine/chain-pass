@@ -43,22 +43,22 @@ fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: () -> Unit, onCancel:
     val passwordState = remember { mutableStateOf(chainLink.password.value) }
     val passwordValidationState = remember { mutableStateOf(chainLink.password.validation)}
 
-    val onNameChange = { value: String ->
-        chainLink.name = ChainLink.Name(value)
+    val onNameChange = { name: String ->
+        chainLink.name = ChainLink.Name(name)
 
         nameState.value = chainLink.name.value
         nameValidationState.value = chainLink.name.validation
     }
 
-    val onDescriptionChange = { value: String ->
-        chainLink.description = ChainLink.Description(value)
+    val onDescriptionChange = { description: String ->
+        chainLink.description = ChainLink.Description(description)
 
         descriptionState.value = chainLink.description.value
         descriptionValidationState.value = chainLink.description.validation
     }
 
-    val onPasswordChange = { value: String ->
-        chainLink.password = ChainLink.Password(value)
+    val onPasswordChange = { password: String ->
+        chainLink.password = ChainLink.Password(password)
 
         passwordState.value = chainLink.password.value
         passwordValidationState.value = chainLink.password.validation
@@ -114,15 +114,18 @@ fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: () -> Unit, onCancel:
         ) {
             val focusRequester = remember { FocusRequester() }
 
-            if (chainLink.isLatest) {
-                LaunchedEffect(Unit) { focusRequester.requestFocus() }
+            LaunchedEffect(focusRequester) {
+                focusRequester.requestFocus()
             }
 
             ValidationTextField(
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
-                placeholder = { Text(text = "Name") },
                 value = nameState.value,
                 onValueChange = onNameChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester = focusRequester)
+                    .onKeyEvent(onKeyEvent = onKeyEvent),
+                placeholder = { Text(text = "Name") },
                 trailingIcon = if (nameValidationState.value.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
@@ -138,10 +141,10 @@ fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: () -> Unit, onCancel:
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             ValidationTextField(
-                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent),
-                placeholder = { Text(text = "Description", fontSize = 14.sp) },
                 value = descriptionState.value,
                 onValueChange = onDescriptionChange,
+                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent = onKeyEvent),
+                placeholder = { Text(text = "Description") },
                 trailingIcon = if (descriptionValidationState.value.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
@@ -158,17 +161,17 @@ fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: () -> Unit, onCancel:
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             ValidationTextField(
-                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent),
-                placeholder = { Text(text = "Password") },
                 value = passwordState.value,
                 onValueChange = onPasswordChange,
+                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent = onKeyEvent),
+                placeholder = { Text(text = "Password") },
                 leadingIcon = {
                     IconButton(
+                        onClick = { onPasswordChange(chainLink.generatePassword()) },
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                            .onPreviewKeyEvent(onPreviewKeyEvent = onPreviewKeyEvent),
-                        onClick = { onPasswordChange(chainLink.generatePassword()) }
+                            .onPreviewKeyEvent(onPreviewKeyEvent = onPreviewKeyEvent)
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
                 trailingIcon = if (passwordValidationState.value.isFailure) {

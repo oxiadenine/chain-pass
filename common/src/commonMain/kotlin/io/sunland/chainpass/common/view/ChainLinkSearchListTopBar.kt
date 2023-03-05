@@ -22,11 +22,14 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkSearchListTopBar(keywordState: MutableState<String>, onBack: () -> Unit, onSearch: (String) -> Unit) {
-    val focusRequester = remember { FocusRequester() }
-
-    val onSearchChange = { value: String ->
-        keywordState.value = value
+fun ChainLinkSearchListTopBar(
+    keywordState: MutableState<String>,
+    onBack: () -> Unit,
+    onSearch: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val onSearchChange = { keyword: String ->
+        keywordState.value = keyword
 
         onSearch(keywordState.value)
     }
@@ -47,21 +50,27 @@ fun ChainLinkSearchListTopBar(keywordState: MutableState<String>, onBack: () -> 
         } else false
     }
 
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
-
     TopAppBar(
-        modifier = Modifier.fillMaxWidth(),
         title = {
+            val focusRequester = remember { FocusRequester() }
+
+            LaunchedEffect(focusRequester) {
+                focusRequester.requestFocus()
+            }
+
             TextField(
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
-                placeholder = { Text(text = "Search") },
                 value = keywordState.value,
                 onValueChange = onSearchChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester = focusRequester)
+                    .onKeyEvent(onKeyEvent = onKeyEvent),
+                placeholder = { Text(text = "Search") },
                 trailingIcon = if (keywordState.value.isNotEmpty()) {
                     {
                         IconButton(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                            onClick = onClear
+                            onClick = onClear,
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                         ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
                     }
                 } else null,
@@ -77,10 +86,11 @@ fun ChainLinkSearchListTopBar(keywordState: MutableState<String>, onBack: () -> 
                 keyboardActions = KeyboardActions(onSearch = { onSearch(keywordState.value) })
             )
         },
+        modifier = modifier,
         navigationIcon = {
             IconButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onBack
+                onClick = onBack,
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,

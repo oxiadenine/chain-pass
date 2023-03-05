@@ -38,133 +38,31 @@ fun ChainLinkList(
     settingsState: MutableState<Settings>,
     navigationState: NavigationState,
     snackbarHostState: SnackbarHostState,
-    popupHostState: PopupHostState
+    popupHostState: PopupHostState,
+    modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
 
     val chainLinkListActionState = remember { mutableStateOf(ChainLinkListAction.NONE) }
 
-    val isWorkInProgressState = remember { mutableStateOf(false) }
+    val isLoadingIndicatorVisibleState = remember { mutableStateOf(false) }
     val isInputDialogVisibleState = remember { mutableStateOf(false) }
 
-    if (isWorkInProgressState.value) {
-        LoadingIndicator()
-    }
-
-    if (isInputDialogVisibleState.value) {
-        when (chainLinkListActionState.value) {
-            ChainLinkListAction.NEW -> {
-                val chainLink = viewModel.draft()
-
-                ChainLinkListItemNewInput(
-                    chainLink = chainLink,
-                    onNew = {
-                        isInputDialogVisibleState.value = false
-
-                        coroutineScope.launch(Dispatchers.IO) {
-                            isWorkInProgressState.value = true
-
-                            viewModel.new(chainLink)
-
-                            isWorkInProgressState.value = false
-                        }
-                    },
-                    onCancel = { isInputDialogVisibleState.value = false }
-                )
-            }
-            ChainLinkListAction.EDIT -> {
-                val chainLink = viewModel.chainLinkSelected!!
-
-                ChainLinkListItemEditInput(
-                    chainLink = chainLink,
-                    onEdit = {
-                        isInputDialogVisibleState.value = false
-
-                        coroutineScope.launch(Dispatchers.IO) {
-                            isWorkInProgressState.value = true
-
-                            viewModel.edit(chainLink)
-
-                            isWorkInProgressState.value = false
-                        }
-                    },
-                    onCancel = {
-                        isInputDialogVisibleState.value = false
-
-                        viewModel.cancelEdit(chainLink)
-                    }
-                )
-            }
-            ChainLinkListAction.STORE -> ChainListStoreInput(
-                isSingle = true,
-                onStore = { storeOptions ->
-                    snackbarHostState.currentSnackbarData?.dismiss()
-
-                    isInputDialogVisibleState.value = false
-
-                    coroutineScope.launch(Dispatchers.IO) {
-                        isWorkInProgressState.value = true
-
-                        viewModel.store(storeOptions).onSuccess { fileName ->
-                            isWorkInProgressState.value = false
-
-                            popupHostState.currentPopupData?.dismiss()
-                            popupHostState.showPopup(message = "Stored to $fileName")
-                        }.onFailure { exception ->
-                            isWorkInProgressState.value = false
-
-                            popupHostState.currentPopupData?.dismiss()
-                            popupHostState.showPopup(message = exception.message ?: "Error")
-                        }
-                    }
-                },
-                onCancel = { isInputDialogVisibleState.value = false }
-            )
-            ChainLinkListAction.UNSTORE -> ChainListUnstoreInput(
-                isSingle = true,
-                onUnstore = { filePath ->
-                    snackbarHostState.currentSnackbarData?.dismiss()
-
-                    isInputDialogVisibleState.value = false
-
-                    coroutineScope.launch(Dispatchers.IO) {
-                        isWorkInProgressState.value = true
-
-                        viewModel.unstore(filePath).onSuccess {
-                            viewModel.getAll()
-
-                            isWorkInProgressState.value = false
-
-                            popupHostState.currentPopupData?.dismiss()
-                            popupHostState.showPopup(message = "Unstored from ${filePath.fileName}")
-                        }.onFailure { exception ->
-                            isWorkInProgressState.value = false
-
-                            popupHostState.currentPopupData?.dismiss()
-                            popupHostState.showPopup(message = exception.message ?: "Error")
-                        }
-                    }
-                },
-                onCancel = { isInputDialogVisibleState.value = false }
-            )
-            ChainLinkListAction.NONE -> Unit
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        isWorkInProgressState.value = true
+    LaunchedEffect(viewModel) {
+        isLoadingIndicatorVisibleState.value = true
 
         viewModel.getAll()
 
-        isWorkInProgressState.value = false
+        isLoadingIndicatorVisibleState.value = false
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier) {
         if (viewModel.isSearchState.value) {
             ChainLinkSearchListTopBar(
                 keywordState = viewModel.searchKeywordState,
                 onBack = { viewModel.endSearch() },
-                onSearch = { keyword -> viewModel.search(keyword) }
+                onSearch = { keyword -> viewModel.search(keyword) },
+                modifier = Modifier.fillMaxWidth()
             )
         } else {
             ChainLinkListTopBar(
@@ -184,14 +82,14 @@ fun ChainLinkList(
                             popupHostState.currentPopupData?.dismiss()
                             popupHostState.showPopup(message = "You have to set sync options on Settings")
                         } else {
-                            isWorkInProgressState.value = true
+                            isLoadingIndicatorVisibleState.value = true
 
                             viewModel.sync(settingsState.value.deviceAddress).onSuccess {
                                 viewModel.getAll()
 
-                                isWorkInProgressState.value = false
+                                isLoadingIndicatorVisibleState.value = false
                             }.onFailure { exception ->
-                                isWorkInProgressState.value = false
+                                isLoadingIndicatorVisibleState.value = false
 
                                 popupHostState.currentPopupData?.dismiss()
                                 popupHostState.showPopup(message = exception.message ?: "Error")
@@ -212,7 +110,8 @@ fun ChainLinkList(
                 onUnstore = {
                     chainLinkListActionState.value = ChainLinkListAction.UNSTORE
                     isInputDialogVisibleState.value = true
-                }
+                },
+                modifier = Modifier.fillMaxWidth()
             )
         }
 
@@ -238,12 +137,13 @@ fun ChainLinkList(
                     }
                 }
             } else {
-                LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
+                LazyColumn(state = lazyListState, modifier = Modifier.fillMaxWidth()) {
                     items(items = chainLinks, key = { chainLink -> chainLink.id }) { chainLink ->
                         if (viewModel.isSearchState.value) {
                             ChainLinkSearchListItem(
                                 chainLink = chainLink,
-                                onSelect = { viewModel.endSearch(chainLink) }
+                                onSelect = { viewModel.endSearch(chainLink) },
+                                modifier = Modifier.fillMaxWidth()
                             )
                         } else {
                             val clipboardManager = LocalClipboardManager.current
@@ -252,11 +152,11 @@ fun ChainLinkList(
                                 chainLink = chainLink,
                                 onEdit = {
                                     coroutineScope.launch(Dispatchers.IO) {
-                                        isWorkInProgressState.value = true
+                                        isLoadingIndicatorVisibleState.value = true
 
                                         viewModel.startEdit(chainLink)
 
-                                        isWorkInProgressState.value = false
+                                        isLoadingIndicatorVisibleState.value = false
 
                                         chainLinkListActionState.value = ChainLinkListAction.EDIT
                                         isInputDialogVisibleState.value = true
@@ -288,7 +188,8 @@ fun ChainLinkList(
                                     coroutineScope.launch(Dispatchers.IO) {
                                         popupHostState.showPopup(message = "Password copied")
                                     }
-                                }
+                                },
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
                     }
@@ -300,8 +201,9 @@ fun ChainLinkList(
                     viewModel.chainLinkSearchListState.size
                 ) { lazyListState.animateScrollToItem(0) }
 
-                viewModel.chainLinkLatestIndex.takeIf { index -> index != -1 }?.let { index ->
+                viewModel.chainLinkSelectedIndex.takeIf { index -> index != -1 }?.let { index ->
                     LaunchedEffect(index) {
+                        println("search")
                         lazyListState.animateScrollToItem(index)
                     }
                 }
@@ -390,5 +292,109 @@ fun ChainLinkList(
                 }
             )
         }
+    }
+
+    if (isInputDialogVisibleState.value) {
+        when (chainLinkListActionState.value) {
+            ChainLinkListAction.NEW -> {
+                val chainLink = viewModel.draft()
+
+                ChainLinkListItemNewInput(
+                    chainLink = chainLink,
+                    onNew = {
+                        isInputDialogVisibleState.value = false
+
+                        coroutineScope.launch(Dispatchers.IO) {
+                            isLoadingIndicatorVisibleState.value = true
+
+                            viewModel.new(chainLink)
+
+                            isLoadingIndicatorVisibleState.value = false
+                        }
+                    },
+                    onCancel = { isInputDialogVisibleState.value = false }
+                )
+            }
+            ChainLinkListAction.EDIT -> {
+                val chainLink = viewModel.chainLinkSelected!!
+
+                ChainLinkListItemEditInput(
+                    chainLink = chainLink,
+                    onEdit = {
+                        isInputDialogVisibleState.value = false
+
+                        coroutineScope.launch(Dispatchers.IO) {
+                            isLoadingIndicatorVisibleState.value = true
+
+                            viewModel.edit(chainLink)
+
+                            isLoadingIndicatorVisibleState.value = false
+                        }
+                    },
+                    onCancel = {
+                        isInputDialogVisibleState.value = false
+
+                        viewModel.cancelEdit(chainLink)
+                    }
+                )
+            }
+            ChainLinkListAction.STORE -> ChainListStoreInput(
+                isSingle = true,
+                onStore = { storeOptions ->
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
+                    isInputDialogVisibleState.value = false
+
+                    coroutineScope.launch(Dispatchers.IO) {
+                        isLoadingIndicatorVisibleState.value = true
+
+                        viewModel.store(storeOptions).onSuccess { fileName ->
+                            isLoadingIndicatorVisibleState.value = false
+
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = "Stored to $fileName")
+                        }.onFailure { exception ->
+                            isLoadingIndicatorVisibleState.value = false
+
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = exception.message ?: "Error")
+                        }
+                    }
+                },
+                onCancel = { isInputDialogVisibleState.value = false }
+            )
+            ChainLinkListAction.UNSTORE -> ChainListUnstoreInput(
+                isSingle = true,
+                onUnstore = { filePath ->
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
+                    isInputDialogVisibleState.value = false
+
+                    coroutineScope.launch(Dispatchers.IO) {
+                        isLoadingIndicatorVisibleState.value = true
+
+                        viewModel.unstore(filePath).onSuccess {
+                            viewModel.getAll()
+
+                            isLoadingIndicatorVisibleState.value = false
+
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = "Unstored from ${filePath.fileName}")
+                        }.onFailure { exception ->
+                            isLoadingIndicatorVisibleState.value = false
+
+                            popupHostState.currentPopupData?.dismiss()
+                            popupHostState.showPopup(message = exception.message ?: "Error")
+                        }
+                    }
+                },
+                onCancel = { isInputDialogVisibleState.value = false }
+            )
+            ChainLinkListAction.NONE -> Unit
+        }
+    }
+
+    if (isLoadingIndicatorVisibleState.value) {
+        LoadingIndicator()
     }
 }

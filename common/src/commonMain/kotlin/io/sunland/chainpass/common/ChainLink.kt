@@ -10,7 +10,7 @@ class ChainLink(val chain: Chain) {
         name = chainLink.name
         description = chainLink.description
         password = chainLink.password
-        isLatest = chainLink.isLatest
+        isSelected = chainLink.isSelected
     }
 
     class Name(value: String? = null) {
@@ -55,7 +55,6 @@ class ChainLink(val chain: Chain) {
     var description = Description()
     var password = Password()
     var isSelected = false
-    var isLatest = false
 
     fun generatePassword() = chain.passwordGenerator.generate()
 

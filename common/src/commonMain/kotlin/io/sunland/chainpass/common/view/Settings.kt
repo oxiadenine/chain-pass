@@ -43,7 +43,7 @@ class DeviceAddress(value: String? = null) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit) {
+fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit, modifier: Modifier = Modifier) {
     val deviceAddressState = remember { mutableStateOf(settings.deviceAddress) }
     val deviceAddressErrorState = remember { mutableStateOf(false) }
 
@@ -79,36 +79,37 @@ fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit)
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier) {
         TopAppBar(
-            modifier = Modifier.fillMaxWidth(),
             title = {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) { Text(text = "Settings") }
             },
+            modifier = Modifier.fillMaxWidth(),
             navigationIcon = {
                 IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onBack
+                    onClick = onBack,
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                 ) { Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null) }
             },
             actions = {
                 IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = { onDone() }
+                    onClick = { onDone() },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                 ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
             }
         )
+
         Box(modifier = Modifier.fillMaxSize()) {
-            val scrollState = rememberScrollState(0)
+            val scrollState = rememberScrollState(initial = 0)
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth(fraction = 0.8f)
                     .padding(vertical = 16.dp)
-                    .align(Alignment.Center)
+                    .align(alignment = Alignment.Center)
                     .verticalScroll(state = scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(space = 32.dp)
@@ -137,11 +138,15 @@ fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit)
                     ) {
                         val focusRequester = remember { FocusRequester() }
 
+                        LaunchedEffect(focusRequester) {
+                            focusRequester.requestFocus()
+                        }
+
                         ValidationTextField(
-                            modifier = Modifier.focusRequester(focusRequester),
-                            placeholder = { Text(text = "Device Address") },
                             value = deviceAddressState.value,
                             onValueChange = onDeviceAddressChange,
+                            modifier = Modifier.focusRequester(focusRequester = focusRequester),
+                            placeholder = { Text(text = "Device Address") },
                             singleLine = true,
                             trailingIcon = if (deviceAddressErrorState.value) {
                                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
@@ -156,8 +161,6 @@ fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit)
                             ),
                             keyboardActions = KeyboardActions(onDone = { onDone() })
                         )
-
-                        LaunchedEffect(Unit) { focusRequester.requestFocus() }
                     }
                 }
                 Text(text = "Password", fontWeight = FontWeight.Bold)
@@ -172,9 +175,9 @@ fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit)
                         Text(text = "Length:")
                         Text(text = passwordLengthState.value.toInt().toString())
                         Slider(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                             value = passwordLengthState.value,
                             onValueChange = onPasswordLengthChange,
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                             valueRange = 8f..32f
                         )
                     }
@@ -184,9 +187,9 @@ fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit)
                     ) {
                         Text(text = "Alphanumeric:")
                         Switch(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                             checked = passwordIsAlphanumericState.value,
-                            onCheckedChange = onPasswordIsAlphanumericChange
+                            onCheckedChange = onPasswordIsAlphanumericChange,
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                         )
                     }
                 }
