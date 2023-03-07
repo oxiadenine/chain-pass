@@ -50,7 +50,7 @@ class PopupHostState {
 @Composable
 fun PopupHost(
     hostState: PopupHostState,
-    popupContent: @Composable (PopupHostState.PopupData) -> Unit
+    popupContent: @Composable (PopupHostState.PopupData) -> Unit = {}
 ) {
     val currentPopupData = hostState.currentPopupData
 

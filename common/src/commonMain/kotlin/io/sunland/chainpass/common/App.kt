@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import io.rsocket.kotlin.RSocketRequestHandler
 import io.rsocket.kotlin.payload.Payload
-import io.sunland.chainpass.common.component.PopupHostState
+import io.sunland.chainpass.common.component.rememberScaffoldListState
 import io.sunland.chainpass.common.network.*
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
@@ -135,12 +135,13 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         storage
                     )
 
-                    ChainList(
+                    val scaffoldListState = rememberScaffoldListState()
+
+                    ChainScaffoldList(
                         viewModel = chainListViewModel,
                         settingsState = settingsState,
                         navigationState = navigationState,
-                        snackbarHostState = SnackbarHostState(),
-                        popupHostState = PopupHostState(),
+                        scaffoldListState = scaffoldListState,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -149,12 +150,13 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         chain = navigationState.chainState.value
                     }
 
-                    ChainLinkList(
+                    val scaffoldListState = rememberScaffoldListState()
+
+                    ChainLinkScaffoldList(
                         viewModel = chainLinkListViewModel,
                         settingsState = settingsState,
                         navigationState = navigationState,
-                        snackbarHostState = SnackbarHostState(),
-                        popupHostState = PopupHostState(),
+                        scaffoldListState = scaffoldListState,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
