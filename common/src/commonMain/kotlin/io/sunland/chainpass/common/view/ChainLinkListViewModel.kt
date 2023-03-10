@@ -132,7 +132,7 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         chainLinkListState.addAll(chainLinks)
     }
 
-    fun new(chainLink: ChainLink) {
+    fun new(chainLink: ChainLink) = withUpdate {
         val secretKey = chainLink.chain.secretKey()
 
         chainLink.password = chainLink.privatePassword(secretKey)
@@ -148,11 +148,9 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         chainLinkRepository.create(chainLinkEntity)
 
         chainLinkListState.add(chainLink)
-
-        update()
     }
 
-    fun edit(chainLink: ChainLink) {
+    fun edit(chainLink: ChainLink) = withUpdate {
         val secretKey = chainLink.chain.secretKey()
 
         chainLink.password = chainLink.privatePassword(secretKey)
@@ -166,11 +164,9 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         )
 
         chainLinkRepository.update(chainLinkEntity)
-
-        update()
     }
 
-    fun remove(chainLink: ChainLink) {
+    fun remove(chainLink: ChainLink) = withUpdate {
         val chainLinkEntity = ChainLinkEntity(
             chainLink.id,
             chainLink.name.value,
@@ -180,8 +176,6 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         )
 
         chainLinkRepository.delete(chainLinkEntity)
-
-        update()
     }
 
     fun store(storeOptions: StoreOptions) = runCatching {
@@ -268,7 +262,9 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         action()
     }
 
-    private fun update() {
+    private fun withUpdate(action: () -> Unit) {
+        action()
+
         val chainLinksRemove = chainLinks.filter { chainLink ->
             !chainLinkListState.any { chainLinkToFind -> chainLink.id == chainLinkToFind.id }
         }
