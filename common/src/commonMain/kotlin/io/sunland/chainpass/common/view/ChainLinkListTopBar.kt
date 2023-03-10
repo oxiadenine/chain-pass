@@ -63,7 +63,7 @@ fun ChainLinkListTopBar(
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(imageVector = Icons.Default.Sync, contentDescription = null)
@@ -80,7 +80,7 @@ fun ChainLinkListTopBar(
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(imageVector = Icons.Default.Archive, contentDescription = null)
@@ -97,7 +97,7 @@ fun ChainLinkListTopBar(
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(imageVector = Icons.Default.Unarchive, contentDescription = null)
