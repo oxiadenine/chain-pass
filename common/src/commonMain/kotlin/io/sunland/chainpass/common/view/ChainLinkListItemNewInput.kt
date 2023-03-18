@@ -22,11 +22,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
@@ -151,7 +149,6 @@ fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: () -> Unit, onCancel:
                 isError = descriptionValidationState.value.isFailure,
                 errorMessage = descriptionValidationState.value.exceptionOrNull()?.message,
                 singleLine = true,
-                textStyle = TextStyle(fontSize = 14.sp),
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
