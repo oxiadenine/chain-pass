@@ -19,7 +19,7 @@ import io.sunland.chainpass.common.Chain
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListItem(chain: Chain, onSelect: () -> Unit, onRemove: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.clickable(onClick = onSelect).pointerHoverIcon(icon = PointerIconDefaults.Hand)) {
+    Column(modifier = modifier.clickable(onClick = onSelect)) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

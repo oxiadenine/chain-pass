@@ -1,5 +1,6 @@
 package io.sunland.chainpass.common.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
@@ -25,7 +26,7 @@ fun ChainLinkListItem(
     onPasswordCopy: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier) {
+    Column(modifier = modifier.clickable {}) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
