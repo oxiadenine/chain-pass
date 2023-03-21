@@ -7,6 +7,7 @@ import io.sunland.chainpass.common.network.ChainLinkApi
 import io.sunland.chainpass.common.network.WebSocket
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
+import kotlinx.coroutines.coroutineScope
 import java.lang.IllegalStateException
 
 class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepository, private val storage: Storage) {
@@ -32,7 +33,7 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         chainLinkListState.clear()
     }
 
-    fun draft() = ChainLink(chain!!)
+    fun draft() = ChainLink(chain!!).apply { isDraft = true }
 
     fun startEdit(chainLink: ChainLink) {
         chainLinkEdited = ChainLink(chain!!).apply {
@@ -113,7 +114,7 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         chainLinkListState.addAll(chainLinks)
     }
 
-    fun new(chainLinkDraft: ChainLink) {
+    suspend fun new(chainLinkDraft: ChainLink) = coroutineScope {
         val secretKey = chainLinkDraft.chain.secretKey()
 
         chainLinkDraft.password = chainLinkDraft.privatePassword(secretKey)
@@ -126,11 +127,22 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
             chainLinkDraft.chain.id
         )
 
-        chainLinkRepository.create(chainLinkEntity)
-
         chainLinkSelected = ChainLink(chainLinkDraft)
 
-        val chainLinks = chainLinkListState.plus(chainLinkSelected!!).sortedBy { chainLink -> chainLink.name.value }
+        var chainLinks = chainLinkListState.plus(chainLinkSelected!!).sortedBy { chainLink -> chainLink.name.value }
+
+        chainLinkListState.clear()
+        chainLinkListState.addAll(chainLinks)
+
+        chainLinkRepository.create(chainLinkEntity)
+
+        chainLinks = chainLinkListState.map { chainLink ->
+            if (chainLink.id == chainLinkDraft.id) {
+                chainLink.isDraft = false
+            }
+
+            chainLink
+        }.sortedBy { chainLink -> chainLink.name.value }
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)

@@ -231,11 +231,7 @@ fun ChainScaffoldList(
                             isInputDialogVisibleState.value = false
 
                             coroutineScope.launch(Dispatchers.IO) {
-                                isLoadingIndicatorVisibleState.value = true
-
                                 viewModel.new(chain)
-
-                                isLoadingIndicatorVisibleState.value = false
                             }
                         },
                         onCancel = { isInputDialogVisibleState.value = false }
