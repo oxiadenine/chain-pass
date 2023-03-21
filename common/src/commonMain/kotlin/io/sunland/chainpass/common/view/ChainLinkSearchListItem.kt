@@ -12,13 +12,14 @@ import io.sunland.chainpass.common.ChainLink
 @Composable
 fun ChainLinkSearchListItem(chainLink: ChainLink, onSelect: () -> Unit, modifier: Modifier = Modifier) {
     Column(modifier = modifier.clickable(onClick = onSelect)) {
-        Text(modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp), text = chainLink.name.value)
         if (chainLink.description.value.isNotEmpty()) {
-            Text(
-                text = chainLink.description.value,
-                modifier = Modifier.padding(all = 16.dp),
-                fontSize = 14.sp
-            )
-        }
+            Column(
+                modifier = Modifier.padding(vertical = 6.dp, horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(space = 4.dp)
+            ) {
+                Text(text = chainLink.name.value)
+                Text(text = chainLink.description.value, fontSize = 14.sp)
+            }
+        } else Text(text = chainLink.name.value, modifier = Modifier.padding(all = 16.dp))
     }
 }
