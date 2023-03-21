@@ -250,12 +250,10 @@ fun ChainScaffoldList(
                         coroutineScope.launch(Dispatchers.IO) {
                             isLoadingIndicatorVisibleState.value = true
 
-                            val chain = viewModel.chainSelected!!.apply { key = chainKey }
-
-                            viewModel.select(chain).onSuccess {
+                            viewModel.select(chainKey).onSuccess {
                                 isLoadingIndicatorVisibleState.value = false
 
-                                navigationState.chainState.value = chain
+                                navigationState.chainState.value = viewModel.chainSelected!!
                                 navigationState.screenState.value = Screen.CHAIN_LINK_LIST
                             }.onFailure { exception ->
                                 isLoadingIndicatorVisibleState.value = false
@@ -274,18 +272,16 @@ fun ChainScaffoldList(
                         isInputDialogVisibleState.value = false
 
                         coroutineScope.launch(Dispatchers.IO) {
-                            val chain = viewModel.chainSelected!!.apply { key = chainKey }
-
-                            viewModel.removeLater(chain)
+                            viewModel.removeLater(chainKey)
 
                             when (scaffoldListState.snackbarHostState.showSnackbar(
-                                message = "${chain.name.value} removed",
+                                message = "${viewModel.chainSelected!!.name.value} removed",
                                 actionLabel = "Undo",
                                 duration = SnackbarDuration.Short
                             )) {
-                                SnackbarResult.ActionPerformed -> viewModel.undoRemove(chain)
-                                SnackbarResult.Dismissed -> viewModel.remove(chain).onFailure { exception ->
-                                    viewModel.undoRemove(chain)
+                                SnackbarResult.ActionPerformed -> viewModel.undoRemove()
+                                SnackbarResult.Dismissed -> viewModel.remove().onFailure { exception ->
+                                    viewModel.undoRemove()
 
                                     scaffoldListState.popupHostState.currentPopupData?.dismiss()
                                     scaffoldListState.popupHostState.showPopup(message = exception.message ?: "Error")
