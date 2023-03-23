@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.NavigationState
 import io.sunland.chainpass.common.Screen
-import io.sunland.chainpass.common.Settings
+import io.sunland.chainpass.common.SettingsState
 import io.sunland.chainpass.common.component.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,7 +34,7 @@ enum class ChainListAction { NONE, NEW, SELECT, REMOVE, STORE, UNSTORE }
 @Composable
 fun ChainScaffoldList(
     viewModel: ChainListViewModel,
-    settingsState: MutableState<Settings>,
+    settingsState: SettingsState,
     navigationState: NavigationState,
     scaffoldListState: ScaffoldListState,
     modifier: Modifier = Modifier
@@ -110,7 +110,7 @@ fun ChainScaffoldList(
                     scaffoldListState.snackbarHostState.currentSnackbarData?.performAction()
 
                     coroutineScope.launch(Dispatchers.IO) {
-                        if (settingsState.value.deviceAddress.isEmpty()) {
+                        if (settingsState.deviceAddressState.value.isEmpty()) {
                             scaffoldListState.popupHostState.currentPopupData?.dismiss()
                             scaffoldListState.popupHostState.showPopup(
                                 message = "You have to set Device Address on Settings"
@@ -118,7 +118,7 @@ fun ChainScaffoldList(
                         } else {
                             isLoadingIndicatorVisibleState.value = true
 
-                            viewModel.sync(settingsState.value.deviceAddress).onSuccess {
+                            viewModel.sync(settingsState.deviceAddressState.value).onSuccess {
                                 viewModel.getAll()
 
                                 isLoadingIndicatorVisibleState.value = false

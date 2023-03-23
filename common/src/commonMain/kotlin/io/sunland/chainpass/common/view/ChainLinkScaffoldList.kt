@@ -34,7 +34,7 @@ enum class ChainLinkListAction { NONE, NEW, EDIT, STORE, UNSTORE }
 @Composable
 fun ChainLinkScaffoldList(
     viewModel: ChainLinkListViewModel,
-    settingsState: MutableState<Settings>,
+    settingsState: SettingsState,
     navigationState: NavigationState,
     scaffoldListState: ScaffoldListState,
     modifier: Modifier = Modifier
@@ -120,13 +120,13 @@ fun ChainLinkScaffoldList(
                         scaffoldListState.snackbarHostState.currentSnackbarData?.performAction()
 
                         coroutineScope.launch(Dispatchers.IO) {
-                            if (settingsState.value.deviceAddress.isEmpty()) {
+                            if (settingsState.deviceAddressState.value.isEmpty()) {
                                 scaffoldListState.popupHostState.currentPopupData?.dismiss()
                                 scaffoldListState.popupHostState.showPopup(message = "You have to set sync options on Settings")
                             } else {
                                 isLoadingIndicatorVisibleState.value = true
 
-                                viewModel.sync(settingsState.value.deviceAddress).onSuccess {
+                                viewModel.sync(settingsState.deviceAddressState.value).onSuccess {
                                     viewModel.getAll()
 
                                     isLoadingIndicatorVisibleState.value = false
