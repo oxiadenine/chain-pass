@@ -36,6 +36,7 @@ fun ChainScaffoldList(
     viewModel: ChainListViewModel,
     settingsState: SettingsState,
     navigationState: NavigationState,
+    drawerState: DrawerState,
     scaffoldListState: ScaffoldListState,
     modifier: Modifier = Modifier
 ) {
@@ -101,10 +102,12 @@ fun ChainScaffoldList(
         topBar = {
             ChainListTopBar(
                 title = "Chain Pass",
-                onSettings = {
+                onMenu = {
                     scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                    navigationState.screenState.value = Screen.SETTINGS
+                    coroutineScope.launch {
+                        drawerState.open()
+                    }
                 },
                 onSync = {
                     scaffoldListState.snackbarHostState.currentSnackbarData?.performAction()

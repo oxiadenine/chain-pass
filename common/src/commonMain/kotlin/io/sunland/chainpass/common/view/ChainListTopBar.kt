@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ChainListTopBar(
     title: String,
-    onSettings: () -> Unit,
+    onMenu: () -> Unit,
     onSync: () -> Unit,
     onStore: () -> Unit,
     onUnstore: () -> Unit,
@@ -33,9 +33,9 @@ fun ChainListTopBar(
         modifier = modifier,
         navigationIcon = {
             IconButton(
-                onClick = onSettings,
+                onClick = onMenu,
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
-            ) { Icon(imageVector = Icons.Default.Settings, contentDescription = null) }
+            ) { Icon(imageVector = Icons.Default.Menu, contentDescription = null) }
         },
         actions = {
             IconButton(
