@@ -1,6 +1,8 @@
 package io.sunland.chainpass.common.network
 
 import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.cio.CIO
+import io.ktor.server.cio.*
 import io.ktor.utils.io.core.*
 import io.rsocket.kotlin.ConnectionAcceptorContext
 import io.rsocket.kotlin.ExperimentalMetadataApi
@@ -15,9 +17,7 @@ import io.rsocket.kotlin.payload.buildPayload
 import io.rsocket.kotlin.payload.data
 import io.rsocket.kotlin.transport.ktor.websocket.client.WebSocketClientTransport
 import io.rsocket.kotlin.transport.ktor.websocket.server.WebSocketServerTransport
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -32,11 +32,13 @@ object WebSocket {
         CHAIN_LINK_SYNC("chain.links.sync")
     }
 
-    suspend fun getLocalHost() = withContext(Dispatchers.IO) {
-        DatagramSocket().use { socket ->
+    fun getLocalHost() = runCatching {
+        val hostAddress = DatagramSocket().use { socket ->
             socket.connect(InetAddress.getByName("8.8.8.8"), 8888)
             socket.localAddress.hostAddress!!
         }
+
+        if (hostAddress.contains("::")) "" else hostAddress
     }
 
     suspend fun connect(socketHost: String): RSocket {
@@ -46,12 +48,11 @@ object WebSocket {
         return connector.connect(transport)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun start(socketHost: String, acceptor: ConnectionAcceptorContext.() -> RSocket) {
+    suspend fun start(socketHost: String, acceptor: ConnectionAcceptorContext.() -> RSocket) = coroutineScope {
         val transport = WebSocketServerTransport(io.ktor.server.cio.CIO, PORT, socketHost)
         val connector = RSocketServer()
 
-        connector.bind(transport, acceptor)
+        connector.bindIn(this, transport, acceptor)
     }
 }
 
