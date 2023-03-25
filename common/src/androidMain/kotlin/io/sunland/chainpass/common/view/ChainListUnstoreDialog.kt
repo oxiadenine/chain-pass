@@ -18,7 +18,7 @@ import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.common.component.InputDialog
 
 @Composable
-actual fun ChainListUnstoreInput(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onCancel: () -> Unit) {
+actual fun ChainListUnstoreDialog(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onCancel: () -> Unit) {
     val filePathState = remember { mutableStateOf("") }
     val filePathErrorState = remember { mutableStateOf(false) }
 
@@ -35,10 +35,15 @@ actual fun ChainListUnstoreInput(isSingle: Boolean, onUnstore: (FilePath) -> Uni
     InputDialog(
         onDismissRequest = onCancel,
         onConfirmRequest = onDone,
-        title = if (isSingle) "Single Unstore" else "Multiple Unstore"
+        title = {
+            Text(
+                text = if (isSingle) "Single Unstore" else "Multiple Unstore",
+                modifier = Modifier.padding(all = 16.dp)
+            )
+        }
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(space = 16.dp)
         ) {

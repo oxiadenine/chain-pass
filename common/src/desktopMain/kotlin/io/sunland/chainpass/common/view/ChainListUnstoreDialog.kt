@@ -22,7 +22,7 @@ import javax.swing.filechooser.FileNameExtensionFilter
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-actual fun ChainListUnstoreInput(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onCancel: () -> Unit) {
+actual fun ChainListUnstoreDialog(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onCancel: () -> Unit) {
     val fileDialogOpenState = remember { mutableStateOf(false) }
 
     val filePathState = remember { mutableStateOf("") }
@@ -41,10 +41,15 @@ actual fun ChainListUnstoreInput(isSingle: Boolean, onUnstore: (FilePath) -> Uni
     InputDialog(
         onDismissRequest = onCancel,
         onConfirmRequest = onDone,
-        title = if (isSingle) "Single Unstore" else "Multiple Unstore"
+        title = {
+            Text(
+                text = if (isSingle) "Single Unstore" else "Multiple Unstore",
+                modifier = Modifier.padding(all = 16.dp)
+            )
+        }
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(space = 16.dp)
         ) {

@@ -22,7 +22,7 @@ data class StoreOptions(val type: StorageType, val isPrivate: Boolean, val isSin
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCancel: () -> Unit) {
+fun ChainListStoreDialog(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCancel: () -> Unit) {
     val isStoreTypeMenuExpandedState = remember { mutableStateOf(false) }
 
     val storeTypeState = remember { mutableStateOf(StorageType.JSON) }
@@ -45,10 +45,15 @@ fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCa
     InputDialog(
         onDismissRequest = onCancel,
         onConfirmRequest = onDone,
-        title = if (isSingle) "Single Store" else "Multiple Store"
+        title = {
+            Text(
+                text = if (isSingle) "Single Store" else "Multiple Store",
+                modifier = Modifier.padding(all = 16.dp)
+            )
+        }
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(space = 16.dp)
         ) {

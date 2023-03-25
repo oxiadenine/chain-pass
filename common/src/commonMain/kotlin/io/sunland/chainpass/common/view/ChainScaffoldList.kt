@@ -44,7 +44,7 @@ fun ChainScaffoldList(
 
     val chainListActionState = remember { mutableStateOf(ChainListAction.SELECT) }
 
-    val isInputDialogVisibleState = remember { mutableStateOf(false) }
+    val isDialogVisibleState = remember { mutableStateOf(false) }
     val isLoadingIndicatorVisibleState = remember { mutableStateOf(false) }
 
     LaunchedEffect(viewModel) {
@@ -136,11 +136,11 @@ fun ChainScaffoldList(
                 },
                 onStore = {
                     chainListActionState.value = ChainListAction.STORE
-                    isInputDialogVisibleState.value = true
+                    isDialogVisibleState.value = true
                 },
                 onUnstore = {
                     chainListActionState.value = ChainListAction.UNSTORE
-                    isInputDialogVisibleState.value = true
+                    isDialogVisibleState.value = true
                 },
                 modifier = Modifier.fillMaxWidth()
             )
@@ -178,7 +178,7 @@ fun ChainScaffoldList(
                     FloatingActionButton(
                         onClick = {
                             chainListActionState.value = ChainListAction.NEW
-                            isInputDialogVisibleState.value = true
+                            isDialogVisibleState.value = true
                         },
                         modifier = Modifier
                             .padding(end = 16.dp, bottom = if (isSnackbarVisible) 80.dp else 16.dp)
@@ -207,13 +207,13 @@ fun ChainScaffoldList(
                             viewModel.selectForKey(chain)
 
                             chainListActionState.value = ChainListAction.SELECT
-                            isInputDialogVisibleState.value = true
+                            isDialogVisibleState.value = true
                         },
                         onRemove = {
                             viewModel.selectForKey(chain)
 
                             chainListActionState.value = ChainListAction.REMOVE
-                            isInputDialogVisibleState.value = true
+                            isDialogVisibleState.value = true
                         },
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -225,26 +225,26 @@ fun ChainScaffoldList(
             }
         }
 
-        if (isInputDialogVisibleState.value) {
+        if (isDialogVisibleState.value) {
             when (chainListActionState.value) {
                 ChainListAction.NEW -> {
-                    ChainListItemNewInput(
+                    ChainListItemNewDialog(
                         chain = viewModel.draft(),
                         onNew = { chain ->
-                            isInputDialogVisibleState.value = false
+                            isDialogVisibleState.value = false
 
                             coroutineScope.launch(Dispatchers.IO) {
                                 viewModel.new(chain)
                             }
                         },
-                        onCancel = { isInputDialogVisibleState.value = false }
+                        onCancel = { isDialogVisibleState.value = false }
                     )
                 }
-                ChainListAction.SELECT -> ChainListItemKeyInput(
+                ChainListAction.SELECT -> ChainListItemKeyDialog(
                     onKey = { chainKey ->
                         scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                        isInputDialogVisibleState.value = false
+                        isDialogVisibleState.value = false
 
                         coroutineScope.launch(Dispatchers.IO) {
                             isLoadingIndicatorVisibleState.value = true
@@ -262,13 +262,13 @@ fun ChainScaffoldList(
                             }
                         }
                     },
-                    onCancel = { isInputDialogVisibleState.value = false }
+                    onCancel = { isDialogVisibleState.value = false }
                 )
-                ChainListAction.REMOVE -> ChainListItemKeyInput(
+                ChainListAction.REMOVE -> ChainListItemKeyDialog(
                     onKey = { chainKey ->
                         scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                        isInputDialogVisibleState.value = false
+                        isDialogVisibleState.value = false
 
                         coroutineScope.launch(Dispatchers.IO) {
                             viewModel.removeLater(chainKey)
@@ -288,14 +288,14 @@ fun ChainScaffoldList(
                             }
                         }
                     },
-                    onCancel = { isInputDialogVisibleState.value = false }
+                    onCancel = { isDialogVisibleState.value = false }
                 )
-                ChainListAction.STORE -> ChainListStoreInput(
+                ChainListAction.STORE -> ChainListStoreDialog(
                     isSingle = false,
                     onStore = { storeOptions ->
                         scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                        isInputDialogVisibleState.value = false
+                        isDialogVisibleState.value = false
 
                         coroutineScope.launch(Dispatchers.IO) {
                             isLoadingIndicatorVisibleState.value = true
@@ -313,14 +313,14 @@ fun ChainScaffoldList(
                             }
                         }
                     },
-                    onCancel = { isInputDialogVisibleState.value = false }
+                    onCancel = { isDialogVisibleState.value = false }
                 )
-                ChainListAction.UNSTORE -> ChainListUnstoreInput(
+                ChainListAction.UNSTORE -> ChainListUnstoreDialog(
                     isSingle = false,
                     onUnstore = { filePath ->
                         scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                        isInputDialogVisibleState.value = false
+                        isDialogVisibleState.value = false
 
                         coroutineScope.launch(Dispatchers.IO) {
                             isLoadingIndicatorVisibleState.value = true
@@ -340,7 +340,7 @@ fun ChainScaffoldList(
                             }
                         }
                     },
-                    onCancel = { isInputDialogVisibleState.value = false }
+                    onCancel = { isDialogVisibleState.value = false }
                 )
                 ChainListAction.NONE -> Unit
             }

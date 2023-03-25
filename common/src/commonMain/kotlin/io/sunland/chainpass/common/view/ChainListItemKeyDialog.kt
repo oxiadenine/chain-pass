@@ -3,6 +3,7 @@ package io.sunland.chainpass.common.view
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -33,7 +34,7 @@ import io.sunland.chainpass.common.component.ValidationTextField
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListItemKeyInput(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
+fun ChainListItemKeyDialog(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
     var chainKey = Chain.Key()
 
     val keyState = remember { mutableStateOf(chainKey.value) }
@@ -82,7 +83,7 @@ fun ChainListItemKeyInput(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
 
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
