@@ -23,14 +23,13 @@ fun ChainLinkListTopBar(
     onSync: () -> Unit,
     onSearch: () -> Unit,
     onStore: () -> Unit,
-    onUnstore: () -> Unit,
-    modifier: Modifier = Modifier
+    onUnstore: () -> Unit
 ) {
     val isActionMenuExpandedState = remember { mutableStateOf(false) }
 
     TopAppBar(
         title = { Text(text = title) },
-        modifier = modifier,
+        modifier = Modifier.fillMaxWidth(),
         navigationIcon = {
             IconButton(
                 onClick = onBack,

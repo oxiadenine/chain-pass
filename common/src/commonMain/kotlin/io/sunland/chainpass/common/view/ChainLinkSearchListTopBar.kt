@@ -25,8 +25,7 @@ import androidx.compose.ui.unit.sp
 fun ChainLinkSearchListTopBar(
     keywordState: MutableState<String>,
     onBack: () -> Unit,
-    onSearch: (String) -> Unit,
-    modifier: Modifier = Modifier
+    onSearch: (String) -> Unit
 ) {
     val onSearchChange = { keyword: String ->
         keywordState.value = keyword
@@ -38,16 +37,6 @@ fun ChainLinkSearchListTopBar(
         keywordState.value = ""
 
         onSearch(keywordState.value)
-    }
-
-    val onKeyEvent = { keyEvent: KeyEvent ->
-        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
-            if (keywordState.value.isEmpty()) {
-                onBack()
-            } else onClear()
-
-            true
-        } else false
     }
 
     TopAppBar(
@@ -64,7 +53,15 @@ fun ChainLinkSearchListTopBar(
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester = focusRequester)
-                    .onKeyEvent(onKeyEvent = onKeyEvent),
+                    .onKeyEvent { keyEvent: KeyEvent ->
+                        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
+                            if (keywordState.value.isEmpty()) {
+                                onBack()
+                            } else onClear()
+
+                            true
+                        } else false
+                    },
                 placeholder = { Text(text = "Search") },
                 trailingIcon = if (keywordState.value.isNotEmpty()) {
                     {
@@ -86,7 +83,7 @@ fun ChainLinkSearchListTopBar(
                 keyboardActions = KeyboardActions(onSearch = { onSearch(keywordState.value) })
             )
         },
-        modifier = modifier,
+        modifier = Modifier.fillMaxWidth(),
         navigationIcon = {
             IconButton(
                 onClick = onBack,

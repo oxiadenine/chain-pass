@@ -23,10 +23,10 @@ import io.sunland.chainpass.common.Chain
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListItem(chain: Chain, onSelect: () -> Unit, onRemove: () -> Unit, modifier: Modifier = Modifier) {
+fun ChainListItem(chain: Chain, onSelect: () -> Unit, onRemove: () -> Unit) {
     if (chain.isDraft) {
         Row(
-            modifier = modifier.padding(all = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -40,7 +40,8 @@ fun ChainListItem(chain: Chain, onSelect: () -> Unit, onRemove: () -> Unit, modi
         val density = LocalDensity.current
 
         Row(
-            modifier = modifier
+            modifier = Modifier
+                .fillMaxWidth()
                 .clickable { isDropDownMenuExpandedState.value = true }
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
