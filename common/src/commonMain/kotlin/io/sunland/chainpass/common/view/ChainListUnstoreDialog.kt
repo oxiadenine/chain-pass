@@ -1,9 +1,9 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileOpen
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -14,6 +14,7 @@ import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.sunland.chainpass.common.Platform
 import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.common.component.FileChooserDialog
 import io.sunland.chainpass.common.component.InputDialog
@@ -56,13 +57,12 @@ fun ChainListUnstoreDialog(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onC
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+            verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
                 onClick = { isFileDialogOpenedState.value = true },
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
@@ -78,17 +78,17 @@ fun ChainListUnstoreDialog(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onC
             }
 
             if (filePathErrorState.value) {
-                Text(text = "File is not selected", fontSize = 14.sp, color = MaterialTheme.colors.error)
+                Text(text = "File is not selected", color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
             }
         }
     }
 
-    val fileExtensions = mutableListOf(if (platform == "Desktop") {
+    val fileExtensions = mutableListOf(if (platform == Platform.DESKTOP) {
         StorageType.JSON.name
     } else "application/${StorageType.JSON.name.lowercase()}")
 
     if (isSingle) {
-        fileExtensions.add(if (platform == "Desktop") {
+        fileExtensions.add(if (platform == Platform.DESKTOP) {
             StorageType.CSV.name
         } else "text/comma-separated-values")
     }

@@ -1,20 +1,22 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Undo
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -58,14 +60,12 @@ fun ChainLinkScaffoldList(
         scaffoldListState = scaffoldListState,
         popupHost = { popupHostState ->
             PopupHost(hostState = popupHostState) { popupData ->
-                Surface(modifier = Modifier.padding(horizontal = 16.dp), elevation = 4.dp) {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                        text = popupData.message,
-                        textAlign = TextAlign.Center,
-                        fontSize = 14.sp
-                    )
-                }
+                Text(
+                    text = popupData.message,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center
+                )
             }
         },
         snackbarHost = { snackbarHostState ->
@@ -74,26 +74,26 @@ fun ChainLinkScaffoldList(
                 snackbar = { snackbarData ->
                     Snackbar(
                         modifier = Modifier.padding(all = 16.dp),
-                        content = { Text(text = snackbarData.message, fontSize = 14.sp) },
                         action = {
-                            snackbarData.actionLabel?.let { label ->
+                            snackbarData.visuals.actionLabel?.let { label ->
                                 TextButton(
                                     onClick = { snackbarHostState.currentSnackbarData?.performAction() },
-                                    modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand),
+                                    modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand)
                                 ) {
                                     Icon(
-                                        modifier = Modifier.rotate(degrees = 90f),
                                         imageVector = Icons.Default.Undo,
                                         contentDescription = null,
+                                        modifier = Modifier.rotate(degrees = 90f)
                                     )
                                     Spacer(modifier = Modifier.size(size = ButtonDefaults.IconSpacing))
                                     Text(text = label, fontSize = 14.sp)
                                 }
                             }
                         },
-                        backgroundColor = MaterialTheme.colors.background,
-                        contentColor = MaterialTheme.colors.primary
-                    )
+                        shape = if (platform == Platform.DESKTOP) RectangleShape else SnackbarDefaults.shape,
+                        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(elevation = 4.dp),
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    ) { Text(text = snackbarData.visuals.message, fontSize = 14.sp) }
                 }
             )
         },
@@ -194,8 +194,7 @@ fun ChainLinkScaffoldList(
                         },
                         modifier = Modifier
                             .padding(end = 16.dp, bottom = if (isSnackbarVisible) 80.dp else 16.dp)
-                            .pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        backgroundColor = MaterialTheme.colors.surface,
+                            .pointerHoverIcon(icon = PointerIconDefaults.Hand)
                     ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
                 }
             }
@@ -208,8 +207,8 @@ fun ChainLinkScaffoldList(
         if (chainLinks.isEmpty()) {
             Row(
                 modifier = Modifier.align(Alignment.Center),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
+                horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 if (viewModel.isSearchState.value) {
                     Text(text = "No Chain Links")
@@ -384,7 +383,7 @@ fun ChainLinkScaffoldList(
         }
 
         if (isLoadingIndicatorVisibleState.value) {
-            LoadingIndicator()
+            LoadingDialog()
         }
     }
 }

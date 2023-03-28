@@ -1,13 +1,13 @@
 package io.sunland.chainpass.common.view
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIconDefaults
@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ChainListTopBar(
     title: String,
@@ -46,60 +46,45 @@ fun ChainListTopBar(
                 expanded = isActionMenuExpandedState.value,
                 onDismissRequest = { isActionMenuExpandedState.value = false },
                 modifier = Modifier.width(width = 150.dp),
-                offset = DpOffset(x = 4.dp, y = (-48).dp)
+                offset = DpOffset(x = 8.dp, y = (-40).dp)
             ) {
                 DropdownMenuItem(
+                    text = { Text(text = "Sync", fontSize = 14.sp) },
                     onClick = {
                         isActionMenuExpandedState.value = false
 
                         onSync()
                     },
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    leadingIcon = { Icon(imageVector = Icons.Default.Sync, contentDescription = null) },
                     contentPadding = PaddingValues(horizontal = 16.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Icons.Default.Sync, contentDescription = null)
-                        Text(text = "Sync", fontSize = 12.sp)
-                    }
-                }
+                )
                 DropdownMenuItem(
+                    text = { Text(text = "Store", fontSize = 14.sp) },
                     onClick = {
                         isActionMenuExpandedState.value = false
 
                         onStore()
                     },
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    leadingIcon = { Icon(imageVector = Icons.Default.Archive, contentDescription = null) },
                     contentPadding = PaddingValues(horizontal = 16.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Icons.Default.Archive, contentDescription = null)
-                        Text(text = "Store", fontSize = 12.sp)
-                    }
-                }
+                )
                 DropdownMenuItem(
+                    text = { Text(text = "Unstore", fontSize = 14.sp) },
                     onClick = {
                         isActionMenuExpandedState.value = false
 
                         onUnstore()
                     },
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    leadingIcon = { Icon(imageVector = Icons.Default.Unarchive, contentDescription = null) },
                     contentPadding = PaddingValues(horizontal = 16.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Icons.Default.Unarchive, contentDescription = null)
-                        Text(text = "Unstore", fontSize = 12.sp)
-                    }
-                }
+                )
             }
-        }
+        },
+        colors = TopAppBarDefaults.smallTopAppBarColors(
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(elevation = 4.dp)
+        )
     )
 }

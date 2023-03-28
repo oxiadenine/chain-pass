@@ -2,9 +2,13 @@ package io.sunland.chainpass.common.component
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.LiveRegionMode
@@ -15,7 +19,11 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
-import kotlinx.coroutines.*
+import io.sunland.chainpass.common.Platform
+import io.sunland.chainpass.common.platform
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -69,7 +77,7 @@ fun PopupHost(
 private fun AnimatedPopup(
     popupData: PopupHostState.PopupData?,
     alignment: Alignment = Alignment.TopCenter,
-    offset: DpOffset = DpOffset(x = 0.dp, y = 32.dp),
+    offset: DpOffset = DpOffset(x = 0.dp, y = 16.dp),
     content: @Composable (PopupHostState.PopupData) -> Unit
 ) {
     val popupState = remember { AnimatedPopupState<PopupHostState.PopupData?>() }
@@ -140,7 +148,11 @@ private fun AnimatedPopup(
         popupState.items.forEach { (item, opacity) ->
             key(item) {
                 opacity {
-                    content(item!!)
+                    Surface(
+                        modifier = Modifier.padding(all = 16.dp),
+                        shape = if (platform == Platform.DESKTOP) RectangleShape else MaterialTheme.shapes.extraSmall,
+                        tonalElevation = 4.dp
+                    ) { content(item!!) }
                 }
             }
         }

@@ -3,7 +3,7 @@ package io.sunland.chainpass.common.view
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
@@ -20,7 +20,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ChainLinkSearchListTopBar(
     keywordState: MutableState<String>,
@@ -77,7 +77,7 @@ fun ChainLinkSearchListTopBar(
                 singleLine = true,
                 textStyle = TextStyle(fontSize = 16.sp),
                 colors = TextFieldDefaults.textFieldColors(
-                    backgroundColor = Color.Transparent,
+                    containerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
@@ -95,7 +95,7 @@ fun ChainLinkSearchListTopBar(
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = null,
-                    tint = MaterialTheme.colors.primary.let { color ->
+                    tint = MaterialTheme.colorScheme.primary.let { color ->
                         Color(color.red, color.green, color.blue, color.alpha / 2)
                     }
                 )
