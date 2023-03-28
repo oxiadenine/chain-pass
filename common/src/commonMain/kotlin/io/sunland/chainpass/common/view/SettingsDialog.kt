@@ -76,24 +76,6 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
         }
     }
 
-    val onKeyEvent = { keyEvent: KeyEvent ->
-        if (keyEvent.type == KeyEventType.KeyDown) {
-            false
-        } else when (keyEvent.key) {
-            Key.Escape -> {
-                onClose()
-
-                true
-            }
-            Key.Enter -> {
-                onDone()
-
-                true
-            }
-            else -> false
-        }
-    }
-
     Dialog(
         onDismissRequest = onClose,
         title = {
@@ -119,7 +101,16 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
         val scrollState = rememberScrollState(initial = 0)
 
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).verticalScroll(state = scrollState),
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .verticalScroll(state = scrollState)
+                .onKeyEvent { keyEvent: KeyEvent ->
+                    if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+                        onDone()
+
+                        true
+                    } else false
+                },
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -138,9 +129,7 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
                     ValidationTextField(
                         value = deviceAddressState.value,
                         onValueChange = onDeviceAddressChange,
-                        modifier = Modifier
-                            .focusRequester(focusRequester = focusRequester)
-                            .onKeyEvent(onKeyEvent = onKeyEvent),
+                        modifier = Modifier.focusRequester(focusRequester = focusRequester),
                         placeholder = { Text(text = "Device Address", fontSize = 14.sp) },
                         singleLine = true,
                         leadingIcon = { Icon(imageVector = Icons.Default.Devices, contentDescription = null) },

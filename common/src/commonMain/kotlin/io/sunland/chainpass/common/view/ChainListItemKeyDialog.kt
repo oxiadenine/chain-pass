@@ -67,27 +67,15 @@ fun ChainListItemKeyDialog(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
         }
     }
 
-    val onKeyEvent = { keyEvent: KeyEvent ->
-        if (keyEvent.type == KeyEventType.KeyDown) {
-            false
-        } else when (keyEvent.key) {
-            Key.Escape -> {
-                onCancel()
-
-                true
-            }
-            Key.Enter -> {
-                onDone()
-
-                true
-            }
-            else -> false
-        }
-    }
-
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(all = 16.dp).onKeyEvent { keyEvent: KeyEvent ->
+                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+                    onDone()
+
+                    true
+                } else false
+            },
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -100,9 +88,7 @@ fun ChainListItemKeyDialog(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
             ValidationTextField(
                 value = keyState.value,
                 onValueChange = onKeyChange,
-                modifier = Modifier
-                    .focusRequester(focusRequester = focusRequester)
-                    .onKeyEvent(onKeyEvent = onKeyEvent),
+                modifier = Modifier.focusRequester(focusRequester = focusRequester),
                 placeholder = { Text(text = "Key") },
                 trailingIcon = {
                     if (keyValidationState.value.isFailure) {
