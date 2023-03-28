@@ -136,6 +136,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage, 
         )
     }
 
+    val drawerGesturesEnabledState = remember { mutableStateOf(true) }
+
     ModalNavigationDrawer(
         drawerContent = {
             val socketServerState = mutableStateOf<CIOApplicationEngine?>(null)
@@ -215,12 +217,15 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage, 
             }
         },
         drawerState = drawerState,
+        gesturesEnabled = drawerGesturesEnabledState.value,
         scrimColor = Color.Black.copy(alpha = if (platform == Platform.DESKTOP) 0.3f else 0.6f)
     ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Crossfade(targetState = navigationState.screenState.value) { screen ->
                 when (screen) {
                     Screen.CHAIN_LIST -> {
+                        drawerGesturesEnabledState.value = true
+
                         val chainListViewModel = ChainListViewModel(
                             chainRepository,
                             chainLinkRepository,
@@ -239,6 +244,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage, 
                         )
                     }
                     Screen.CHAIN_LINK_LIST -> {
+                        drawerGesturesEnabledState.value = false
+
                         val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository, storage).apply {
                             chain = navigationState.chainState.value
                         }
