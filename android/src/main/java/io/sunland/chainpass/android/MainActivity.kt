@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.MaterialTheme
 import io.sunland.chainpass.common.*
+import io.sunland.chainpass.common.component.rememberNavigationState
 import io.sunland.chainpass.common.network.*
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
@@ -29,7 +30,7 @@ class MainActivity : AppCompatActivity() {
             val settingsState = rememberSettingsState(settingsManager)
             val networkState = rememberNetworkState(syncServer.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
-            val navigationState = rememberNavigationState(Screen.CHAIN_LIST)
+            val navigationState = rememberNavigationState()
 
             MaterialTheme(colorScheme = if (themeState.isDarkMode) {
                 Theme.DarkColors
