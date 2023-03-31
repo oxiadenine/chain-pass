@@ -25,26 +25,6 @@ import io.sunland.chainpass.common.view.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-enum class ThemeMode { DARK, LIGHT }
-
-class ThemeState(val mode: MutableState<ThemeMode>) {
-    val isDarkMode by derivedStateOf { mode.value == ThemeMode.DARK }
-}
-
-@Composable
-fun rememberThemeState(mode: ThemeMode = ThemeMode.LIGHT) = remember {
-    ThemeState(mutableStateOf(mode))
-}
-
-enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST }
-
-class NavigationState(val screenState: MutableState<Screen>, val chainState: MutableState<Chain?>)
-
-@Composable
-fun rememberNavigationState(screen: Screen) = remember {
-    NavigationState(mutableStateOf(screen), mutableStateOf(null))
-}
-
 class SettingsState(
     private val settingsManager: SettingsManager,
     val deviceAddressState: MutableState<String>,
@@ -85,125 +65,154 @@ fun rememberNetworkState(hostAddressFlow: Flow<String>): NetworkState {
     return remember { NetworkState(hostAddressState) }
 }
 
+enum class ThemeMode { DARK, LIGHT }
+
+class ThemeState(val mode: MutableState<ThemeMode>) {
+    val isDarkMode by derivedStateOf { mode.value == ThemeMode.DARK }
+}
+
+@Composable
+fun rememberThemeState(mode: ThemeMode = ThemeMode.LIGHT) = remember {
+    ThemeState(mutableStateOf(mode))
+}
+
+enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST }
+
+class NavigationState(val screenState: MutableState<Screen>, val chainState: MutableState<Chain?>)
+
+@Composable
+fun rememberNavigationState(screen: Screen) = remember {
+    NavigationState(mutableStateOf(screen), mutableStateOf(null))
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 fun App(
-    storage: Storage,
     chainRepository: ChainRepository,
     chainLinkRepository: ChainLinkRepository,
     settingsState: SettingsState,
     networkState: NetworkState,
+    themeState: ThemeState,
     navigationState: NavigationState,
-    themeState: ThemeState
+    storePath: String
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Crossfade(targetState = navigationState.screenState.value) { screen ->
+            when (screen) {
+                Screen.CHAIN_LIST -> {
+                    val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-    val isSettingsDialogVisibleState = remember { mutableStateOf(false) }
+                    var settingsDialogVisible by remember { mutableStateOf(false) }
 
-    if (isSettingsDialogVisibleState.value) {
-        SettingsDialog(
-            storePath = storage.storePath,
-            settingsState = settingsState,
-            onClose = { isSettingsDialogVisibleState.value = false }
-        )
-    }
+                    ModalNavigationDrawer(
+                        drawerContent = {
+                            ModalDrawerSheet(drawerShape = if (platform == Platform.DESKTOP) {
+                                RectangleShape
+                            } else DrawerDefaults.shape) {
+                                val hostAddress = networkState.hostAddressState.value
 
-    val drawerGesturesEnabledState = remember { mutableStateOf(true) }
+                                Box(modifier = Modifier.fillMaxWidth().padding(all = 4.dp)) {
+                                    Row(modifier = Modifier.align(alignment = Alignment.TopEnd)) {
+                                        IconButton(
+                                            onClick = {
+                                                themeState.mode.value = if (themeState.isDarkMode) {
+                                                    ThemeMode.LIGHT
+                                                } else ThemeMode.DARK
+                                            },
+                                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                                        ) {
+                                            AnimatedVisibility(
+                                                visible = themeState.isDarkMode,
+                                                enter = fadeIn(animationSpec = tween(durationMillis = 500)),
+                                                exit = fadeOut(animationSpec = tween(durationMillis = 500))
+                                            ) { Icon(imageVector = Icons.Default.LightMode, contentDescription = null) }
+                                            AnimatedVisibility(
+                                                visible = !themeState.isDarkMode,
+                                                enter = fadeIn(animationSpec = tween(durationMillis = 500)),
+                                                exit = fadeOut(animationSpec = tween(durationMillis = 500))
+                                            ) { Icon(imageVector = Icons.Default.DarkMode, contentDescription = null) }
+                                        }
+                                    }
+                                    Column(
+                                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+                                        verticalArrangement = Arrangement.spacedBy(space = 4.dp)
+                                    ) {
+                                        Text(text = platform.name.lowercase().replaceFirstChar { it.uppercase() })
+                                        Text(text = hostAddress.ifEmpty { "No network access" }, fontSize = 14.sp)
+                                    }
+                                }
+                                NavigationDrawerItem(
+                                    label = { Text(text = "Settings") },
+                                    selected = false,
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            drawerState.close()
 
-    ModalNavigationDrawer(
-        drawerContent = {
-            ModalDrawerSheet(drawerShape = if (platform == Platform.DESKTOP) {
-                RectangleShape
-            } else DrawerDefaults.shape) {
-                Box(modifier = Modifier.fillMaxWidth().padding(all = 4.dp)) {
-                    Row(modifier = Modifier.align(alignment = Alignment.TopEnd)) {
-                        IconButton(
-                            onClick = {
-                                themeState.mode.value = if (themeState.isDarkMode) {
-                                    ThemeMode.LIGHT
-                                } else ThemeMode.DARK
-                            },
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                        ) {
-                            AnimatedVisibility(
-                                visible = themeState.isDarkMode,
-                                enter = fadeIn(animationSpec = tween(durationMillis = 500)),
-                                exit = fadeOut(animationSpec = tween(durationMillis = 500))
-                            ) { Icon(imageVector = Icons.Default.LightMode, contentDescription = null) }
-                            AnimatedVisibility(
-                                visible = !themeState.isDarkMode,
-                                enter = fadeIn(animationSpec = tween(durationMillis = 500)),
-                                exit = fadeOut(animationSpec = tween(durationMillis = 500))
-                            ) { Icon(imageVector = Icons.Default.DarkMode, contentDescription = null) }
-                        }
-                    }
-                    Column(
-                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(space = 4.dp)
+                                            settingsDialogVisible = true
+                                        }
+                                    },
+                                    icon = { Icon(imageVector = Icons.Default.Settings, contentDescription = null) },
+                                    modifier = Modifier
+                                        .padding(paddingValues = NavigationDrawerItemDefaults.ItemPadding)
+                                        .pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                                )
+                            }
+                        },
+                        drawerState = drawerState,
+                        scrimColor = Color.Black.copy(alpha = if (platform == Platform.DESKTOP) 0.3f else 0.6f)
                     ) {
-                        Text(text = platform.name.lowercase().replaceFirstChar { char -> char.uppercase() })
-                        Text(text = networkState.hostAddressState.value.ifEmpty { "Not connected" }, fontSize = 14.sp)
+                        val chainListViewModel = rememberChainListViewModel(
+                            passwordGenerator = PasswordGenerator(
+                                PasswordGenerator.Strength(
+                                    settingsState.passwordLengthState.value,
+                                    settingsState.passwordIsAlphanumericState.value
+                                )),
+                            chainRepository = chainRepository,
+                            chainLinkRepository = chainLinkRepository
+                        )
+
+                        ChainList(
+                            viewModel = chainListViewModel,
+                            onTopAppBarMenuClick = {
+                                coroutineScope.launch {
+                                    drawerState.open()
+                                }
+                            },
+                            onListItemOpenMenuItemClick = { chain ->
+                                navigationState.chainState.value = chain
+                                navigationState.screenState.value = Screen.CHAIN_LINK_LIST
+                            },
+                            deviceAddress = settingsState.deviceAddressState.value
+                        )
+                    }
+
+                    if (settingsDialogVisible) {
+                        SettingsDialog(
+                            settingsState = settingsState,
+                            onClose = { settingsDialogVisible = false },
+                            storePath = storePath
+                        )
                     }
                 }
-                NavigationDrawerItem(
-                    label = { Text(text = "Settings") },
-                    selected = false,
-                    onClick = {
-                        coroutineScope.launch {
-                            drawerState.close()
-
-                            isSettingsDialogVisibleState.value = true
-                        }
-                    },
-                    icon = { Icon(imageVector = Icons.Default.Settings, contentDescription = null) },
-                    modifier = Modifier
-                        .padding(paddingValues = NavigationDrawerItemDefaults.ItemPadding)
-                        .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                )
-            }
-        },
-        drawerState = drawerState,
-        gesturesEnabled = drawerGesturesEnabledState.value,
-        scrimColor = Color.Black.copy(alpha = if (platform == Platform.DESKTOP) 0.3f else 0.6f)
-    ) {
-        Surface(modifier = Modifier.fillMaxSize()) {
-            Crossfade(targetState = navigationState.screenState.value) { screen ->
-                when (screen) {
-                    Screen.CHAIN_LIST -> {
-                        drawerGesturesEnabledState.value = true
-
-                        val chainListViewModel = ChainListViewModel(
-                            chainRepository,
-                            chainLinkRepository,
-                            PasswordGenerator(PasswordGenerator.Strength(
+                Screen.CHAIN_LINK_LIST -> {
+                    val chainLinkListViewModel = rememberChainLinkListViewModel(
+                        passwordGenerator = PasswordGenerator(
+                            PasswordGenerator.Strength(
                                 settingsState.passwordLengthState.value,
                                 settingsState.passwordIsAlphanumericState.value
                             )),
-                            storage
-                        )
+                        chainLinkRepository = chainLinkRepository
+                    ).apply { chain = navigationState.chainState.value }
 
-                        ChainScaffoldList(
-                            viewModel = chainListViewModel,
-                            settingsState = settingsState,
-                            navigationState = navigationState,
-                            drawerState = drawerState
-                        )
-                    }
-                    Screen.CHAIN_LINK_LIST -> {
-                        drawerGesturesEnabledState.value = false
-
-                        val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository, storage).apply {
-                            chain = navigationState.chainState.value
-                        }
-
-                        ChainLinkScaffoldList(
-                            viewModel = chainLinkListViewModel,
-                            settingsState = settingsState,
-                            navigationState = navigationState,
-                        )
-                    }
+                    ChainLinkList(
+                        viewModel = chainLinkListViewModel,
+                        onTopAppBarBackClick = {
+                            navigationState.screenState.value = Screen.CHAIN_LIST
+                        },
+                        deviceAddress = settingsState.deviceAddressState.value
+                    )
                 }
             }
         }

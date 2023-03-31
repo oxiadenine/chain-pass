@@ -22,57 +22,49 @@ import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ChainLinkSearchListTopBar(
-    keywordState: MutableState<String>,
-    onBack: () -> Unit,
-    onSearch: (String) -> Unit
-) {
-    val onSearchChange = { keyword: String ->
+fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (String) -> Unit) {
+    val keywordState = remember { mutableStateOf("") }
+
+    val onSearchTextFieldValueChange = { keyword: String ->
         keywordState.value = keyword
 
-        onSearch(keywordState.value)
+        onKeywordChange(keywordState.value)
     }
 
-    val onClear = {
+    val onClearIconButtonClick = {
         keywordState.value = ""
 
-        onSearch(keywordState.value)
+        onKeywordChange(keywordState.value)
     }
 
     TopAppBar(
         title = {
             val focusRequester = remember { FocusRequester() }
 
-            LaunchedEffect(focusRequester) {
-                focusRequester.requestFocus()
-            }
-
             TextField(
                 value = keywordState.value,
-                onValueChange = onSearchChange,
+                onValueChange = onSearchTextFieldValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
                     .focusRequester(focusRequester = focusRequester)
                     .onKeyEvent { keyEvent: KeyEvent ->
                         if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
-                            if (keywordState.value.isEmpty()) {
-                                onBack()
-                            } else onClear()
+                            onBackClick()
 
                             true
                         } else false
                     },
+                textStyle = TextStyle(fontSize = 18.sp),
                 placeholder = { Text(text = "Search") },
                 trailingIcon = if (keywordState.value.isNotEmpty()) {
                     {
                         IconButton(
-                            onClick = onClear,
+                            onClick = onClearIconButtonClick,
                             modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                         ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
                     }
                 } else null,
                 singleLine = true,
-                textStyle = TextStyle(fontSize = 16.sp),
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
@@ -80,21 +72,23 @@ fun ChainLinkSearchListTopBar(
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                keyboardActions = KeyboardActions(onSearch = { onSearch(keywordState.value) })
+                keyboardActions = KeyboardActions(onSearch = { onKeywordChange(keywordState.value) })
             )
+
+            LaunchedEffect(focusRequester) {
+                focusRequester.requestFocus()
+            }
         },
         modifier = Modifier.fillMaxWidth(),
         navigationIcon = {
             IconButton(
-                onClick = onBack,
+                onClick = onBackClick,
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary.let { color ->
-                        Color(color.red, color.green, color.blue, color.alpha / 2)
-                    }
+                    tint = MaterialTheme.colorScheme.primary.let { color -> color.copy(alpha = color.alpha / 2) }
                 )
             }
         }

@@ -6,10 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -25,47 +22,40 @@ import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
+import io.sunland.chainpass.common.security.PasswordGenerator
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ChainListItemNewDialog(chain: Chain, onNew: (Chain) -> Unit, onCancel: () -> Unit) {
-    val nameState = remember { mutableStateOf(chain.name.value) }
-    val nameValidationState = remember { mutableStateOf(chain.name.validation) }
+fun ChainListItemNewDialog(
+    onConfirm: (Chain.Name, Chain.Key) -> Unit,
+    onCancel: () -> Unit,
+    passwordGenerator: PasswordGenerator
+) {
+    var chainName by remember { mutableStateOf(Chain.Name()) }
+    var chainKey by remember { mutableStateOf(Chain.Key()) }
 
-    val keyState = remember { mutableStateOf(chain.key.value) }
-    val keyValidationState = remember { mutableStateOf(chain.key.validation) }
-
-    val onNameChange = { name: String ->
-        chain.name = Chain.Name(name)
-
-        nameState.value = chain.name.value
-        nameValidationState.value = chain.name.validation
+    val onNameTextFieldValueChange = { name: String ->
+        chainName = Chain.Name(name)
     }
 
-    val onKeyChange = { key: String ->
-        chain.key = Chain.Key(key)
-
-        keyState.value = chain.key.value
-        keyValidationState.value = chain.key.validation
+    val onKeyTextFieldValueChange = { key: String ->
+        chainKey = Chain.Key(key)
     }
 
-    val onDone = {
-        chain.name = Chain.Name(nameState.value)
-        chain.key = Chain.Key(keyState.value)
+    val onInputDialogConfirmRequest = {
+        chainName = Chain.Name(chainName.value)
+        chainKey = Chain.Key(chainKey.value)
 
-        nameValidationState.value = chain.name.validation
-        keyValidationState.value = chain.key.validation
-
-        if (nameValidationState.value.isSuccess && keyValidationState.value.isSuccess) {
-            onNew(chain)
+        if (chainName.validation.isSuccess && chainKey.validation.isSuccess) {
+            onConfirm(chainName, chainKey)
         }
     }
 
-    InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
+    InputDialog(onDismissRequest = onCancel, onConfirmRequest = onInputDialogConfirmRequest) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(all = 16.dp).onKeyEvent { keyEvent: KeyEvent ->
                 if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                    onDone()
+                    onInputDialogConfirmRequest()
 
                     true
                 } else false
@@ -75,20 +65,16 @@ fun ChainListItemNewDialog(chain: Chain, onNew: (Chain) -> Unit, onCancel: () ->
         ) {
             val focusRequester = remember { FocusRequester() }
 
-            LaunchedEffect(focusRequester) {
-                focusRequester.requestFocus()
-            }
-
             ValidationTextField(
-                value = nameState.value,
-                onValueChange = onNameChange,
+                value = chainName.value,
+                onValueChange = onNameTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
                 placeholder = { Text(text = "Name") },
-                trailingIcon = if (nameValidationState.value.isFailure) {
+                trailingIcon = if (chainName.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = nameValidationState.value.isFailure,
-                errorMessage = nameValidationState.value.exceptionOrNull()?.message,
+                isError = chainName.validation.isFailure,
+                errorMessage = chainName.validation.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -99,29 +85,29 @@ fun ChainListItemNewDialog(chain: Chain, onNew: (Chain) -> Unit, onCancel: () ->
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             ValidationTextField(
-                value = keyState.value,
-                onValueChange = onKeyChange,
+                value = chainKey.value,
+                onValueChange = onKeyTextFieldValueChange,
                 placeholder = { Text(text = "Key") },
                 leadingIcon = {
                     IconButton(
-                        onClick = { onKeyChange(chain.generateKey()) },
+                        onClick = { onKeyTextFieldValueChange(passwordGenerator.generate()) },
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                            .onPreviewKeyEvent { keyEvent: KeyEvent ->
+                            .onKeyEvent { keyEvent: KeyEvent ->
                                 if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                                    onKeyChange(chain.generateKey())
+                                    onKeyTextFieldValueChange(passwordGenerator.generate())
 
                                     true
                                 } else false
                             }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
-                trailingIcon = if (keyValidationState.value.isFailure) {
+                trailingIcon = if (chainKey.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = keyValidationState.value.isFailure,
-                errorMessage = keyValidationState.value.exceptionOrNull()?.message,
+                isError = chainKey.validation.isFailure,
+                errorMessage = chainKey.validation.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -130,8 +116,12 @@ fun ChainListItemNewDialog(chain: Chain, onNew: (Chain) -> Unit, onCancel: () ->
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions(onDone = { onDone() })
+                keyboardActions = KeyboardActions(onDone = { onInputDialogConfirmRequest() })
             )
+
+            LaunchedEffect(focusRequester) {
+                focusRequester.requestFocus()
+            }
         }
     }
 }

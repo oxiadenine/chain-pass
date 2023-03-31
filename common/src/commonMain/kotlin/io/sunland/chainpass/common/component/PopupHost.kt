@@ -109,7 +109,7 @@ private fun AnimatedPopup(
                     visible = isVisible,
                     onAnimationFinish = {
                         if (popupItemKey != popupState.popupData) {
-                            popupState.items.removeAll { it.key == popupItemKey }
+                            popupState.items.removeAll { item -> item.key == popupItemKey }
                             popupState.scope?.invalidate()
                         }
                     }
@@ -138,15 +138,15 @@ private fun AnimatedPopup(
         }
     }
 
-    Popup(
-        alignment = alignment,
-        offset = with(LocalDensity.current) {
-            IntOffset(x = offset.x.roundToPx(), y = offset.y.roundToPx())
-        }
-    ) {
-        popupState.scope = currentRecomposeScope
-        popupState.items.forEach { (item, opacity) ->
-            key(item) {
+    popupState.scope = currentRecomposeScope
+    popupState.items.forEach { (item, opacity) ->
+        key(item) {
+            Popup(
+                alignment = alignment,
+                offset = with(LocalDensity.current) {
+                    IntOffset(x = offset.x.roundToPx(), y = offset.y.roundToPx())
+                },
+            ) {
                 opacity {
                     Surface(
                         modifier = Modifier.padding(all = 16.dp),

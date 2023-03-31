@@ -1,5 +1,8 @@
 package io.sunland.chainpass.common.repository
 
+import io.sunland.chainpass.common.Storable
+import io.sunland.chainpass.common.Storage
+import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.sqldelight.Database
 import kotlinx.serialization.Serializable
 
@@ -12,7 +15,7 @@ data class ChainLinkEntity(
     val chainId: String
 )
 
-class ChainLinkRepository(private val database: Database) {
+class ChainLinkRepository(private val database: Database, private val storage: Storage) {
     fun create(chainLinkEntity: ChainLinkEntity) = database.chainLinkQueries.transaction {
         database.chainLinkQueries.insert(
             chainLinkEntity.id,
@@ -44,4 +47,8 @@ class ChainLinkRepository(private val database: Database) {
     fun delete(chainLinkEntity: ChainLinkEntity) = database.chainLinkQueries.transaction {
         database.chainLinkQueries.delete(chainLinkEntity.id, chainLinkEntity.chainId)
     }
+
+    fun store(storageType: StorageType, storable: Storable) = storage.store(storageType, storable)
+
+    fun unstore(filePath: String) = storage.unstore(filePath)
 }

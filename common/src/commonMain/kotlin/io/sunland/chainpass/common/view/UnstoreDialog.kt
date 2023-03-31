@@ -4,12 +4,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
@@ -29,31 +28,41 @@ class FilePath(value: String? = null) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListUnstoreDialog(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onCancel: () -> Unit) {
-    val isFileDialogOpenedState = remember { mutableStateOf(false) }
+fun UnstoreDialog(
+    onConfirm: (FilePath) -> Unit,
+    onCancel: () -> Unit,
+    title: String,
+    isSingle: Boolean
+) {
+    var fileChooserDialogOpened by remember { mutableStateOf(false) }
 
-    val filePathState = remember { mutableStateOf("") }
-    val filePathErrorState = remember { mutableStateOf(false) }
+    var filePath by remember { mutableStateOf(FilePath()) }
+    var filePathError by remember { mutableStateOf(false) }
 
-    val onDone = {
-        val filePath = FilePath(filePathState.value)
+    val onSelectFileButtonClick = {
+        fileChooserDialogOpened = true
+    }
 
-        filePathErrorState.value = filePath.value.isEmpty()
+    val onCloseFileChooserDialog = { path: String ->
+        fileChooserDialogOpened = false
 
-        if (!filePathErrorState.value) {
-            onUnstore(filePath)
+        filePath = FilePath(path)
+        filePathError = filePath.value.isEmpty()
+    }
+
+    val onInputDialogConfirmRequest = {
+        filePath = FilePath(filePath.value)
+        filePathError = filePath.value.isEmpty()
+
+        if (!filePathError) {
+            onConfirm(filePath)
         }
     }
 
     InputDialog(
         onDismissRequest = onCancel,
-        onConfirmRequest = onDone,
-        title = {
-            Text(
-                text = if (isSingle) "Single Unstore" else "Multiple Unstore",
-                modifier = Modifier.padding(all = 16.dp)
-            )
-        }
+        onConfirmRequest = onInputDialogConfirmRequest,
+        title = { Text(text = title, modifier = Modifier.padding(all = 16.dp)) }
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
@@ -61,7 +70,7 @@ fun ChainListUnstoreDialog(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onC
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(
-                onClick = { isFileDialogOpenedState.value = true },
+                onClick = onSelectFileButtonClick,
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
             ) {
                 Row(
@@ -73,13 +82,9 @@ fun ChainListUnstoreDialog(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onC
                 }
             }
 
-            if (filePathState.value.isNotEmpty()) {
-                Text(text = FilePath(filePathState.value).fileName, fontSize = 14.sp)
-            }
-
-            if (filePathErrorState.value) {
+            if (filePathError) {
                 Text(text = "File is not selected", color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
-            }
+            } else Text(text = filePath.fileName, fontSize = 14.sp)
         }
     }
 
@@ -94,13 +99,8 @@ fun ChainListUnstoreDialog(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onC
     }
 
     FileChooserDialog(
-        isOpened = isFileDialogOpenedState.value,
+        isOpened = fileChooserDialogOpened,
         fileExtensions = fileExtensions.toList(),
-        onClose = { filePath ->
-            filePathState.value = filePath
-            filePathErrorState.value = filePathState.value.isEmpty()
-
-            isFileDialogOpenedState.value = false
-        }
+        onClose = onCloseFileChooserDialog
     )
 }

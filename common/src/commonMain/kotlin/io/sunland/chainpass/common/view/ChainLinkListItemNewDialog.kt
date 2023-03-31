@@ -6,10 +6,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -25,61 +22,46 @@ import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
+import io.sunland.chainpass.common.security.PasswordGenerator
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun ChainLinkListItemNewDialog(chainLink: ChainLink, onNew: (ChainLink) -> Unit, onCancel: () -> Unit) {
-    val nameState = remember { mutableStateOf(chainLink.name.value) }
-    val nameValidationState = remember { mutableStateOf(chainLink.name.validation) }
+fun ChainLinkListItemNewDialog(
+    onConfirm: (ChainLink.Name, ChainLink.Description, ChainLink.Password) -> Unit,
+    onCancel: () -> Unit,
+    passwordGenerator: PasswordGenerator
+) {
+    var chainLinkName by remember { mutableStateOf(ChainLink.Name()) }
+    var chainLinkDescription by remember { mutableStateOf(ChainLink.Description()) }
+    var chainLinkPassword by remember { mutableStateOf(ChainLink.Password()) }
 
-    val descriptionState = remember { mutableStateOf(chainLink.description.value) }
-    val descriptionValidationState = remember { mutableStateOf(chainLink.description.validation) }
-
-    val passwordState = remember { mutableStateOf(chainLink.password.value) }
-    val passwordValidationState = remember { mutableStateOf(chainLink.password.validation)}
-
-    val onNameChange = { name: String ->
-        chainLink.name = ChainLink.Name(name)
-
-        nameState.value = chainLink.name.value
-        nameValidationState.value = chainLink.name.validation
+    val onNameTextFieldValueChange = { name: String ->
+        chainLinkName = ChainLink.Name(name)
     }
 
-    val onDescriptionChange = { description: String ->
-        chainLink.description = ChainLink.Description(description)
-
-        descriptionState.value = chainLink.description.value
-        descriptionValidationState.value = chainLink.description.validation
+    val onDescriptionTextFieldValueChange = { description: String ->
+        chainLinkDescription = ChainLink.Description(description)
     }
 
-    val onPasswordChange = { password: String ->
-        chainLink.password = ChainLink.Password(password)
-
-        passwordState.value = chainLink.password.value
-        passwordValidationState.value = chainLink.password.validation
+    val onPasswordTextFieldValueChange = { password: String ->
+        chainLinkPassword = ChainLink.Password(password)
     }
 
-    val onDone = {
-        chainLink.name = ChainLink.Name(nameState.value)
-        chainLink.description = ChainLink.Description(descriptionState.value)
-        chainLink.password = ChainLink.Password(passwordState.value)
+    val onInputDialogConfirmRequest = {
+        chainLinkName = ChainLink.Name(chainLinkName.value)
+        chainLinkDescription = ChainLink.Description(chainLinkDescription.value)
+        chainLinkPassword = ChainLink.Password(chainLinkPassword.value)
 
-        nameValidationState.value = chainLink.name.validation
-        descriptionValidationState.value = chainLink.description.validation
-        passwordValidationState.value = chainLink.password.validation
-
-        if (nameValidationState.value.isSuccess && descriptionValidationState.value.isSuccess &&
-            passwordValidationState.value.isSuccess
-        ) {
-            onNew(chainLink)
-        }
+        if (chainLinkName.validation.isSuccess &&
+            chainLinkDescription.validation.isSuccess && chainLinkPassword.validation.isSuccess
+            ) { onConfirm(chainLinkName, chainLinkDescription, chainLinkPassword) }
     }
 
-    InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
+    InputDialog(onDismissRequest = onCancel, onConfirmRequest = onInputDialogConfirmRequest) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(all = 16.dp).onKeyEvent { keyEvent: KeyEvent ->
                 if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                    onDone()
+                    onInputDialogConfirmRequest()
 
                     true
                 } else false
@@ -89,20 +71,16 @@ fun ChainLinkListItemNewDialog(chainLink: ChainLink, onNew: (ChainLink) -> Unit,
         ) {
             val focusRequester = remember { FocusRequester() }
 
-            LaunchedEffect(focusRequester) {
-                focusRequester.requestFocus()
-            }
-
             ValidationTextField(
-                value = nameState.value,
-                onValueChange = onNameChange,
+                value = chainLinkName.value,
+                onValueChange = onNameTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
                 placeholder = { Text(text = "Name") },
-                trailingIcon = if (nameValidationState.value.isFailure) {
+                trailingIcon = if (chainLinkName.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = nameValidationState.value.isFailure,
-                errorMessage = nameValidationState.value.exceptionOrNull()?.message,
+                isError = chainLinkName.validation.isFailure,
+                errorMessage = chainLinkName.validation.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -113,14 +91,14 @@ fun ChainLinkListItemNewDialog(chainLink: ChainLink, onNew: (ChainLink) -> Unit,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             ValidationTextField(
-                value = descriptionState.value,
-                onValueChange = onDescriptionChange,
+                value = chainLinkDescription.value,
+                onValueChange = onDescriptionTextFieldValueChange,
                 placeholder = { Text(text = "Description") },
-                trailingIcon = if (descriptionValidationState.value.isFailure) {
+                trailingIcon = if (chainLinkDescription.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = descriptionValidationState.value.isFailure,
-                errorMessage = descriptionValidationState.value.exceptionOrNull()?.message,
+                isError = chainLinkDescription.validation.isFailure,
+                errorMessage = chainLinkDescription.validation.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -131,29 +109,29 @@ fun ChainLinkListItemNewDialog(chainLink: ChainLink, onNew: (ChainLink) -> Unit,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             ValidationTextField(
-                value = passwordState.value,
-                onValueChange = onPasswordChange,
+                value = chainLinkPassword.value,
+                onValueChange = onPasswordTextFieldValueChange,
                 placeholder = { Text(text = "Password") },
                 leadingIcon = {
                     IconButton(
-                        onClick = { onPasswordChange(chainLink.generatePassword()) },
+                        onClick = { onPasswordTextFieldValueChange(passwordGenerator.generate()) },
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                            .onPreviewKeyEvent { keyEvent: KeyEvent ->
+                            .onKeyEvent { keyEvent: KeyEvent ->
                                 if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                                    onPasswordChange(chainLink.generatePassword())
+                                    onPasswordTextFieldValueChange(passwordGenerator.generate())
 
                                     true
                                 } else false
                             }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
-                trailingIcon = if (passwordValidationState.value.isFailure) {
+                trailingIcon = if (chainLinkPassword.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = passwordValidationState.value.isFailure,
-                errorMessage = passwordValidationState.value.exceptionOrNull()?.message,
+                isError = chainLinkPassword.validation.isFailure,
+                errorMessage = chainLinkPassword.validation.exceptionOrNull()?.message,
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -162,8 +140,12 @@ fun ChainLinkListItemNewDialog(chainLink: ChainLink, onNew: (ChainLink) -> Unit,
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions(onDone = { onDone() })
+                keyboardActions = KeyboardActions(onDone = { onInputDialogConfirmRequest() })
             )
+
+            LaunchedEffect(focusRequester) {
+                focusRequester.requestFocus()
+            }
         }
     }
 }
