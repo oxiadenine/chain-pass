@@ -15,9 +15,6 @@ class ChainLinkListViewModel(
     private val chainLinkRepository: ChainLinkRepository
 ) {
     val chainLinkListState = mutableStateListOf<ChainLink>()
-    val chainLinkSearchListState = mutableStateListOf<ChainLink>()
-
-    var isSearchEnabled by mutableStateOf(false)
 
     val chainLinkSelectedIndex: Int
         get() = chainLinkListState.indexOfFirst { chainLink -> chainLink.id == chainLinkSelected?.id }
@@ -27,7 +24,7 @@ class ChainLinkListViewModel(
     var chainLinkEdit by mutableStateOf<ChainLink?>(null)
         private set
 
-    private var chainLinkSelected by mutableStateOf<ChainLink?>(null)
+    var chainLinkSelected by mutableStateOf<ChainLink?>(null)
 
     private val chainLinkRemovedListState = mutableStateListOf<ChainLink>()
 
@@ -63,33 +60,6 @@ class ChainLinkListViewModel(
         val secretKey = chainLink.chain.secretKey()
 
         return chainLink.plainPassword(secretKey)
-    }
-
-    fun startSearch() {
-        chainLinkSelected = null
-
-        isSearchEnabled = true
-
-        val chainLinks = chainLinkListState.sortedBy { chainLink -> chainLink.name.value }
-
-        chainLinkSearchListState.addAll(chainLinks)
-    }
-
-    fun search(keyword: String) {
-        val chainLinks = chainLinkListState
-            .filter { chainLink -> chainLink.name.value.lowercase().contains(keyword.lowercase()) }
-            .sortedBy { chainLink -> chainLink.name.value }
-
-        chainLinkSearchListState.clear()
-        chainLinkSearchListState.addAll(chainLinks)
-    }
-
-    fun endSearch(chainLink: ChainLink? = null) {
-        chainLinkSelected = chainLink
-
-        isSearchEnabled = false
-
-        chainLinkSearchListState.clear()
     }
 
     fun getAll() {

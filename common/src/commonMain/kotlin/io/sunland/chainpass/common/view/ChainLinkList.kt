@@ -8,7 +8,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -35,6 +34,7 @@ import kotlinx.coroutines.launch
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
     onTopAppBarBackClick: () -> Unit,
+    onTopAppBarSearchClick: (List<ChainLink>) -> Unit,
     deviceAddress: String,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -92,60 +92,51 @@ fun ChainLinkList(
         },
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            if (viewModel.isSearchEnabled) {
-                ChainLinkSearchListTopAppBar(
-                    onBackClick = { viewModel.endSearch() },
-                    onKeywordChange = { keyword ->
-                        viewModel.search(keyword)
-                    }
-                )
-            } else {
-                ChainLinkListTopAppBar(
-                    onBackClick = {
-                        scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
+            ChainLinkListTopAppBar(
+                onBackClick = {
+                    scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                        onTopAppBarBackClick()
-                    },
-                    onSearchClick = {
-                        scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
-                        scaffoldListState.popupHostState.currentPopupData?.dismiss()
+                    onTopAppBarBackClick()
+                },
+                onSearchClick = {
+                    scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
+                    scaffoldListState.popupHostState.currentPopupData?.dismiss()
 
-                        viewModel.startSearch()
-                    },
-                    onMenuItemClick = { menuItem ->
-                        when (menuItem) {
-                            ChainLinkListTopAppBarMenuItem.SYNC -> {
-                                scaffoldListState.snackbarHostState.currentSnackbarData?.performAction()
+                    onTopAppBarSearchClick(viewModel.chainLinkListState.toList())
+                },
+                onMenuItemClick = { menuItem ->
+                    when (menuItem) {
+                        ChainLinkListTopAppBarMenuItem.SYNC -> {
+                            scaffoldListState.snackbarHostState.currentSnackbarData?.performAction()
 
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    if (deviceAddress.isEmpty()) {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                if (deviceAddress.isEmpty()) {
+                                    scaffoldListState.popupHostState.currentPopupData?.dismiss()
+                                    scaffoldListState.popupHostState.showPopup(
+                                        message = "Set device address in Settings"
+                                    )
+                                } else {
+                                    loadingDialogVisible = true
+
+                                    viewModel.sync(deviceAddress).onSuccess {
+                                        viewModel.getAll()
+
+                                        loadingDialogVisible = false
+                                    }.onFailure { exception ->
+                                        loadingDialogVisible = false
+
                                         scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                                        scaffoldListState.popupHostState.showPopup(
-                                            message = "Set device address in Settings"
-                                        )
-                                    } else {
-                                        loadingDialogVisible = true
-
-                                        viewModel.sync(deviceAddress).onSuccess {
-                                            viewModel.getAll()
-
-                                            loadingDialogVisible = false
-                                        }.onFailure { exception ->
-                                            loadingDialogVisible = false
-
-                                            scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                                            scaffoldListState.popupHostState.showPopup(message = exception.message ?: "Error")
-                                        }
+                                        scaffoldListState.popupHostState.showPopup(message = exception.message ?: "Error")
                                     }
                                 }
                             }
-                            ChainLinkListTopAppBarMenuItem.STORE -> storeDialogVisible = true
-                            ChainLinkListTopAppBarMenuItem.UNSTORE -> unstoreDialogVisible = true
                         }
-                    },
-                    title = viewModel.chain!!.name.value,
-                )
-            }
+                        ChainLinkListTopAppBarMenuItem.STORE -> storeDialogVisible = true
+                        ChainLinkListTopAppBarMenuItem.UNSTORE -> unstoreDialogVisible = true
+                    }
+                },
+                title = viewModel.chain!!.name.value,
+            )
         },
         floatingActionButton = {
             AnimatedContent(
@@ -167,9 +158,9 @@ fun ChainLinkList(
                 val (lazyListScrollDirection, lazyListScrollPosition) = scaffoldListState.lazyListState.scrollInfo()
 
                 AnimatedVisibility(
-                    visible = !viewModel.isSearchEnabled && (isSnackbarVisible ||
+                    visible = isSnackbarVisible ||
                             lazyListScrollDirection == LazyListScrollDirection.BACKWARD ||
-                            lazyListScrollPosition == LazyListScrollPosition.END),
+                            lazyListScrollPosition == LazyListScrollPosition.END,
                     enter = slideInVertically(animationSpec = tween(durationMillis = 250)) {
                         with(density) { 80.dp.roundToPx() }
                     },
@@ -187,9 +178,7 @@ fun ChainLinkList(
             }
         }
     ) { lazyListState ->
-        val chainLinks = if (viewModel.isSearchEnabled) {
-            viewModel.chainLinkSearchListState.toTypedArray()
-        } else viewModel.chainLinkListState.toTypedArray()
+        val chainLinks = viewModel.chainLinkListState.toTypedArray()
 
         if (chainLinks.isEmpty()) {
             Row(
@@ -197,85 +186,68 @@ fun ChainLinkList(
                 horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (viewModel.isSearchEnabled) {
-                    Text(text = "No Chain Links")
-                    Icon(imageVector = Icons.Default.List, contentDescription = null)
-                } else {
-                    Text(text = "New Chain Link")
-                    Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                }
+                Text(text = "New Chain Link")
+                Icon(imageVector = Icons.Default.Add, contentDescription = null)
             }
         } else {
             LazyColumn(state = lazyListState, modifier = Modifier.fillMaxWidth()) {
                 items(items = chainLinks, key = { chainLink -> chainLink.id }) { chainLink ->
-                    if (viewModel.isSearchEnabled) {
-                        ChainLinkSearchListItem(
-                            onClick = { viewModel.endSearch(chainLink) },
+                    val clipboardManager = LocalClipboardManager.current
+
+                    if (!chainLink.isDraft) {
+                        ChainLinkListItem(
+                            onMenuItemClick = { menuItem ->
+                                when (menuItem) {
+                                    ChainLinkListItemMenuItem.COPY -> {
+                                        scaffoldListState.popupHostState.currentPopupData?.dismiss()
+
+                                        coroutineScope.launch(Dispatchers.IO) {
+                                            val password = viewModel.copyPassword(chainLink).value
+
+                                            clipboardManager.setText(AnnotatedString(password))
+
+                                            scaffoldListState.popupHostState.showPopup(message = "Password copied")
+                                        }
+                                    }
+                                    ChainLinkListItemMenuItem.EDIT -> {
+                                        coroutineScope.launch(Dispatchers.IO) {
+                                            loadingDialogVisible = true
+
+                                            viewModel.startEdit(chainLink)
+
+                                            loadingDialogVisible = false
+
+                                            listItemEditDialogVisible = true
+                                        }
+                                    }
+                                    ChainLinkListItemMenuItem.DELETE -> {
+                                        scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
+
+                                        coroutineScope.launch(Dispatchers.IO) {
+                                            viewModel.removeLater(chainLink)
+
+                                            when (scaffoldListState.snackbarHostState.showSnackbar(
+                                                message = "${chainLink.name.value} removed",
+                                                actionLabel = "Undo",
+                                                duration = SnackbarDuration.Short
+                                            )) {
+                                                SnackbarResult.ActionPerformed -> viewModel.undoRemove()
+                                                SnackbarResult.Dismissed -> viewModel.remove()
+                                            }
+                                        }
+                                    }
+                                }
+                            },
                             name = chainLink.name.value,
                             description = chainLink.description.value
                         )
                     } else {
-                        val clipboardManager = LocalClipboardManager.current
-
-                        if (!chainLink.isDraft) {
-                            ChainLinkListItem(
-                                onMenuItemClick = { menuItem ->
-                                    when (menuItem) {
-                                        ChainLinkListItemMenuItem.COPY -> {
-                                            scaffoldListState.popupHostState.currentPopupData?.dismiss()
-
-                                            coroutineScope.launch(Dispatchers.IO) {
-                                                val password = viewModel.copyPassword(chainLink).value
-
-                                                clipboardManager.setText(AnnotatedString(password))
-
-                                                scaffoldListState.popupHostState.showPopup(message = "Password copied")
-                                            }
-                                        }
-                                        ChainLinkListItemMenuItem.EDIT -> {
-                                            coroutineScope.launch(Dispatchers.IO) {
-                                                loadingDialogVisible = true
-
-                                                viewModel.startEdit(chainLink)
-
-                                                loadingDialogVisible = false
-
-                                                listItemEditDialogVisible = true
-                                            }
-                                        }
-                                        ChainLinkListItemMenuItem.DELETE -> {
-                                            scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
-
-                                            coroutineScope.launch(Dispatchers.IO) {
-                                                viewModel.removeLater(chainLink)
-
-                                                when (scaffoldListState.snackbarHostState.showSnackbar(
-                                                    message = "${chainLink.name.value} removed",
-                                                    actionLabel = "Undo",
-                                                    duration = SnackbarDuration.Short
-                                                )) {
-                                                    SnackbarResult.ActionPerformed -> viewModel.undoRemove()
-                                                    SnackbarResult.Dismissed -> viewModel.remove()
-                                                }
-                                            }
-                                        }
-                                    }
-                                },
-                                name = chainLink.name.value,
-                                description = chainLink.description.value
-                            )
-                        } else {
-                            ChainLinkListItemDraft(
-                                name = chainLink.name.value,
-                                description = chainLink.description.value
-                            )
-                        }
+                        ChainLinkListItemDraft(
+                            name = chainLink.name.value,
+                            description = chainLink.description.value
+                        )
                     }
                 }
-            }
-
-            LaunchedEffect(viewModel.isSearchEnabled, viewModel.chainLinkSearchListState.size) {
-                lazyListState.animateScrollToItem(0)
             }
 
             viewModel.chainLinkSelectedIndex.takeIf { index -> index != -1 }?.let { index ->
