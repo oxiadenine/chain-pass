@@ -132,27 +132,10 @@ fun ChainList(
             )
         },
         floatingActionButton = {
-            val density = LocalDensity.current
-
-            val isSnackbarVisible = scaffoldListState.snackbarHostState.isSnackbarVisible()
-            val (lazyListScrollDirection, lazyListScrollPosition) = scaffoldListState.lazyListState.scrollInfo()
-
-            AnimatedVisibility(
-                visible = isSnackbarVisible ||
-                        lazyListScrollDirection == LazyListScrollDirection.BACKWARD ||
-                        lazyListScrollPosition == LazyListScrollPosition.END,
-                enter = slideInVertically(animationSpec = tween(durationMillis = 250)) {
-                    with(density) { 80.dp.roundToPx() }
-                },
-                exit = slideOutVertically(animationSpec = tween(durationMillis = 250)) {
-                    with(density) { 80.dp.roundToPx() }
-                }
-            ) {
-                FloatingActionButton(
-                    onClick = { listItemNewDialogVisible = true },
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
-            }
+            FloatingActionButton(
+                onClick = { listItemNewDialogVisible = true },
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+            ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
         }
     ) { lazyListState ->
         if (viewModel.chainListState.isEmpty()) {
