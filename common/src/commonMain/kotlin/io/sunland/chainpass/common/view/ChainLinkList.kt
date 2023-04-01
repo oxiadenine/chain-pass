@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
     onTopAppBarBackClick: () -> Unit,
-    onTopAppBarSearchClick: (List<ChainLink>) -> Unit,
+    onTopAppBarSearchClick: (Chain, List<ChainLink>) -> Unit,
     deviceAddress: String,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -99,7 +99,7 @@ fun ChainLinkList(
                     scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
                     scaffoldListState.popupHostState.currentPopupData?.dismiss()
 
-                    onTopAppBarSearchClick(viewModel.chainLinkListState.toList())
+                    onTopAppBarSearchClick(viewModel.chain, viewModel.chainLinkListState.toList())
                 },
                 onMenuItemClick = { menuItem ->
                     when (menuItem) {

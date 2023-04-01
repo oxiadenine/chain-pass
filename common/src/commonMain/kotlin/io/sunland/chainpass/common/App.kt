@@ -211,10 +211,13 @@ fun App(
                 ChainLinkList(
                     viewModel = chainLinkListViewModel,
                     onTopAppBarBackClick = { navigationState.navigate(Screen.CHAIN_LIST.name) },
-                    onTopAppBarSearchClick = { chainLinks ->
+                    onTopAppBarSearchClick = { chain, chainLinks ->
                         navigationState.navigate(
                             route = Screen.CHAIN_LINK_SEARCH_LIST.name,
-                            arguments = listOf(NavigationState.RouteArgument(name = "chainLinks", value = chainLinks))
+                            arguments = listOf(
+                                NavigationState.RouteArgument(name = "chain", value = chain),
+                                NavigationState.RouteArgument(name = "chainLinks", value = chainLinks)
+                            )
                         )
                     },
                     deviceAddress = settingsState.deviceAddressState.value
@@ -222,6 +225,7 @@ fun App(
             }
             composableRoute(Screen.CHAIN_LINK_SEARCH_LIST.name) { arguments ->
                 val chainLinkSearchListState = rememberChainLinkSearchListState(
+                    chain = arguments.first { argument -> argument.name == "chain" }.value as Chain,
                     chainLinks = arguments.first { argument -> argument.name == "chainLinks" }.value as List<ChainLink>
                 )
 
