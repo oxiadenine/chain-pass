@@ -28,12 +28,7 @@ class FilePath(value: String? = null) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun UnstoreDialog(
-    onConfirm: (FilePath) -> Unit,
-    onCancel: () -> Unit,
-    title: String,
-    isSingle: Boolean
-) {
+fun UnstoreDialog(onConfirm: (FilePath) -> Unit, onCancel: () -> Unit, title: String, ) {
     var fileChooserDialogOpened by remember { mutableStateOf(false) }
 
     var filePath by remember { mutableStateOf(FilePath()) }
@@ -88,15 +83,9 @@ fun UnstoreDialog(
         }
     }
 
-    val fileExtensions = mutableListOf(if (platform == Platform.DESKTOP) {
-        StorageType.JSON.name
-    } else "application/${StorageType.JSON.name.lowercase()}")
-
-    if (isSingle) {
-        fileExtensions.add(if (platform == Platform.DESKTOP) {
-            StorageType.CSV.name
-        } else "text/comma-separated-values")
-    }
+    val fileExtensions = if (platform == Platform.DESKTOP) {
+        listOf(StorageType.JSON.name, StorageType.CSV.name)
+    } else listOf("application/${StorageType.JSON.name.lowercase()}", "text/comma-separated-values")
 
     FileChooserDialog(
         isOpened = fileChooserDialogOpened,

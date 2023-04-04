@@ -129,7 +129,7 @@ class ChainListViewModel(
     }
 
     fun store(storageType: StorageType, storeIsPrivate: Boolean) = runCatching {
-        val storableOptions = StorableOptions(storeIsPrivate, false)
+        val storableOptions = StorableOptions(storeIsPrivate)
         val storableChains = chainRepository.getAll().map { chainEntity ->
             val storableChainLinks = chainLinkRepository.getBy(chainEntity.id).map { chainLink ->
                 StorableChainLink(chainLink.name, chainLink.description, chainLink.password)
@@ -146,6 +146,14 @@ class ChainListViewModel(
     fun unstore(filePath: FilePath) = runCatching {
         val storable = chainRepository.unstore(filePath.value)
 
+        if (!storable.options.isPrivate) {
+            throw IllegalStateException("Invalid not private store file")
+        }
+
+        if (storable.chains.isEmpty()) {
+            throw IllegalStateException("Invalid empty store file")
+        }
+
         val chains = mutableStateListOf<Chain>()
         val chainLinks = mutableStateListOf<ChainLink>()
 
@@ -156,6 +164,7 @@ class ChainListViewModel(
             }
 
             chains.add(chain)
+
             chainLinks.addAll(storableChain.chainLinks.map { storableChainLink ->
                 ChainLink(chain).apply {
                     name = ChainLink.Name(storableChainLink.name)

@@ -315,8 +315,7 @@ fun ChainLinkList(
                 }
             },
             onCancel = { unstoreDialogVisible = false },
-            title = "Unstore",
-            isSingle = true
+            title = "Unstore"
         )
     }
 

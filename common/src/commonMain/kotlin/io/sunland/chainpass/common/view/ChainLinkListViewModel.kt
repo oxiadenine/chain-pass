@@ -171,7 +171,7 @@ class ChainLinkListViewModel(
     }
 
     fun store(storageType: StorageType, storeIsPrivate: Boolean) = runCatching {
-        val storableOptions = StorableOptions(storeIsPrivate, true)
+        val storableOptions = StorableOptions(storeIsPrivate)
         val storableChainLinks = chainLinkRepository.getBy(chain.id).map { chainLinkEntity ->
             val chainLink = ChainLink(chain).apply {
                 id = chainLinkEntity.id
@@ -201,7 +201,11 @@ class ChainLinkListViewModel(
     fun unstore(filePath: FilePath) = runCatching {
         val storable = chainLinkRepository.unstore(filePath.value)
 
-        if (!storable.options.isSingle) {
+        if (storable.chains.isEmpty()) {
+            throw IllegalStateException("Invalid empty store file")
+        }
+
+        if (storable.chains.size > 1) {
             throw IllegalStateException("Invalid multiple store file")
         }
 
