@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
@@ -44,16 +43,7 @@ fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (Stri
             TextField(
                 value = keywordState.value,
                 onValueChange = onSearchTextFieldValueChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester = focusRequester)
-                    .onKeyEvent { keyEvent: KeyEvent ->
-                        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
-                            onBackClick()
-
-                            true
-                        } else false
-                    },
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester = focusRequester),
                 textStyle = TextStyle(fontSize = 18.sp),
                 placeholder = { Text(text = "Search") },
                 trailingIcon = if (keywordState.value.isNotEmpty()) {

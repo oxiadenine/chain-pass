@@ -1,7 +1,7 @@
 package io.sunland.chainpass.common
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DarkMode
@@ -95,7 +95,7 @@ fun App(
 
     Surface(modifier = Modifier.fillMaxSize()) {
         NavigationHost(navigationState = navigationState, initialRoute = Screen.CHAIN_LIST.name) {
-            composableRoute(route = Screen.CHAIN_LIST.name) {
+            composableRoute<ChainListRouteArgument>(route = Screen.CHAIN_LIST.name) {
                 val drawerState = rememberDrawerState(DrawerValue.Closed)
 
                 var settingsDialogVisible by remember { mutableStateOf(false) }
@@ -175,10 +175,11 @@ fun App(
                             }
                         },
                         onListItemOpenMenuItemClick = { chain ->
-                            navigationState.navigate(
-                                route = Screen.CHAIN_LINK_LIST.name,
-                                arguments = listOf(NavigationState.RouteArgument(name = "chain", value = chain))
-                            )
+                            navigationState.push(route = NavigationState.Route(
+                                path = Screen.CHAIN_LINK_LIST.name,
+                                argument = ChainLinkListRouteArgument(chain),
+                                animation = tween(easing = FastOutSlowInEasing)
+                            ))
                         },
                         deviceAddress = settingsState.deviceAddressState.value
                     )
@@ -193,7 +194,7 @@ fun App(
                 }
             }
 
-            composableRoute(route = Screen.CHAIN_LINK_LIST.name) { arguments ->
+            composableRoute<ChainLinkListRouteArgument>(route = Screen.CHAIN_LINK_LIST.name) { argument ->
                 val chainLinkListViewModel = rememberChainLinkListViewModel(
                     passwordGenerator = PasswordGenerator(
                         PasswordGenerator.Strength(
@@ -201,50 +202,34 @@ fun App(
                             settingsState.passwordIsAlphanumericState.value
                         )),
                     chainLinkRepository = chainLinkRepository,
-                    chain = arguments.first { argument -> argument.name == "chain" }.value as Chain
+                    chain = argument!!.chain
                 )
 
-                arguments.firstOrNull { argument -> argument.name == "chainLink" }?.let { argument ->
-                    chainLinkListViewModel.chainLinkSelected = argument.value as ChainLink
-                }
+                chainLinkListViewModel.chainLinkSelected = argument.chainLink
 
                 ChainLinkList(
                     viewModel = chainLinkListViewModel,
-                    onTopAppBarBackClick = { navigationState.navigate(Screen.CHAIN_LIST.name) },
-                    onTopAppBarSearchClick = { chain, chainLinks ->
-                        navigationState.navigate(
-                            route = Screen.CHAIN_LINK_SEARCH_LIST.name,
-                            arguments = listOf(
-                                NavigationState.RouteArgument(name = "chain", value = chain),
-                                NavigationState.RouteArgument(name = "chainLinks", value = chainLinks)
-                            )
-                        )
+                    onTopAppBarBackClick = { navigationState.pop() },
+                    onTopAppBarSearchClick = { chainLinks ->
+                        navigationState.push(NavigationState.Route(
+                            path = Screen.CHAIN_LINK_SEARCH_LIST.name,
+                            argument = ChainLinkSearchListRouteArgument(chainLinks),
+                            animation = tween(easing = FastOutLinearInEasing)
+                        ))
                     },
                     deviceAddress = settingsState.deviceAddressState.value
                 )
             }
-            composableRoute(Screen.CHAIN_LINK_SEARCH_LIST.name) { arguments ->
-                val chainLinkSearchListState = rememberChainLinkSearchListState(
-                    chain = arguments.first { argument -> argument.name == "chain" }.value as Chain,
-                    chainLinks = arguments.first { argument -> argument.name == "chainLinks" }.value as List<ChainLink>
-                )
+            composableRoute<ChainLinkSearchListRouteArgument>(Screen.CHAIN_LINK_SEARCH_LIST.name) { argument ->
+                val chainLinkSearchListState = rememberChainLinkSearchListState(chainLinks = argument!!.chainLinks)
 
                 ChainLinkSearchList(
                     state = chainLinkSearchListState,
-                    onTopAppBarBackClick = { chain ->
-                        navigationState.navigate(
-                            route = Screen.CHAIN_LINK_LIST.name,
-                            arguments = listOf(NavigationState.RouteArgument(name = "chain", value = chain))
-                        )
-                    },
+                    onTopAppBarBackClick = { navigationState.pop() },
                     onListItemClick = { chainLink ->
-                        navigationState.navigate(
-                            route = Screen.CHAIN_LINK_LIST.name,
-                            arguments = listOf(
-                                NavigationState.RouteArgument(name = "chain", value = chainLink.chain),
-                                NavigationState.RouteArgument(name = "chainLink", value = chainLink)
-                            )
-                        )
+                        navigationState.pop(NavigationState.Route(
+                            argument = ChainLinkListRouteArgument(chainLink.chain, chainLink)
+                        ))
                     }
                 )
             }

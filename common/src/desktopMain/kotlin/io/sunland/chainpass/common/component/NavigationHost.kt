@@ -2,6 +2,8 @@
 
 package io.sunland.chainpass.common.component
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.input.key.*
@@ -14,15 +16,12 @@ actual fun NavigationHost(
 ) {
     content(navigationState.composableRouteScope)
 
-    val composableRoute = navigationState.currentComposableRoute
-    val routeArguments = navigationState.composableRouteScope.routeArgumentListState
-
-    composableRoute.composable?.invoke(routeArguments)
+    Crossfade(
+        targetState = navigationState.currentComposableRoute,
+        animationSpec = navigationState.currentComposableRoute?.route?.animation ?: tween()
+    ) { composableRoute -> composableRoute?.composable?.invoke(composableRoute.route.argument) }
 
     LaunchedEffect(Unit) {
-        navigationState.currentComposableRoute = navigationState.composableRouteScope.composableRouteListState
-            .firstOrNull { composableRoute ->
-                composableRoute.route == initialRoute
-            } ?: NavigationState.ComposableRoute(initialRoute)
+        navigationState.initStack(initialRoute)
     }
 }
