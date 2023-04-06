@@ -90,15 +90,3 @@ fun ChainListItem(onMenuItemClick: (ChainListItemMenuItem) -> Unit, name: String
         }
     }
 }
-
-@Composable
-fun ChainListItemDraft(name: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = name)
-        CircularProgressIndicator(modifier = Modifier.size(size = 16.dp), strokeWidth = 2.dp)
-    }
-}
