@@ -8,13 +8,17 @@ import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.security.PasswordGenerator
 import kotlinx.coroutines.coroutineScope
-import java.lang.IllegalStateException
+import kotlin.IllegalStateException
 
 class ChainLinkListViewModel(
     val passwordGenerator: PasswordGenerator,
     private val chainLinkRepository: ChainLinkRepository,
     val chain: Chain
 ) {
+    object StorableFormatError : Error()
+    object StorableMultipleError : Error()
+    object SyncNetworkError : Error()
+
     val chainLinkListState = mutableStateListOf<ChainLink>()
 
     val chainLinkSelectedIndex: Int
@@ -170,7 +174,7 @@ class ChainLinkListViewModel(
         chainLinkRemovedListState.remove(chainLink)
     }
 
-    fun store(storageType: StorageType, storeIsPrivate: Boolean) = runCatching {
+    fun store(storageType: StorageType, storeIsPrivate: Boolean): String {
         val storableOptions = StorableOptions(storeIsPrivate)
         val storableChainLinks = chainLinkRepository.getBy(chain.id).map { chainLinkEntity ->
             val chainLink = ChainLink(chain).apply {
@@ -195,18 +199,22 @@ class ChainLinkListViewModel(
 
         val storable = Storable(storableOptions, storableChains)
 
-        chainLinkRepository.store(storageType, storable)
+        return chainLinkRepository.store(storageType, storable)
     }
 
     fun unstore(filePath: FilePath) = runCatching {
-        val storable = chainLinkRepository.unstore(filePath.value)
+        val storable = try {
+            chainLinkRepository.unstore(filePath.value)
+        } catch (e: IllegalStateException) {
+            throw StorableFormatError
+        }
 
         if (storable.chains.isEmpty()) {
-            throw IllegalStateException("Invalid empty store file")
+            return@runCatching
         }
 
         if (storable.chains.size > 1) {
-            throw IllegalStateException("Invalid multiple store file")
+            throw StorableMultipleError
         }
 
         val chains = storable.chains.map { storableChain ->
@@ -246,9 +254,13 @@ class ChainLinkListViewModel(
     }
 
     suspend fun sync(deviceAddress: String) = runCatching {
-        val webSocket = WebSocket.connect(deviceAddress)
+        try {
+            val webSocket = WebSocket.connect(deviceAddress)
 
-        ChainLinkApi(chainLinkRepository, webSocket).sync(chain.id).getOrThrow()
+            ChainLinkApi(chainLinkRepository, webSocket).sync(chain.id).getOrThrow()
+        } catch (e: Exception) {
+            throw SyncNetworkError
+        }
     }
 }
 

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.LocalIntl
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
 import io.sunland.chainpass.common.security.PasswordGenerator
@@ -32,6 +33,8 @@ fun ChainLinkListItemEditDialog(
     chainLink: ChainLink,
     passwordGenerator: PasswordGenerator
 ) {
+    val intl = LocalIntl.current
+
     var chainLinkDescription by remember { mutableStateOf(chainLink.description) }
     var chainLinkPassword by remember { mutableStateOf(chainLink.password) }
 
@@ -69,12 +72,16 @@ fun ChainLinkListItemEditDialog(
             ValidationTextField(
                 value = chainLinkDescription.value,
                 onValueChange = onDescriptionTextFieldValueChange,
-                placeholder = { Text(text = "Description") },
+                placeholder = { Text(text = intl.translate("dialog.chainLink.textField.description.placeholder")) },
                 trailingIcon = if (chainLinkDescription.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
                 isError = chainLinkDescription.validation.isFailure,
-                errorMessage = chainLinkDescription.validation.exceptionOrNull()?.message,
+                errorMessage = chainLinkDescription.validation.exceptionOrNull()?.let { error ->
+                    if (error is ChainLink.Description.LengthError) {
+                       intl.translate("dialog.chainLink.textField.description.length.error")
+                    } else null
+                },
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -88,7 +95,7 @@ fun ChainLinkListItemEditDialog(
                 value = chainLinkPassword.value,
                 onValueChange = onPasswordTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                placeholder = { Text(text = "Password") },
+                placeholder = { Text(text = intl.translate("dialog.chainLink.textField.password.placeholder")) },
                 leadingIcon = {
                     IconButton(
                         onClick = { onPasswordTextFieldValueChange(passwordGenerator.generate()) },
@@ -108,7 +115,17 @@ fun ChainLinkListItemEditDialog(
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
                 isError = chainLinkPassword.validation.isFailure,
-                errorMessage = chainLinkPassword.validation.exceptionOrNull()?.message,
+                errorMessage = chainLinkPassword.validation.exceptionOrNull()?.let { error ->
+                    when (error) {
+                        is ChainLink.Password.EmptyError -> {
+                            intl.translate("dialog.chainLink.textField.password.empty.error")
+                        }
+                        is ChainLink.Password.LengthError -> {
+                            intl.translate("dialog.chainLink.textField.password.length.error")
+                        }
+                        else -> null
+                    }
+                },
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,

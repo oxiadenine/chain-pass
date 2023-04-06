@@ -16,12 +16,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.sunland.chainpass.common.LocalIntl
 
 enum class ChainLinkListItemMenuItem { COPY, EDIT, DELETE }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name: String, description: String) {
+    val intl = LocalIntl.current
+
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
     var dropdownMenuOffset by remember { mutableStateOf(DpOffset.Zero) }
 
@@ -73,7 +76,7 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
                 offset = dropdownMenuOffset
             ) {
                 DropdownMenuItem(
-                    text = { Text(text = "Copy", fontSize = 14.sp) },
+                    text = { Text(text = intl.translate("list.chainLink.menu.item.copy.text"), fontSize = 14.sp) },
                     onClick = {
                         dropdownMenuExpanded = false
 
@@ -84,7 +87,7 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
                 DropdownMenuItem(
-                    text = { Text(text = "Edit", fontSize = 14.sp) },
+                    text = { Text(text = intl.translate("list.chainLink.menu.item.edit.text"), fontSize = 14.sp) },
                     onClick = {
                         dropdownMenuExpanded = false
 
@@ -95,7 +98,7 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
                 DropdownMenuItem(
-                    text = { Text(text = "Delete", fontSize = 14.sp) },
+                    text = { Text(text = intl.translate("list.chainLink.menu.item.delete.text"), fontSize = 14.sp) },
                     onClick = {
                         dropdownMenuExpanded = false
 

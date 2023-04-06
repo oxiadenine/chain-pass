@@ -30,12 +30,15 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
+import io.sunland.chainpass.common.LocalIntl
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit) {
+    val intl = LocalIntl.current
+
     var chainKey by remember { mutableStateOf(Chain.Key()) }
 
     var keyVisible by remember { mutableStateOf(false) }
@@ -74,7 +77,7 @@ fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit)
                 value = chainKey.value,
                 onValueChange = onKeyTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                placeholder = { Text(text = "Key") },
+                placeholder = { Text(text = intl.translate("dialog.chain.textField.key.placeholder")) },
                 trailingIcon = {
                     if (chainKey.validation.isFailure) {
                         Icon(imageVector = Icons.Default.Info, contentDescription = null)
@@ -97,7 +100,17 @@ fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit)
                     }
                 },
                 isError = chainKey.validation.isFailure,
-                errorMessage = chainKey.validation.exceptionOrNull()?.message,
+                errorMessage = chainKey.validation.exceptionOrNull()?.let { error ->
+                    when (error) {
+                        is Chain.Key.EmptyError -> {
+                            intl.translate("dialog.chain.textField.key.empty.error")
+                        }
+                        is Chain.Key.LengthError -> {
+                            intl.translate("dialog.chain.textField.key.length.error")
+                        }
+                        else -> null
+                    }
+                },
                 singleLine = true,
                 visualTransformation = if (!keyVisible) {
                     PasswordVisualTransformation()

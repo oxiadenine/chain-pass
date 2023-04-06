@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.LocalIntl
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
 import io.sunland.chainpass.common.security.PasswordGenerator
@@ -31,6 +32,8 @@ fun ChainLinkListItemNewDialog(
     onCancel: () -> Unit,
     passwordGenerator: PasswordGenerator
 ) {
+    val intl = LocalIntl.current
+
     var chainLinkName by remember { mutableStateOf(ChainLink.Name()) }
     var chainLinkDescription by remember { mutableStateOf(ChainLink.Description()) }
     var chainLinkPassword by remember { mutableStateOf(ChainLink.Password()) }
@@ -75,12 +78,22 @@ fun ChainLinkListItemNewDialog(
                 value = chainLinkName.value,
                 onValueChange = onNameTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                placeholder = { Text(text = "Name") },
+                placeholder = { Text(text = intl.translate("dialog.chainLink.textField.name.placeholder")) },
                 trailingIcon = if (chainLinkName.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
                 isError = chainLinkName.validation.isFailure,
-                errorMessage = chainLinkName.validation.exceptionOrNull()?.message,
+                errorMessage = chainLinkName.validation.exceptionOrNull()?.let { error ->
+                    when (error) {
+                        is ChainLink.Name.EmptyError -> {
+                            intl.translate("dialog.chainLink.textField.name.empty.error")
+                        }
+                        is ChainLink.Name.LengthError -> {
+                            intl.translate("dialog.chainLink.textField.name.length.error")
+                        }
+                        else -> null
+                    }
+                },
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -93,12 +106,16 @@ fun ChainLinkListItemNewDialog(
             ValidationTextField(
                 value = chainLinkDescription.value,
                 onValueChange = onDescriptionTextFieldValueChange,
-                placeholder = { Text(text = "Description") },
+                placeholder = { Text(text = intl.translate("dialog.chainLink.textField.description.placeholder")) },
                 trailingIcon = if (chainLinkDescription.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
                 isError = chainLinkDescription.validation.isFailure,
-                errorMessage = chainLinkDescription.validation.exceptionOrNull()?.message,
+                errorMessage = chainLinkDescription.validation.exceptionOrNull()?.let { error ->
+                    if (error is ChainLink.Description.LengthError) {
+                        intl.translate("dialog.chainLink.textField.description.length.error")
+                    } else null
+                },
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -111,7 +128,7 @@ fun ChainLinkListItemNewDialog(
             ValidationTextField(
                 value = chainLinkPassword.value,
                 onValueChange = onPasswordTextFieldValueChange,
-                placeholder = { Text(text = "Password") },
+                placeholder = { Text(text = intl.translate("dialog.chainLink.textField.password.placeholder")) },
                 leadingIcon = {
                     IconButton(
                         onClick = { onPasswordTextFieldValueChange(passwordGenerator.generate()) },
@@ -131,7 +148,17 @@ fun ChainLinkListItemNewDialog(
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
                 isError = chainLinkPassword.validation.isFailure,
-                errorMessage = chainLinkPassword.validation.exceptionOrNull()?.message,
+                errorMessage = chainLinkPassword.validation.exceptionOrNull()?.let { error ->
+                    when (error) {
+                        is ChainLink.Password.EmptyError -> {
+                            intl.translate("dialog.chainLink.textField.password.empty.error")
+                        }
+                        is ChainLink.Password.LengthError -> {
+                            intl.translate("dialog.chainLink.textField.password.length.error")
+                        }
+                        else -> null
+                    }
+                },
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,

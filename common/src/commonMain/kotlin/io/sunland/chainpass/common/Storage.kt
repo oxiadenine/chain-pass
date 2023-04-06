@@ -151,7 +151,7 @@ fun String.toStorable(storageType: StorageType) = when (storageType) {
             val optionsRecord = data[1].split(",")
 
             StorableOptions(optionsRecord[0].toBoolean())
-        } else throw IllegalArgumentException("Invalid $storageType format")
+        } else error("Invalid $storageType format")
 
         val storableChains = mutableListOf<StorableChain>()
 
@@ -193,5 +193,5 @@ fun String.toStorable(storageType: StorageType) = when (storageType) {
 
         Storable(storableOptions, storableChains)
     }
-    else -> throw IllegalArgumentException("Storage type $storageType is not supported")
+    else -> error("Storage type $storageType is not supported")
 }

@@ -4,15 +4,13 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.LocalIntl
 import io.sunland.chainpass.common.component.NavigationState
 
 class ChainLinkSearchListRouteArgument(val chainLinks: List<ChainLink>) : NavigationState.RouteArgument()
@@ -41,6 +39,8 @@ fun ChainLinkSearchList(
     onTopAppBarBackClick: () -> Unit,
     onListItemClick: (ChainLink) -> Unit
 ) {
+    val intl = LocalIntl.current
+
     Column(modifier = Modifier.fillMaxSize()) {
         ChainLinkSearchListTopAppBar(
             onBackClick = { onTopAppBarBackClick() },
@@ -55,10 +55,7 @@ fun ChainLinkSearchList(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = "No Chain Links")
-                    Icon(imageVector = Icons.Default.List, contentDescription = null)
-                }
+                ) { Text(text = intl.translate("list.chainLink.search.empty.text")) }
             } else {
                 val lazyListState = rememberLazyListState()
 

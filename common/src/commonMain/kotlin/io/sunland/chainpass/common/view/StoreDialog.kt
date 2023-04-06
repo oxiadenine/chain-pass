@@ -14,17 +14,15 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.sunland.chainpass.common.LocalIntl
 import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.common.component.InputDialog
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun StoreDialog(
-    onConfirm: (StorageType, Boolean) -> Unit,
-    onCancel: () -> Unit,
-    title: String,
-    isSingle: Boolean
-) {
+fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit, isSingle: Boolean) {
+    val intl = LocalIntl.current
+
     var storageType by remember { mutableStateOf(StorageType.JSON) }
     var storeIsPrivate by remember { mutableStateOf(true) }
 
@@ -43,7 +41,7 @@ fun StoreDialog(
     InputDialog(
         onDismissRequest = onCancel,
         onConfirmRequest = onInputDialogConfirmRequest,
-        title = { Text(text = title, modifier = Modifier.padding(all = 16.dp)) }
+        title = { Text(text = intl.translate("dialog.store.title"), modifier = Modifier.padding(all = 16.dp)) }
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
@@ -55,7 +53,7 @@ fun StoreDialog(
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Private")
+                    Text(text = intl.translate("dialog.store.item.private.text"))
                     Switch(
                         checked = storeIsPrivate,
                         onCheckedChange = onStorePrivateSwitchCheckedChange,
@@ -86,7 +84,7 @@ fun StoreDialog(
                         offset = DpOffset(x = 8.dp, y = (-16).dp)
                     ) {
                         DropdownMenuItem(
-                            text = { Text(text = "JSON", fontSize = 14.sp) },
+                            text = { Text(text = StorageType.JSON.name, fontSize = 14.sp) },
                             onClick = {
                                 dropdownMenuExpanded = false
 
@@ -96,7 +94,7 @@ fun StoreDialog(
                             contentPadding = PaddingValues(horizontal = 16.dp)
                         )
                         DropdownMenuItem(
-                            text = { Text(text = "CSV", fontSize = 14.sp) },
+                            text = { Text(text = StorageType.CSV.name, fontSize = 14.sp) },
                             onClick = {
                                 dropdownMenuExpanded = false
 
@@ -106,7 +104,7 @@ fun StoreDialog(
                             contentPadding = PaddingValues(horizontal = 16.dp)
                         )
                         DropdownMenuItem(
-                            text = { Text(text = "TXT", fontSize = 14.sp) },
+                            text = { Text(text = StorageType.TXT.name, fontSize = 14.sp) },
                             onClick = {
                                 dropdownMenuExpanded = false
 

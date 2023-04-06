@@ -14,6 +14,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.sunland.chainpass.common.LocalIntl
 
 enum class ChainListTopAppBarMenuItem { SYNC, STORE, UNSTORE }
 
@@ -24,6 +25,8 @@ fun ChainListTopAppBar(
     onMenuItemClick: (ChainListTopAppBarMenuItem) -> Unit,
     title: String
 ) {
+    val intl = LocalIntl.current
+
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
 
     TopAppBar(
@@ -49,7 +52,12 @@ fun ChainListTopAppBar(
                     offset = DpOffset(x = 8.dp, y = (-40).dp)
                 ) {
                     DropdownMenuItem(
-                        text = { Text(text = "Sync", fontSize = 14.sp) },
+                        text = {
+                            Text(
+                                text = intl.translate("topAppBar.chain.menu.item.sync.text"),
+                                fontSize = 14.sp
+                            )
+                        },
                         onClick = {
                             dropdownMenuExpanded = false
 
@@ -60,7 +68,12 @@ fun ChainListTopAppBar(
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     )
                     DropdownMenuItem(
-                        text = { Text(text = "Store", fontSize = 14.sp) },
+                        text = {
+                            Text(
+                                text = intl.translate("topAppBar.chain.menu.item.store.text"),
+                                fontSize = 14.sp
+                            )
+                        },
                         onClick = {
                             dropdownMenuExpanded = false
 
@@ -71,7 +84,12 @@ fun ChainListTopAppBar(
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     )
                     DropdownMenuItem(
-                        text = { Text(text = "Unstore", fontSize = 14.sp) },
+                        text = {
+                            Text(
+                                text = intl.translate("topAppBar.chain.menu.item.unstore.text"),
+                                fontSize = 14.sp
+                            )
+                        },
                         onClick = {
                             dropdownMenuExpanded = false
 

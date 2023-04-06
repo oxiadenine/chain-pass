@@ -18,10 +18,13 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
+import io.sunland.chainpass.common.LocalIntl
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (String) -> Unit) {
+    val intl = LocalIntl.current
+
     val keywordState = remember { mutableStateOf("") }
 
     val onSearchTextFieldValueChange = { keyword: String ->
@@ -45,7 +48,9 @@ fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (Stri
                 onValueChange = onSearchTextFieldValueChange,
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester = focusRequester),
                 textStyle = TextStyle(fontSize = 18.sp),
-                placeholder = { Text(text = "Search") },
+                placeholder = {
+                    Text(text = intl.translate("topAppBar.chainLink.textField.search.placeholder"))
+                },
                 trailingIcon = if (keywordState.value.isNotEmpty()) {
                     {
                         IconButton(

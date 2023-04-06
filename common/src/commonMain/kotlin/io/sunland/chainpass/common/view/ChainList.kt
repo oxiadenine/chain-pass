@@ -37,6 +37,8 @@ fun ChainList(
     onListItemOpenMenuItemClick: (Chain) -> Unit,
     deviceAddress: String
 ) {
+    val intl = LocalIntl.current
+
     val coroutineScope = rememberCoroutineScope()
 
     val scaffoldListState = rememberScaffoldListState()
@@ -108,7 +110,7 @@ fun ChainList(
                                 if (deviceAddress.isEmpty()) {
                                     scaffoldListState.popupHostState.currentPopupData?.dismiss()
                                     scaffoldListState.popupHostState.showPopup(
-                                        message = "Set device address in Settings"
+                                        message = intl.translate("popup.sync.device.message")
                                     )
                                 } else {
                                     loadingDialogVisible = true
@@ -117,11 +119,15 @@ fun ChainList(
                                         viewModel.getAll()
 
                                         loadingDialogVisible = false
-                                    }.onFailure { exception ->
+                                    }.onFailure { error ->
                                         loadingDialogVisible = false
 
                                         scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                                        scaffoldListState.popupHostState.showPopup(message = exception.message ?: "Error")
+                                        scaffoldListState.popupHostState.showPopup(
+                                            message = if (error is ChainListViewModel.SyncNetworkError) {
+                                                intl.translate("popup.sync.network.error")
+                                            } else "Error"
+                                        )
                                     }
                                 }
                             }
@@ -146,7 +152,7 @@ fun ChainList(
                 horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "New Chain")
+                Text(text = intl.translate("list.chain.empty.text"))
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
             }
         } else {
@@ -187,27 +193,38 @@ fun ChainList(
                             loadingDialogVisible = false
 
                             onListItemOpenMenuItemClick(viewModel.chainSelected!!)
-                        }.onFailure { exception ->
+                        }.onFailure { error ->
                             loadingDialogVisible = false
 
                             scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                            scaffoldListState.popupHostState.showPopup(message = exception.message ?: "Error")
+                            scaffoldListState.popupHostState.showPopup(
+                                message = if (error is Chain.KeyInvalidError) {
+                                    intl.translate("popup.chain.key.error")
+                                } else "Error"
+                            )
                         }
                     }
                     ChainListItemMenuItem.DELETE -> coroutineScope.launch(Dispatchers.IO) {
                         viewModel.removeLater(chainKey)
 
                         when (scaffoldListState.snackbarHostState.showSnackbar(
-                            message = "${viewModel.chainSelected!!.name.value} removed",
-                            actionLabel = "Undo",
+                            message = intl.translate(
+                                id = "snackbar.label.delete.text",
+                                value = "name" to viewModel.chainSelected!!.name.value
+                            ),
+                            actionLabel = intl.translate("snackbar.button.undo.text"),
                             duration = SnackbarDuration.Short
                         )) {
                             SnackbarResult.ActionPerformed -> viewModel.undoRemove()
-                            SnackbarResult.Dismissed -> viewModel.remove().onFailure { exception ->
+                            SnackbarResult.Dismissed -> viewModel.remove().onFailure { error ->
                                 viewModel.undoRemove()
 
                                 scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                                scaffoldListState.popupHostState.showPopup(message = exception.message ?: "Error")
+                                scaffoldListState.popupHostState.showPopup(
+                                    message = if (error is Chain.KeyInvalidError) {
+                                        intl.translate("popup.chain.key.error")
+                                    } else "Error"
+                                )
                             }
                         }
                     }
@@ -241,21 +258,18 @@ fun ChainList(
                 coroutineScope.launch(Dispatchers.IO) {
                     loadingDialogVisible = true
 
-                    viewModel.store(storageType, storeIsPrivate).onSuccess { fileName ->
-                        loadingDialogVisible = false
+                    val fileName = viewModel.store(storageType, storeIsPrivate)
 
-                        scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                        scaffoldListState.popupHostState.showPopup(message = "Stored to $fileName")
-                    }.onFailure { exception ->
-                        loadingDialogVisible = false
+                    loadingDialogVisible = false
 
-                        scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                        scaffoldListState.popupHostState.showPopup(message = exception.message ?: "Error")
-                    }
+                    scaffoldListState.popupHostState.currentPopupData?.dismiss()
+                    scaffoldListState.popupHostState.showPopup(message = intl.translate(
+                        id = "popup.store.message",
+                        value = "fileName" to fileName
+                    ))
                 }
             },
             onCancel = { storeDialogVisible = false },
-            title = "Store",
             isSingle = false
         )
     }
@@ -276,17 +290,27 @@ fun ChainList(
                         loadingDialogVisible = false
 
                         scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                        scaffoldListState.popupHostState.showPopup(message = "Unstored from ${filePath.fileName}")
-                    }.onFailure { exception ->
+                        scaffoldListState.popupHostState.showPopup(message = intl.translate(
+                            id = "popup.unstore.message",
+                            value = "fileName" to filePath.fileName
+                        ))
+                    }.onFailure { error ->
                         loadingDialogVisible = false
 
                         scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                        scaffoldListState.popupHostState.showPopup(message = exception.message ?: "Error")
+                        scaffoldListState.popupHostState.showPopup(message = when (error) {
+                            is ChainListViewModel.StorableFormatError -> {
+                                intl.translate("popup.unstore.storable.format.error")
+                            }
+                            is ChainListViewModel.StorablePrivateError -> {
+                                intl.translate("popup.unstore.storable.private.error")
+                            }
+                            else -> "Error"
+                        })
                     }
                 }
             },
-            onCancel = { unstoreDialogVisible = false },
-            title = "Unstore"
+            onCancel = { unstoreDialogVisible = false }
         )
     }
 
