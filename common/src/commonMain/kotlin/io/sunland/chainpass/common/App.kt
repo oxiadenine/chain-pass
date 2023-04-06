@@ -108,9 +108,12 @@ fun App(
 
                     ModalNavigationDrawer(
                         drawerContent = {
-                            ModalDrawerSheet(drawerShape = if (platform == Platform.DESKTOP) {
-                                RectangleShape
-                            } else DrawerDefaults.shape) {
+                            ModalDrawerSheet(
+                                modifier = Modifier.width(width = 300.dp),
+                                drawerShape = if (platform == Platform.DESKTOP) {
+                                    RectangleShape
+                                } else DrawerDefaults.shape
+                            ) {
                                 val hostAddress = networkState.hostAddressState.value
 
                                 Box(modifier = Modifier.fillMaxWidth().padding(all = 4.dp)) {
