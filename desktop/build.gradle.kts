@@ -25,6 +25,9 @@ kotlin {
                 implementation(project(":common"))
 
                 implementation(compose.desktop.currentOs)
+
+                implementation(exposedDependency("jdbc"))
+                implementation(h2databaseDependency())
             }
         }
         named("jvmTest") {

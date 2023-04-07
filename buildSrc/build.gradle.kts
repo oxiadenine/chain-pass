@@ -21,5 +21,4 @@ dependencies {
     implementation(kotlin("serialization", version("kotlin")))
     implementation("org.jetbrains.compose:compose-gradle-plugin:${version("compose")}")
     implementation("com.android.tools.build:gradle:${version("android")}")
-    implementation("com.squareup.sqldelight:gradle-plugin:${version("sqldelight")}")
 }

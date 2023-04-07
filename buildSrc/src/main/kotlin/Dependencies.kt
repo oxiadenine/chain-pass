@@ -5,7 +5,8 @@ fun Project.kotlinxDependency(name: String) =
 
 fun Project.ktorDependency(name: String) = "io.ktor:ktor-$name:${version("ktor")}"
 fun Project.rsocketDependency(name: String) = "io.rsocket.kotlin:rsocket-$name:${version("rsocket")}"
-fun Project.sqldelightDependency(name: String) = "com.squareup.sqldelight:$name:${version("sqldelight")}"
+fun Project.exposedDependency(name: String) = "org.jetbrains.exposed:exposed-$name:${version("exposed")}"
+fun Project.h2databaseDependency() = "com.h2database:h2:${version("h2database")}"
 
 fun Project.androidxDependency(name: String) =
     "androidx.${name.substringBefore("-")}:$name:${androidxVersion(name)}"

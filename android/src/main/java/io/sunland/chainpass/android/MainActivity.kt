@@ -16,7 +16,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         val settingsManager = SettingsManager(applicationContext.getExternalFilesDir("")!!.absolutePath)
-        val database = DatabaseFactory.createDatabase(DriverFactory(applicationContext))
+        val database = Database.create(applicationContext.getExternalFilesDir("")!!.absolutePath)
         val storage = Storage(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path)
 
         val chainRepository = ChainRepository(database, storage)
