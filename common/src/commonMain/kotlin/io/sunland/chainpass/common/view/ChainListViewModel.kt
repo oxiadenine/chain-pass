@@ -8,10 +8,8 @@ import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
-import io.sunland.chainpass.common.security.PasswordGenerator
 
 class ChainListViewModel(
-    val passwordGenerator: PasswordGenerator,
     private val chainRepository: ChainRepository,
     private val chainLinkRepository: ChainLinkRepository
 ) {
@@ -200,8 +198,6 @@ class ChainListViewModel(
 }
 
 @Composable
-fun rememberChainListViewModel(
-    passwordGenerator: PasswordGenerator,
-    chainRepository: ChainRepository,
-    chainLinkRepository: ChainLinkRepository
-) = remember { ChainListViewModel(passwordGenerator, chainRepository, chainLinkRepository) }
+fun rememberChainListViewModel(chainRepository: ChainRepository, chainLinkRepository: ChainLinkRepository) = remember {
+    ChainListViewModel(chainRepository, chainLinkRepository)
+}

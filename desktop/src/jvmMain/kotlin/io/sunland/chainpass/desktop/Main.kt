@@ -19,7 +19,6 @@ import io.sunland.chainpass.common.repository.ChainRepository
 import java.awt.Dimension
 
 fun main() {
-    val settingsManager = SettingsManager("${System.getProperty("user.home")}/.chain-pass")
     val database = Database.create("${System.getProperty("user.home")}/.chain-pass")
     val storage = Storage("${System.getProperty("user.home")}/Downloads")
 
@@ -42,7 +41,7 @@ fun main() {
         ) {
             window.minimumSize = Dimension(360, 480)
 
-            val settingsState = rememberSettingsState(settingsManager)
+            val settingsState = rememberSettingsState("${System.getProperty("user.home")}/.chain-pass")
             val networkState = rememberNetworkState(syncServer.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
             val navigationState = rememberNavigationState()

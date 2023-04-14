@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.*
 import io.sunland.chainpass.common.component.*
+import io.sunland.chainpass.common.security.PasswordGenerator
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -34,6 +35,7 @@ fun ChainLinkList(
     onTopAppBarBackClick: () -> Unit,
     onTopAppBarSearchClick: (List<ChainLink>) -> Unit,
     deviceAddress: String,
+    passwordGenerator: PasswordGenerator
 ) {
     val intl = LocalIntl.current
 
@@ -242,7 +244,7 @@ fun ChainLinkList(
                 }
             },
             onCancel = { listItemNewDialogVisible = false },
-            passwordGenerator = viewModel.passwordGenerator
+            passwordGenerator = passwordGenerator
         )
     }
 
@@ -265,7 +267,7 @@ fun ChainLinkList(
                 viewModel.cancelEdit()
             },
             chainLink = viewModel.chainLinkEdit!!,
-            passwordGenerator = viewModel.passwordGenerator
+            passwordGenerator = passwordGenerator
         )
     }
 
