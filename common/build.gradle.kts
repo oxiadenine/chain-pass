@@ -1,23 +1,21 @@
 plugins {
-    id("com.android.library")
     kotlin("multiplatform")
+    id("com.android.library")
     id("org.jetbrains.compose")
     kotlin("plugin.serialization")
 }
 
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(11))
-}
-
 kotlin {
+    android()
     jvm("desktop") {
         compilations.all {
-            kotlinOptions {
-                jvmTarget = JavaVersion.VERSION_11.toString()
-            }
+            kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
+        }
+
+        testRuns["test"].executionTask.configure {
+            useJUnitPlatform()
         }
     }
-    android()
 
     sourceSets {
         commonMain {
@@ -41,20 +39,7 @@ kotlin {
                 implementation(exposedDependency("core"))
             }
         }
-
         commonTest {
-            dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
-            }
-        }
-
-        named("desktopMain") {
-            dependencies {
-                api(compose.desktop.common)
-            }
-        }
-        named("desktopTest") {
             dependencies {
                 implementation(kotlin("test"))
             }
@@ -72,6 +57,17 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
+
+        named("desktopMain") {
+            dependencies {
+                api(compose.desktop.common)
+            }
+        }
+        named("desktopTest") {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
     }
 }
 
@@ -80,7 +76,6 @@ android {
 
     defaultConfig {
         minSdk = 26
-        targetSdk = 33
     }
 
     compileOptions {
@@ -92,7 +87,7 @@ android {
         named("main") {
             manifest.srcFile("src/androidMain/AndroidManifest.xml")
             res.srcDirs("src/androidMain/res")
-            resources.setSrcDirs(listOf("src/androidMain/resources", "src/commonMain/resources"))
+            resources.srcDirs("src/commonMain/resources")
         }
     }
 }
