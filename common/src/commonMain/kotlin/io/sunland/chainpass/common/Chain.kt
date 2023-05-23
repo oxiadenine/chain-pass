@@ -4,7 +4,7 @@ import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.common.security.Random
 
-class Chain constructor() {
+class Chain() {
     object KeyInvalidError : Error()
 
     constructor(chain: Chain) : this() {

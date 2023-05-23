@@ -12,8 +12,8 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-actual fun LoadingDialog() = AlertDialog(onDismissRequest = {}) {
-    Surface(shape = RectangleShape, tonalElevation = 4.dp) {
+actual fun LoadingDialog() = AlertDialog(onDismissRequest = {}, shape = RectangleShape, modifier = Modifier) {
+    Surface(tonalElevation = 4.dp) {
         Box(modifier = Modifier.wrapContentSize().padding(all = 24.dp)) {
             CircularProgressIndicator(
                 modifier = Modifier.align(alignment = Alignment.Center),

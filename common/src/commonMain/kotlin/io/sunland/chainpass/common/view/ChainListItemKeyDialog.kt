@@ -23,7 +23,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -84,7 +84,7 @@ fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit)
                     } else {
                         IconButton(
                             onClick = onKeyVisibilityIconClick,
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                         ) {
                             AnimatedVisibility(
                                 visible = !keyVisible,

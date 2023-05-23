@@ -6,10 +6,8 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -18,7 +16,6 @@ import io.sunland.chainpass.common.LocalIntl
 import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.common.component.InputDialog
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit, isSingle: Boolean) {
     val intl = LocalIntl.current
@@ -57,7 +54,7 @@ fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit,
                     Switch(
                         checked = storeIsPrivate,
                         onCheckedChange = onStorePrivateSwitchCheckedChange,
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                     )
                 }
             }
@@ -66,7 +63,7 @@ fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit,
 
             Button(
                 onClick = { dropdownMenuExpanded = true },
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
@@ -90,7 +87,7 @@ fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit,
 
                                 onStorageTypeDropdownMenuItemClick(StorageType.JSON)
                             },
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                             contentPadding = PaddingValues(horizontal = 16.dp)
                         )
                         DropdownMenuItem(
@@ -100,7 +97,7 @@ fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit,
 
                                 onStorageTypeDropdownMenuItemClick(StorageType.CSV)
                             },
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                             contentPadding = PaddingValues(horizontal = 16.dp)
                         )
                         DropdownMenuItem(
@@ -110,7 +107,7 @@ fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit,
 
                                 onStorageTypeDropdownMenuItemClick(StorageType.TXT)
                             },
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                             contentPadding = PaddingValues(horizontal = 16.dp)
                         )
                     }

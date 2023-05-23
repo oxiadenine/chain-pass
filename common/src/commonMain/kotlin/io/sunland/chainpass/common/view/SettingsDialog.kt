@@ -16,7 +16,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -110,14 +110,14 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
                 Text(text = intl.translate("dialog.settings.title"))
                 IconButton(
                     onClick = onClose,
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                 ) { Icon(imageVector = Icons.Default.Close, contentDescription = null) }
             }
         },
         buttons = {
             TextButton(
                 onClick = onInputDialogConfirmRequest,
-                modifier = Modifier.align(alignment = Alignment.End).pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                modifier = Modifier.align(alignment = Alignment.End).pointerHoverIcon(icon = PointerIcon.Hand)
             ) { Text(text = intl.translate("dialog.settings.button.save.text")) }
         }
     ) {
@@ -201,7 +201,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
                             onValueChange = onPasswordLengthChange,
                             modifier = Modifier
                                 .weight(1f, false)
-                                .pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                                .pointerHoverIcon(icon = PointerIcon.Hand)
                                 .onKeyEvent { keyEvent: KeyEvent ->
                                     if (keyEvent.type == KeyEventType.KeyUp) {
                                         if (keyEvent.key == Key.DirectionLeft) {
@@ -226,7 +226,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
                         Switch(
                             checked = passwordIsAlphanumeric,
                             onCheckedChange = onPasswordIsAlphanumericChange,
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                         )
                     }
                 }
@@ -259,7 +259,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
                                 .fillMaxWidth()
                                 .clickable { onLanguageListItemClick(language) }
                                 .padding(all = 8.dp)
-                                .pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                                .pointerHoverIcon(icon = PointerIcon.Hand),
                             horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {

@@ -8,11 +8,10 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,7 +24,6 @@ import io.sunland.chainpass.common.view.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
@@ -108,7 +106,7 @@ enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST, CHAIN_LINK_SEARCH_LIST }
 
 val LocalIntl = staticCompositionLocalOf { Intl("en") }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
     chainRepository: ChainRepository,
@@ -149,7 +147,7 @@ fun App(
                                                     ThemeMode.LIGHT
                                                 } else ThemeMode.DARK
                                             },
-                                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                                         ) {
                                             AnimatedVisibility(
                                                 visible = themeState.isDarkMode,
@@ -191,7 +189,7 @@ fun App(
                                     icon = { Icon(imageVector = Icons.Default.Settings, contentDescription = null) },
                                     modifier = Modifier
                                         .padding(paddingValues = NavigationDrawerItemDefaults.ItemPadding)
-                                        .pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                                        .pointerHoverIcon(icon = PointerIcon.Hand)
                                 )
                             }
                         },

@@ -8,19 +8,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.LocalIntl
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (String) -> Unit) {
     val intl = LocalIntl.current
@@ -55,7 +54,7 @@ fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (Stri
                     {
                         IconButton(
                             onClick = onClearIconButtonClick,
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                         ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
                     }
                 } else null,
@@ -78,7 +77,7 @@ fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (Stri
         navigationIcon = {
             IconButton(
                 onClick = onBackClick,
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,

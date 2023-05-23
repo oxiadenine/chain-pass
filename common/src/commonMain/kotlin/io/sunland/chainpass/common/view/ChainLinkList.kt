@@ -9,11 +9,10 @@ import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
@@ -28,7 +27,6 @@ import kotlinx.coroutines.launch
 
 class ChainLinkListRouteArgument(val chain: Chain, val chainLink: ChainLink? = null) : NavigationState.RouteArgument()
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
@@ -73,7 +71,7 @@ fun ChainLinkList(
                             snackbarData.visuals.actionLabel?.let { label ->
                                 TextButton(
                                     onClick = { snackbarHostState.currentSnackbarData?.performAction() },
-                                    modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand)
+                                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Undo,
@@ -148,7 +146,7 @@ fun ChainLinkList(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { listItemNewDialogVisible = true },
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
             ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
         }
     ) { lazyListState ->

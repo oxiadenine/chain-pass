@@ -16,7 +16,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -77,7 +77,7 @@ fun ChainList(
                             snackbarData.visuals.actionLabel?.let { label ->
                                 TextButton(
                                     onClick = { snackbarHostState.currentSnackbarData?.performAction() },
-                                    modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand)
+                                    modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Undo,
@@ -144,7 +144,7 @@ fun ChainList(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { listItemNewDialogVisible = true },
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
             ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
         }
     ) { lazyListState ->

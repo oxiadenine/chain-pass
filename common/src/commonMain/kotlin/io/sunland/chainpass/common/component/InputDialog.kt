@@ -7,14 +7,12 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.LocalIntl
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun InputDialog(
     onDismissRequest: () -> Unit,
@@ -34,11 +32,11 @@ fun InputDialog(
             ) {
                 TextButton(
                     onClick = onDismissRequest,
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                 ) { Text(text = intl.translate("inputDialog.button.cancel.text")) }
                 TextButton(
                     onClick = onConfirmRequest,
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                 ) { Text(text = intl.translate("inputDialog.button.confirm.text")) }
             }
         },

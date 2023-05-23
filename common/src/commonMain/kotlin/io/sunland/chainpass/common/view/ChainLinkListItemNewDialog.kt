@@ -14,7 +14,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -134,7 +134,7 @@ fun ChainLinkListItemNewDialog(
                         onClick = { onPasswordTextFieldValueChange(passwordGenerator.generate()) },
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
-                            .pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                            .pointerHoverIcon(icon = PointerIcon.Hand)
                             .onKeyEvent { keyEvent: KeyEvent ->
                                 if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
                                     onPasswordTextFieldValueChange(passwordGenerator.generate())
