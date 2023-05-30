@@ -11,7 +11,7 @@ import org.jetbrains.exposed.sql.selectAll
 @Serializable
 data class ChainEntity(val id: String, val name: String, val key: String = "")
 
-class ChainRepository(private val database: Database, private val storage: Storage) {
+class ChainRepository(private val database: Database, val storage: Storage) {
     suspend fun create(chainEntity: ChainEntity) = database.transaction {
         ChainTable.insert { statement ->
             statement[id] = chainEntity.id
@@ -41,8 +41,4 @@ class ChainRepository(private val database: Database, private val storage: Stora
 
         Unit
     }
-
-    fun store(storageType: StorageType, storable: Storable) = storage.store(storageType, storable)
-
-    fun unstore(filePath: String, fileBytes: ByteArray) = storage.unstore(filePath, fileBytes)
 }

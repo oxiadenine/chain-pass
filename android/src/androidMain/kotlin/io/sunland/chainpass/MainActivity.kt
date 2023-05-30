@@ -40,8 +40,7 @@ class MainActivity : AppCompatActivity() {
                     settingsState = settingsState,
                     networkState = networkState,
                     themeState = themeState,
-                    navigationState = navigationState,
-                    storePath = storage.storePath
+                    navigationState = navigationState
                 )
             }
         }

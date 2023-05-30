@@ -15,6 +15,7 @@ class ChainLink(val chain: Chain) {
     class Name(value: String? = null) {
         object EmptyError : Error()
         object LengthError : Error()
+        object InvalidError : Error()
 
         var value = value ?: ""
             private set
@@ -24,7 +25,9 @@ class ChainLink(val chain: Chain) {
                 Result.failure(EmptyError)
             } else if (value.length > 16) {
                 Result.failure(LengthError)
-            } else Result.success(value)
+            } else if (!value.matches("^(\\w+\\.?)*\\w+\$".toRegex())) {
+                Result.failure(InvalidError)
+            }else Result.success(value)
         } ?: Result.success(this.value)
     }
 

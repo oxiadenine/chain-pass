@@ -114,8 +114,7 @@ fun App(
     settingsState: SettingsState,
     networkState: NetworkState,
     themeState: ThemeState,
-    navigationState: NavigationState,
-    storePath: String
+    navigationState: NavigationState
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -224,7 +223,7 @@ fun App(
                         SettingsDialog(
                             settingsState = settingsState,
                             onClose = { settingsDialogVisible = false },
-                            storePath = storePath
+                            storeDirPath = chainRepository.storage.storeDirPath
                         )
                     }
                 }
