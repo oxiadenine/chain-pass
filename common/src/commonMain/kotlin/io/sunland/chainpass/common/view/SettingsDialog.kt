@@ -41,8 +41,6 @@ class DeviceAddress(value: String? = null) {
     } ?: Result.success(this.value)
 }
 
-data class Language(val name: String, val locale: String)
-
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPath: String) {
@@ -69,16 +67,11 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
         passwordIsAlphanumeric = isAlphanumeric
     }
 
-    val languages = listOf(
-        Language(intl.translate("dialog.settings.item.language.item.en.text"), "en"),
-        Language(intl.translate("dialog.settings.item.language.item.es.text"), "es")
-    )
-
     var selectedLanguage by remember {
-        mutableStateOf(languages.first { language -> language.locale == settingsState.languageState.value })
+        mutableStateOf(Intl.languages.first { language -> language == settingsState.languageState.value })
     }
 
-    val onLanguageListItemClick = { language: Language ->
+    val onLanguageListItemClick = { language: String ->
         selectedLanguage = language
     }
 
@@ -89,11 +82,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
             settingsState.deviceAddressState.value = deviceAddress.value
             settingsState.passwordLengthState.value = passwordLength.toInt()
             settingsState.passwordIsAlphanumericState.value = passwordIsAlphanumeric
-            settingsState.languageState.value = selectedLanguage.locale
-
-            settingsState.save()
-
-            LocalIntl.provides(Intl(settingsState.languageState.value))
+            settingsState.languageState.value = selectedLanguage
 
             onClose()
         }
@@ -253,7 +242,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                     fontSize = 14.sp
                 )
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    languages.forEach { language ->
+                    Intl.languages.forEach { language ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -263,13 +252,13 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                             horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (selectedLanguage.locale == language.locale) {
+                            if (selectedLanguage == language) {
                                 Icon(imageVector = Icons.Default.RadioButtonChecked, contentDescription = null)
                             } else Icon(imageVector = Icons.Default.RadioButtonUnchecked, contentDescription = null)
                             Column {
-                                Text(text = language.name)
+                                Text(text = intl.translate("dialog.settings.item.language.item.$language.text"))
                                 Text(
-                                    text = language.locale,
+                                    text = language,
                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                                 )
                             }
