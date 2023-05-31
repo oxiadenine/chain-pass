@@ -29,9 +29,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-class SettingsState(dirPath: String) {
-    private val filePath = "$dirPath/settings.json"
-
+class SettingsState(private val filePath: String) {
     val deviceAddressState = mutableStateOf("")
     val passwordLengthState = mutableStateOf(16)
     val passwordIsAlphanumericState = mutableStateOf(false)
@@ -46,29 +44,23 @@ class SettingsState(dirPath: String) {
     )
 
     init {
-        if (!File(dirPath).exists()) {
-            File(dirPath).mkdir()
-        }
+        val settingsFile = File(filePath)
 
-        val file = File(filePath)
-
-        if (file.exists()) {
-            val settings = Json.decodeFromString<Settings>(file.readText())
+        if (settingsFile.exists()) {
+            val settings = Json.decodeFromString<Settings>(settingsFile.readText())
 
             deviceAddressState.value = settings.deviceAddress
             passwordLengthState.value = settings.passwordLength
             passwordIsAlphanumericState.value = settings.passwordIsAlphanumeric
             languageState.value = settings.language
+        } else {
+            settingsFile.createNewFile()
+
+            save()
         }
     }
 
     fun save() {
-        val file = File(filePath)
-
-        if (!file.exists()) {
-            file.createNewFile()
-        }
-
         val settings = Settings(
             deviceAddressState.value,
             passwordLengthState.value,
@@ -76,7 +68,7 @@ class SettingsState(dirPath: String) {
             languageState.value
         )
 
-        file.writeText(Json.encodeToString(settings))
+        File(filePath).writeText(Json.encodeToString(settings))
     }
 }
 

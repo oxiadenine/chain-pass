@@ -17,10 +17,25 @@ import io.sunland.chainpass.common.network.*
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
 import java.awt.Dimension
+import java.io.File
 
 fun main() {
-    val database = Database.create("${System.getProperty("user.home")}/.chain-pass")
-    val storage = Storage("${System.getProperty("user.home")}/Downloads")
+    val appDataDir = if (System.getenv("DEBUG")?.toBoolean() ?: false) {
+        File("${System.getProperty("user.home")}/.chain-pass/local")
+    } else File("${System.getProperty("user.home")}/.chain-pass")
+
+    val appStorageDir = File("${System.getProperty("user.home")}/Downloads/Chain Pass")
+
+    if (!appDataDir.exists()) {
+        appDataDir.mkdirs()
+    }
+
+    if (!appStorageDir.exists()) {
+        appStorageDir.mkdirs()
+    }
+
+    val database = Database.create(appDataDir.absolutePath)
+    val storage = Storage("${appStorageDir.absolutePath}/Store")
 
     val chainRepository = ChainRepository(database, storage)
     val chainLinkRepository = ChainLinkRepository(database, storage)
@@ -41,7 +56,7 @@ fun main() {
         ) {
             window.minimumSize = Dimension(360, 480)
 
-            val settingsState = rememberSettingsState("${System.getProperty("user.home")}/.chain-pass")
+            val settingsState = rememberSettingsState("${appDataDir.absolutePath}/settings.json")
             val networkState = rememberNetworkState(syncServer.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
             val navigationState = rememberNavigationState()
