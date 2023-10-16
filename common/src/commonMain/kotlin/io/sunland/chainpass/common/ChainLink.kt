@@ -1,6 +1,5 @@
 package io.sunland.chainpass.common
 
-import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.common.security.Random
 
@@ -10,6 +9,7 @@ class ChainLink(val chain: Chain) {
         name = chainLink.name
         description = chainLink.description
         password = chainLink.password
+        iv = chainLink.iv
     }
 
     class Name(value: String? = null) {
@@ -79,13 +79,13 @@ class ChainLink(val chain: Chain) {
     var name = Name()
     var description = Description()
     var password = Password()
+    var iv = ""
 
     fun privatePassword(secretKey: Chain.Key) = Password(PasswordEncoder.encrypt(
-        PasswordEncoder.Base64.encode(password.value.encodeToByteArray()),
-        EncoderSpec.Passphrase(secretKey.value, PasswordEncoder.Base64.encode(name.value.encodeToByteArray()))
-    ))
+        PasswordEncoder.Base64.encode(password.value.encodeToByteArray()), secretKey.value, iv)
+    )
 
-    fun plainPassword(secretKey: Chain.Key) = Password(PasswordEncoder.Base64.decode(PasswordEncoder.decrypt(
-        password.value, EncoderSpec.Passphrase(secretKey.value, PasswordEncoder.Base64.encode(name.value.encodeToByteArray()))
-    )).decodeToString())
+    fun plainPassword(secretKey: Chain.Key) = Password(PasswordEncoder.Base64.decode(
+        PasswordEncoder.decrypt(password.value, secretKey.value, iv)
+    ).decodeToString())
 }

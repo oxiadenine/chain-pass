@@ -1,6 +1,5 @@
 package io.sunland.chainpass.common.security
 
-import java.security.MessageDigest
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.GCMParameterSpec
@@ -13,10 +12,18 @@ actual object PasswordEncoder {
         actual fun decode(text: String): ByteArray = java.util.Base64.getDecoder().decode(text)
     }
 
-    actual fun hash(passphrase: EncoderSpec.Passphrase): String {
+    actual object Salt {
+        actual fun generate() = Base64.encode(Random.nextBytes(EncoderSpec.Strength.SALT_LENGTH / 8))
+    }
+
+    actual object IV {
+        actual fun generate() = Base64.encode(Random.nextBytes(EncoderSpec.Strength.IV_LENGTH / 8))
+    }
+
+    actual fun hash(password: String, salt: String): String {
         val keySpec = PBEKeySpec(
-            Base64.decode(passphrase.key).decodeToString().toCharArray(),
-            MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.salt)),
+            Base64.decode(password).decodeToString().toCharArray(),
+            Base64.decode(salt),
             EncoderSpec.Strength.ITERATION_COUNT,
             EncoderSpec.Strength.KEY_LENGTH
         )
@@ -26,13 +33,10 @@ actual object PasswordEncoder {
         return Base64.encode(secretKey.encoded)
     }
 
-    actual fun encrypt(password: String, passphrase: EncoderSpec.Passphrase): String {
-        val secretKey = SecretKeySpec(Base64.decode(passphrase.key), EncoderSpec.AES)
+    actual fun encrypt(password: String, key: String, iv: String): String {
+        val secretKey = SecretKeySpec(Base64.decode(key), EncoderSpec.Algorithm.AES)
 
-        val ivParamSpec = GCMParameterSpec(
-            EncoderSpec.Strength.TAG_LENGTH,
-            MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.salt))
-        )
+        val ivParamSpec = GCMParameterSpec(EncoderSpec.Strength.TAG_LENGTH, Base64.decode(iv))
 
         return Cipher.getInstance(EncoderSpec.Algorithm.AES_GCM_NO_PADDING).let { cipher ->
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParamSpec)
@@ -40,13 +44,10 @@ actual object PasswordEncoder {
         }
     }
 
-    actual fun decrypt(password: String, passphrase: EncoderSpec.Passphrase): String {
-        val secretKey = SecretKeySpec(Base64.decode(passphrase.key), EncoderSpec.AES)
+    actual fun decrypt(password: String, key: String, iv: String): String {
+        val secretKey = SecretKeySpec(Base64.decode(key), EncoderSpec.Algorithm.AES)
 
-        val ivParamSpec = GCMParameterSpec(
-            EncoderSpec.Strength.TAG_LENGTH,
-            MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.salt))
-        )
+        val ivParamSpec = GCMParameterSpec(EncoderSpec.Strength.TAG_LENGTH, Base64.decode(iv))
 
         return Cipher.getInstance(EncoderSpec.Algorithm.AES_GCM_NO_PADDING).let { cipher ->
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParamSpec)

@@ -12,6 +12,7 @@ data class ChainLinkEntity(
     val name: String,
     val description: String,
     val password: String,
+    val iv: String,
     val chainId: String
 )
 
@@ -22,6 +23,7 @@ class ChainLinkRepository(private val database: Database, val storage: Storage) 
             statement[name] = chainLinkEntity.name
             statement[description] = chainLinkEntity.description
             statement[password] = chainLinkEntity.password
+            statement[iv] = chainLinkEntity.iv
             statement[chainId] = chainLinkEntity.chainId
         }
 
@@ -35,6 +37,7 @@ class ChainLinkRepository(private val database: Database, val storage: Storage) 
                 record[ChainLinkTable.name],
                 record[ChainLinkTable.description],
                 record[ChainLinkTable.password],
+                record[ChainLinkTable.iv],
                 record[ChainLinkTable.chainId]
             )
         }
@@ -49,6 +52,7 @@ class ChainLinkRepository(private val database: Database, val storage: Storage) 
                 record[ChainLinkTable.name],
                 record[ChainLinkTable.description],
                 record[ChainLinkTable.password],
+                record[ChainLinkTable.iv],
                 record[ChainLinkTable.chainId]
             )
         }
@@ -58,6 +62,7 @@ class ChainLinkRepository(private val database: Database, val storage: Storage) 
         ChainLinkTable.update({ ChainLinkTable.id eq chainLinkEntity.id }) { statement ->
             statement[description] = chainLinkEntity.description
             statement[password] = chainLinkEntity.password
+            statement[iv] = chainLinkEntity.iv
         }
 
          Unit
