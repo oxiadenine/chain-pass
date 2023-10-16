@@ -10,7 +10,7 @@ kotlin {
         withJava()
 
         compilations.all {
-            kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
+            kotlinOptions.jvmTarget = JavaVersion.VERSION_20.toString()
         }
 
         testRuns["test"].executionTask.configure {
@@ -52,7 +52,7 @@ compose.desktop {
             packageVersion = rootProject.version as String
             vendor = "SunLand"
 
-            val resourcesDir = "${project.buildDir}/processedResources/jvm/main"
+            val resourcesDir = "${project.layout.buildDirectory}/processedResources/jvm/main"
 
             linux {
                 packageName = "${rootProject.name}-${project.name}"

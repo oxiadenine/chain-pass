@@ -101,7 +101,7 @@ fun ChainListTopAppBar(
                 }
             }
         },
-        colors = TopAppBarDefaults.smallTopAppBarColors(
+        colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(elevation = 4.dp)
         )
     )

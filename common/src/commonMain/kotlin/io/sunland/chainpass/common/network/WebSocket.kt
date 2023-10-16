@@ -55,7 +55,7 @@ object WebSocket {
 
 @OptIn(ExperimentalMetadataApi::class)
 fun Payload.getRoute(): WebSocket.Route = metadata?.read(RoutingMetadata)?.tags?.firstOrNull()?.let { path ->
-    WebSocket.Route.values().first { route -> route.path == path }
+    WebSocket.Route.entries.first { route -> route.path == path }
 } ?: throw IllegalStateException("No payload route provided")
 
 @OptIn(ExperimentalMetadataApi::class)

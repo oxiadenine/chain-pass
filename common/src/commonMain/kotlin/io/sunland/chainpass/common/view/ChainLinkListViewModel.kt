@@ -9,9 +9,17 @@ import io.sunland.chainpass.common.repository.ChainLinkRepository
 import kotlin.IllegalStateException
 
 class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepository, val chain: Chain) {
-    object StorableFormatError : Error()
-    object StorableMultipleError : Error()
-    object SyncNetworkError : Error()
+    object StorableFormatError : Error() {
+        private fun readResolve(): Any = StorableFormatError
+    }
+
+    object StorableMultipleError : Error() {
+        private fun readResolve(): Any = StorableMultipleError
+    }
+
+    object SyncNetworkError : Error() {
+        private fun readResolve(): Any = SyncNetworkError
+    }
 
     val chainLinkListState = mutableStateListOf<ChainLink>()
 

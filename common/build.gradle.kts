@@ -6,10 +6,10 @@ plugins {
 }
 
 kotlin {
-    android()
+    androidTarget()
     jvm("desktop") {
         compilations.all {
-            kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
+            kotlinOptions.jvmTarget = JavaVersion.VERSION_20.toString()
         }
 
         testRuns["test"].executionTask.configure {
@@ -73,15 +73,15 @@ kotlin {
 
 android {
     namespace = "${project.group}.chainpass.${project.name}"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 26
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_20
+        targetCompatibility = JavaVersion.VERSION_20
     }
 
     sourceSets {
