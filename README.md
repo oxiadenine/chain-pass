@@ -32,7 +32,7 @@ the`PrivatePassword` that is saved to the Database.
 
 To package applications run the following commands with Gradle:
 
-- Create Desktop binaries with `gradlew desktop:package`
+- Create Desktop binaries with `gradlew desktop:packageDistributionForCurrentOS`
 - Create Android APKs with `gradlew android:build`
 
-**Packaging requires JDK 15 or later to be installed.**
+**Packaging requires JDK 17 or later to be installed.**
