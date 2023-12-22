@@ -6,12 +6,10 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(20)
+
     androidTarget()
     jvm("desktop") {
-        compilations.all {
-            kotlinOptions.jvmTarget = JavaVersion.VERSION_20.toString()
-        }
-
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
@@ -66,6 +64,7 @@ kotlin {
         named("desktopTest") {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(junitDependency("jupiter-api"))
             }
         }
     }
@@ -77,11 +76,6 @@ android {
 
     defaultConfig {
         minSdk = 26
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_20
-        targetCompatibility = JavaVersion.VERSION_20
     }
 
     sourceSets {

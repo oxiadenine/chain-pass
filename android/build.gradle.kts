@@ -5,6 +5,8 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(20)
+
     androidTarget()
 
     sourceSets {
@@ -39,11 +41,6 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         setProperty("archivesBaseName", "${rootProject.name}-${project.name}-${project.version}")
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_20
-        targetCompatibility = JavaVersion.VERSION_20
     }
 
     signingConfigs {

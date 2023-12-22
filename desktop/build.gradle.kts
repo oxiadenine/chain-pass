@@ -6,12 +6,10 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(20)
+
     jvm {
         withJava()
-
-        compilations.all {
-            kotlinOptions.jvmTarget = JavaVersion.VERSION_20.toString()
-        }
 
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
@@ -32,6 +30,7 @@ kotlin {
         named("jvmTest") {
             dependencies {
                 implementation(kotlin("test"))
+                implementation(junitDependency("jupiter-api"))
             }
         }
     }
