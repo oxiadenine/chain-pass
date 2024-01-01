@@ -35,10 +35,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_1_8
     }
 
-    dexOptions {
-        javaMaxHeapSize = "4G"
-    }
-
     signingConfigs {
         register("release") {
             keyAlias  = "${rootProject.name}-${project.name}-key"
