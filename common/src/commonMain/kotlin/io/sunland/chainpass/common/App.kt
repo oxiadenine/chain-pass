@@ -18,25 +18,11 @@ import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.ktor.server.cio.*
-import io.rsocket.kotlin.RSocketRequestHandler
-import io.rsocket.kotlin.payload.Payload
-import io.sunland.chainpass.common.network.WebSocket
-import io.sunland.chainpass.common.network.decode
-import io.sunland.chainpass.common.network.encode
-import io.sunland.chainpass.common.network.getRoute
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.common.security.PasswordGenerator
 import io.sunland.chainpass.common.view.*
-import io.sunland.chainpass.sqldelight.Database
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 enum class ThemeMode { DARK, LIGHT }
@@ -90,40 +76,28 @@ fun rememberSettingsState(settingsManager: SettingsManager) = remember {
     )
 }
 
-class NetworkState(var hostAddressState: State<String>) {
-    val hostAddressFlow = flow {
-        while (true) {
-            delay(1000)
-
-            emit(WebSocket.getLocalHost().getOrElse { "" })
-        }
-    }
-}
+class NetworkState(val hostAddressState: State<String>)
 
 @Composable
-fun rememberNetworkState(): NetworkState {
-    val networkState = NetworkState(mutableStateOf(""))
+fun rememberNetworkState(hostAddressFlow: Flow<String>): NetworkState {
+    val hostAddressState = hostAddressFlow.collectAsState("")
 
-    networkState.hostAddressState = networkState.hostAddressFlow
-        .flowOn(Dispatchers.IO)
-        .distinctUntilChanged()
-        .conflate()
-        .collectAsState("")
-
-    return remember { networkState }
+    return remember { NetworkState(hostAddressState) }
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun App(settingsManager: SettingsManager, database: Database, storage: Storage, themeState: ThemeState) {
-    val chainRepository = ChainRepository(database)
-    val chainLinkRepository = ChainLinkRepository(database)
-
+fun App(
+    storage: Storage,
+    chainRepository: ChainRepository,
+    chainLinkRepository: ChainLinkRepository,
+    settingsState: SettingsState,
+    networkState: NetworkState,
+    navigationState: NavigationState,
+    themeState: ThemeState
+) {
     val coroutineScope = rememberCoroutineScope()
 
-    val navigationState = rememberNavigationState(Screen.CHAIN_LIST)
-    val settingsState = rememberSettingsState(settingsManager)
-    val networkState = rememberNetworkState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
     val isSettingsDialogVisibleState = remember { mutableStateOf(false) }
@@ -140,32 +114,6 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage, 
 
     ModalNavigationDrawer(
         drawerContent = {
-            val socketServerState = mutableStateOf<CIOApplicationEngine?>(null)
-
-            if (networkState.hostAddressState.value.isNotEmpty()) {
-                coroutineScope.launch(Dispatchers.IO) {
-                    try {
-                        socketServerState.value = WebSocket.start(networkState.hostAddressState.value) {
-                            RSocketRequestHandler {
-                                requestResponse { payload ->
-                                    when (payload.getRoute()) {
-                                        WebSocket.Route.CHAIN_SYNC -> Payload.encode(chainRepository.getAll())
-                                        WebSocket.Route.CHAIN_LINK_SYNC -> Payload.encode(
-                                            chainLinkRepository.getBy(
-                                                payload.decode()
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    } catch (_: Throwable) {}
-                }
-            } else {
-                socketServerState.value?.application?.cancel()
-                socketServerState.value?.application?.dispose()
-            }
-
             ModalDrawerSheet(drawerShape = if (platform == Platform.DESKTOP) {
                 RectangleShape
             } else DrawerDefaults.shape) {
