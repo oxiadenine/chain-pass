@@ -23,9 +23,9 @@ data class StoreOptions(val type: StorageType, val isPrivate: Boolean, val isSin
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCancel: () -> Unit) {
-    val storeTypeState = remember { mutableStateOf(StorageType.JSON) }
+    val isStoreTypeMenuExpandedState = remember { mutableStateOf(false) }
 
-    val storeTypeMenuExpandedState = remember { mutableStateOf(false) }
+    val storeTypeState = remember { mutableStateOf(StorageType.JSON) }
 
     val onStoreTypeChange = { value: StorageType ->
         storeTypeState.value = value
@@ -68,7 +68,7 @@ fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCa
             }
             Button(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = { storeTypeMenuExpandedState.value = true },
+                onClick = { isStoreTypeMenuExpandedState.value = true },
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
             ) {
                 Row(
@@ -80,14 +80,14 @@ fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCa
                 }
                 DropdownMenu(
                     modifier = Modifier.width(width = 150.dp),
-                    expanded = storeTypeMenuExpandedState.value,
-                    onDismissRequest = { storeTypeMenuExpandedState.value = false },
+                    expanded = isStoreTypeMenuExpandedState.value,
+                    onDismissRequest = { isStoreTypeMenuExpandedState.value = false },
                     offset = DpOffset(x = 8.dp, y = (-16).dp)
                 ) {
                     DropdownMenuItem(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = {
-                            storeTypeMenuExpandedState.value = false
+                            isStoreTypeMenuExpandedState.value = false
 
                             onStoreTypeChange(StorageType.JSON)
                         },
@@ -96,7 +96,7 @@ fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCa
                     DropdownMenuItem(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = {
-                            storeTypeMenuExpandedState.value = false
+                            isStoreTypeMenuExpandedState.value = false
 
                             onStoreTypeChange(StorageType.CSV)
                         },
@@ -105,7 +105,7 @@ fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCa
                     DropdownMenuItem(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = {
-                            storeTypeMenuExpandedState.value = false
+                            isStoreTypeMenuExpandedState.value = false
 
                             onStoreTypeChange(StorageType.TXT)
                         },

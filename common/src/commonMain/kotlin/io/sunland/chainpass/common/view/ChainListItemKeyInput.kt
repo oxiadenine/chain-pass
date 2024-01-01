@@ -32,7 +32,7 @@ import io.sunland.chainpass.common.component.InputDialog
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListItemKeyInput(onSelect: (Chain.Key) -> Unit, onCancel: () -> Unit) {
+fun ChainListItemKeyInput(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
     val keyState = remember { mutableStateOf("") }
     val keyErrorState = remember { mutableStateOf(false) }
 
@@ -55,7 +55,7 @@ fun ChainListItemKeyInput(onSelect: (Chain.Key) -> Unit, onCancel: () -> Unit) {
         keyErrorState.value = chainKey.validation.isFailure
 
         if (!keyErrorState.value) {
-            onSelect(chainKey)
+            onKey(chainKey)
         }
     }
 

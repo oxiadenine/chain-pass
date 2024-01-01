@@ -47,6 +47,8 @@ fun ChainLinkSearchListTopBar(keywordState: MutableState<String>, onBack: () -> 
         } else false
     }
 
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
         title = {
@@ -74,8 +76,6 @@ fun ChainLinkSearchListTopBar(keywordState: MutableState<String>, onBack: () -> 
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = { onSearch(keywordState.value) })
             )
-
-            LaunchedEffect(Unit) { focusRequester.requestFocus() }
         },
         navigationIcon = {
             IconButton(

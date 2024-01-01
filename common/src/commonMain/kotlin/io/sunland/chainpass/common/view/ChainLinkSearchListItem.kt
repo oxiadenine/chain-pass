@@ -8,7 +8,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
@@ -30,10 +29,5 @@ fun ChainLinkSearchListItem(chainLink: ChainLink, onSelect: () -> Unit) {
                 fontSize = 14.sp
             )
         }
-        Text(
-            modifier = Modifier.padding(all = 16.dp),
-            text = "???",
-            fontStyle = FontStyle.Italic
-        )
     }
 }
