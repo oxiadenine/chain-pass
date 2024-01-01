@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.component.NavigationHost
@@ -34,7 +35,7 @@ class SettingsState(dirPath: String) {
     val deviceAddressState = mutableStateOf("")
     val passwordLengthState = mutableStateOf(16)
     val passwordIsAlphanumericState = mutableStateOf(false)
-    val languageState = mutableStateOf("en")
+    val languageState = mutableStateOf("")
 
     @Serializable
     data class Settings(
@@ -104,7 +105,7 @@ fun rememberThemeState(mode: ThemeMode = ThemeMode.LIGHT) = remember {
 
 enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST, CHAIN_LINK_SEARCH_LIST }
 
-val LocalIntl = staticCompositionLocalOf { Intl("en") }
+val LocalIntl = staticCompositionLocalOf { Intl() }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,6 +118,12 @@ fun App(
     navigationState: NavigationState
 ) {
     val coroutineScope = rememberCoroutineScope()
+
+    if (settingsState.languageState.value.isEmpty()) {
+        settingsState.languageState.value = Intl.languages.firstOrNull { language ->
+            language == Locale.current.language
+        } ?: Intl.DEFAULT_LANGUAGE
+    }
 
     CompositionLocalProvider(LocalIntl provides Intl(settingsState.languageState.value)) {
         val intl = LocalIntl.current
@@ -222,7 +229,13 @@ fun App(
                     if (settingsDialogVisible) {
                         SettingsDialog(
                             settingsState = settingsState,
-                            onClose = { settingsDialogVisible = false },
+                            onClose = {
+                                settingsState.save()
+
+                                LocalIntl.provides(Intl(settingsState.languageState.value))
+
+                                settingsDialogVisible = false
+                            },
                             storeDirPath = chainRepository.storage.storeDirPath
                         )
                     }

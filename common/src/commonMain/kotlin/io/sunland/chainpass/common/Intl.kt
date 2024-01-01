@@ -2,7 +2,13 @@ package io.sunland.chainpass.common
 
 import com.typesafe.config.ConfigFactory
 
-class Intl(locale: String) {
+class Intl(locale: String = DEFAULT_LANGUAGE) {
+    companion object {
+        const val DEFAULT_LANGUAGE = "en"
+
+        val languages = listOf(DEFAULT_LANGUAGE, "es")
+    }
+
     private val messages = ConfigFactory.load("locales/$locale").entrySet().associate { entry ->
         entry.key to entry.value.unwrapped().toString()
     }
