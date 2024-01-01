@@ -15,7 +15,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val settingsManager = SettingsManager(applicationContext.getExternalFilesDir("")!!.absolutePath)
         val database = Database.create(applicationContext.getExternalFilesDir("")!!.absolutePath)
         val storage = Storage(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path)
 
@@ -27,7 +26,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             title = "Chain Pass"
 
-            val settingsState = rememberSettingsState(settingsManager)
+            val settingsState = rememberSettingsState(applicationContext.getExternalFilesDir("")!!.absolutePath)
             val networkState = rememberNetworkState(syncServer.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
             val navigationState = rememberNavigationState()

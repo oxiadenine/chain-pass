@@ -6,14 +6,9 @@ import io.sunland.chainpass.common.network.ChainLinkApi
 import io.sunland.chainpass.common.network.WebSocket
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
-import io.sunland.chainpass.common.security.PasswordGenerator
 import kotlin.IllegalStateException
 
-class ChainLinkListViewModel(
-    val passwordGenerator: PasswordGenerator,
-    private val chainLinkRepository: ChainLinkRepository,
-    val chain: Chain
-) {
+class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepository, val chain: Chain) {
     object StorableFormatError : Error()
     object StorableMultipleError : Error()
     object SyncNetworkError : Error()
@@ -252,8 +247,6 @@ class ChainLinkListViewModel(
 }
 
 @Composable
-fun rememberChainLinkListViewModel(
-    passwordGenerator: PasswordGenerator,
-    chainLinkRepository: ChainLinkRepository,
-    chain: Chain
-) = remember { ChainLinkListViewModel(passwordGenerator, chainLinkRepository, chain) }
+fun rememberChainLinkListViewModel(chainLinkRepository: ChainLinkRepository, chain: Chain) = remember {
+    ChainLinkListViewModel(chainLinkRepository, chain)
+}

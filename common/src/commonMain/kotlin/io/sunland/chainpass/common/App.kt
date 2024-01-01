@@ -24,15 +24,52 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 import io.sunland.chainpass.common.view.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.File
 
-class SettingsState(
-    private val settingsManager: SettingsManager,
-    val deviceAddressState: MutableState<String>,
-    val passwordLengthState: MutableState<Int>,
-    val passwordIsAlphanumericState: MutableState<Boolean>,
-    val languageState: MutableState<String>
-) {
+class SettingsState(dirPath: String) {
+    private val filePath = "$dirPath/settings.json"
+
+    val deviceAddressState = mutableStateOf("")
+    val passwordLengthState = mutableStateOf(16)
+    val passwordIsAlphanumericState = mutableStateOf(false)
+    val languageState = mutableStateOf("en")
+
+    @Serializable
+    data class Settings(
+        val deviceAddress: String,
+        val passwordLength: Int,
+        val passwordIsAlphanumeric: Boolean,
+        val language: String
+    )
+
+    init {
+        if (!File(dirPath).exists()) {
+            File(dirPath).mkdir()
+        }
+
+        val file = File(filePath)
+
+        if (file.exists()) {
+            val settings = Json.decodeFromString<Settings>(file.readText())
+
+            deviceAddressState.value = settings.deviceAddress
+            passwordLengthState.value = settings.passwordLength
+            passwordIsAlphanumericState.value = settings.passwordIsAlphanumeric
+            languageState.value = settings.language
+        }
+    }
+
     fun save() {
+        val file = File(filePath)
+
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+
         val settings = Settings(
             deviceAddressState.value,
             passwordLengthState.value,
@@ -40,24 +77,12 @@ class SettingsState(
             languageState.value
         )
 
-        settingsManager.save(settings)
+        file.writeText(Json.encodeToString(settings))
     }
 }
 
 @Composable
-fun rememberSettingsState(settingsManager: SettingsManager) = remember {
-    val settings = settingsManager.load() ?: Settings("", 16, false, "en")
-
-    settingsManager.save(settings)
-
-    SettingsState(
-        settingsManager,
-        mutableStateOf(settings.deviceAddress),
-        mutableStateOf(settings.passwordLength),
-        mutableStateOf(settings.passwordIsAlphanumeric),
-        mutableStateOf(settings.language)
-    )
-}
+fun rememberSettingsState(dirPath: String) = remember { SettingsState(dirPath) }
 
 class NetworkState(val hostAddressState: State<String>)
 
@@ -94,10 +119,10 @@ fun App(
     navigationState: NavigationState,
     storePath: String
 ) {
+    val coroutineScope = rememberCoroutineScope()
+
     CompositionLocalProvider(LocalIntl provides Intl(settingsState.languageState.value)) {
         val intl = LocalIntl.current
-
-        val coroutineScope = rememberCoroutineScope()
 
         Surface(modifier = Modifier.fillMaxSize()) {
             NavigationHost(navigationState = navigationState, initialRoute = Screen.CHAIN_LIST.name) {
@@ -173,15 +198,7 @@ fun App(
                         drawerState = drawerState,
                         scrimColor = Color.Black.copy(alpha = if (platform == Platform.DESKTOP) 0.3f else 0.6f)
                     ) {
-                        val chainListViewModel = rememberChainListViewModel(
-                            passwordGenerator = PasswordGenerator(
-                                PasswordGenerator.Strength(
-                                    settingsState.passwordLengthState.value,
-                                    settingsState.passwordIsAlphanumericState.value
-                                )),
-                            chainRepository = chainRepository,
-                            chainLinkRepository = chainLinkRepository
-                        )
+                        val chainListViewModel = rememberChainListViewModel(chainRepository, chainLinkRepository)
 
                         ChainList(
                             viewModel = chainListViewModel,
@@ -197,7 +214,11 @@ fun App(
                                     animation = tween(easing = FastOutSlowInEasing)
                                 ))
                             },
-                            deviceAddress = settingsState.deviceAddressState.value
+                            deviceAddress = settingsState.deviceAddressState.value,
+                            passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
+                                settingsState.passwordLengthState.value,
+                                settingsState.passwordIsAlphanumericState.value
+                            ))
                         )
                     }
 
@@ -211,15 +232,7 @@ fun App(
                 }
 
                 composableRoute<ChainLinkListRouteArgument>(route = Screen.CHAIN_LINK_LIST.name) { argument ->
-                    val chainLinkListViewModel = rememberChainLinkListViewModel(
-                        passwordGenerator = PasswordGenerator(
-                            PasswordGenerator.Strength(
-                                settingsState.passwordLengthState.value,
-                                settingsState.passwordIsAlphanumericState.value
-                            )),
-                        chainLinkRepository = chainLinkRepository,
-                        chain = argument!!.chain
-                    )
+                    val chainLinkListViewModel = rememberChainLinkListViewModel(chainLinkRepository, argument!!.chain)
 
                     chainLinkListViewModel.chainLinkSelected = argument.chainLink
 
@@ -233,7 +246,11 @@ fun App(
                                 animation = tween(easing = FastOutLinearInEasing)
                             ))
                         },
-                        deviceAddress = settingsState.deviceAddressState.value
+                        deviceAddress = settingsState.deviceAddressState.value,
+                        passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
+                            settingsState.passwordLengthState.value,
+                            settingsState.passwordIsAlphanumericState.value
+                        ))
                     )
                 }
                 composableRoute<ChainLinkSearchListRouteArgument>(Screen.CHAIN_LINK_SEARCH_LIST.name) { argument ->
