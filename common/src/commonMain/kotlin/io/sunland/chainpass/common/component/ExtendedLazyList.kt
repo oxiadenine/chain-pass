@@ -23,7 +23,11 @@ fun LazyListState.scrollInfo(): LazyListScrollInfo {
                 if (firstVisibleItemIndex + lastVisibleItemIndex == layoutInfo.totalItemsCount - 1 ||
                     firstVisibleItemIndex + lastVisibleItemIndex == layoutInfo.totalItemsCount) {
                     LazyListScrollInfo(LazyListScrollDirection.FORWARD, LazyListScrollPosition.END)
-                } else LazyListScrollInfo(LazyListScrollDirection.FORWARD, LazyListScrollPosition.BETWEEN)
+                } else {
+                    if (firstVisibleItemScrollOffset <= prevFirstVisibleItemScrollOffset) {
+                        LazyListScrollInfo(LazyListScrollDirection.BACKWARD, LazyListScrollPosition.BETWEEN)
+                    } else LazyListScrollInfo(LazyListScrollDirection.FORWARD, LazyListScrollPosition.BETWEEN)
+                }
             } else {
                 if (firstVisibleItemIndex < prevFirstVisibleItemIndex) {
                     if (firstVisibleItemScrollOffset == 0) {
