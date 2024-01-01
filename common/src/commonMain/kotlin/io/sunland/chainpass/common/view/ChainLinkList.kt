@@ -43,7 +43,7 @@ fun ChainLinkList(
         } else {
             ChainLinkListTopBar(
                 onBack = {
-                    viewModel.cancelEdit()
+                    viewModel.cancelEdits()
 
                     onBack()
                 },
@@ -57,7 +57,7 @@ fun ChainLinkList(
                 },
                 onSearch = {
                     viewModel.rejectDrafts()
-                    viewModel.cancelEdit()
+                    viewModel.cancelEdits()
                     viewModel.startSearch()
 
                     onSearch()
@@ -121,7 +121,7 @@ fun ChainLinkList(
                                     ChainLinkListItemEdit(
                                         chainLink = chainLink,
                                         onEdit = { onEdit(chainLink) },
-                                        onCancel = { viewModel.cancelEdit() }
+                                        onCancel = { viewModel.cancelEdit(chainLink) }
                                     )
                                 }
                             }

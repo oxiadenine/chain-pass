@@ -73,7 +73,28 @@ class ChainLinkListViewModel(
         chainLinkListState.addAll(chainLinks)
     }
 
-    fun cancelEdit() {
+    fun cancelEdit(chainLinkEdit: ChainLink) {
+        val chainLinksDraft = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
+
+        val chainLinks = chainLinkListState
+            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
+            .map { chainLink ->
+                if (chainLink.id == chainLinkEdit.id && chainLink.status == ChainLink.Status.EDIT) {
+                    lockPassword(chainLink)
+
+                    chainLink.status = ChainLink.Status.ACTUAL
+                }
+
+                chainLink
+            }
+            .sortedBy { chainLink -> chainLink.name.value }
+            .plus(chainLinksDraft)
+
+        chainLinkListState.clear()
+        chainLinkListState.addAll(chainLinks)
+    }
+
+    fun cancelEdits() {
         val chainLinksDraft = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
 
         val chainLinks = chainLinkListState
