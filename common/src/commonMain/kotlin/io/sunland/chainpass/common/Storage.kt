@@ -182,7 +182,7 @@ fun String.toStorable(storageType: StorageType) = when (storageType) {
                 record = data[i + 1].split(",")
 
                 val chainRecord = record.map { value ->
-                    value.replace("\"", "")
+                    value.substring(1, value.length - 1).replace("\"\"", "\"")
                 }
 
                 record = data[i + 2].split(",")
@@ -197,7 +197,7 @@ fun String.toStorable(storageType: StorageType) = when (storageType) {
 
                         if (record.size == 4) {
                             val chainLinkRecord = record.map { value ->
-                                value.replace("\"", "")
+                                value.substring(1, value.length - 1).replace("\"\"", "\"")
                             }
 
                             storableChainLinks.add(StorableChainLink(
