@@ -6,5 +6,6 @@ import androidx.compose.runtime.Composable
 expect fun InputDialog(
     onDismissRequest: () -> Unit,
     onConfirmRequest: () -> Unit,
+    title: String? = null,
     content: @Composable (() -> Unit)? = null
 )
