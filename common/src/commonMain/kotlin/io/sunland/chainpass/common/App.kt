@@ -48,7 +48,7 @@ object Theme {
     }
 }
 
-enum class Screen { SETTINGS, CHAIN_LIST, CHAIN_LINK_LIST }
+enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST }
 
 class NavigationState(val screenState: MutableState<Screen>, val chainState: MutableState<Chain?>)
 
@@ -145,6 +145,16 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
     val networkState = rememberNetworkState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
+    val isSettingsDialogVisibleState = remember { mutableStateOf(false) }
+
+    if (isSettingsDialogVisibleState.value) {
+        SettingsDialog(
+            storePath = storage.storePath,
+            settingsState = settingsState,
+            onClose = { isSettingsDialogVisibleState.value = false }
+        )
+    }
+
     ModalDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -184,10 +194,10 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
                     modifier = Modifier.fillMaxWidth().clickable {
-                        navigationState.screenState.value = Screen.SETTINGS
-
                         coroutineScope.launch {
                             drawerState.close()
+
+                            isSettingsDialogVisibleState.value = true
                         }
                     }.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
@@ -215,15 +225,6 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
         Surface(modifier = Modifier.fillMaxSize()) {
             Crossfade(targetState = navigationState.screenState.value) { screen ->
                 when (screen) {
-                    Screen.SETTINGS -> {
-                        Settings(
-                            hostAddress = networkState.hostAddressState.value,
-                            storePath = storage.storePath,
-                            settingsState = settingsState,
-                            navigationState = navigationState,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                    }
                     Screen.CHAIN_LIST -> {
                         val chainListViewModel = ChainListViewModel(
                             chainRepository,
