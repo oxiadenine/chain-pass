@@ -1,6 +1,7 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -107,6 +108,21 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
         secureState.value = serverAddress.protocol != ServerAddress.Protocol.WS
     }
 
+    val onDone = {
+        serverAddress.host = ServerAddress.Host(hostState.value)
+        serverAddress.port = ServerAddress.Port(portState.value)
+        serverAddress.protocol = if (!secureState.value) {
+            ServerAddress.Protocol.WS
+        } else ServerAddress.Protocol.WSS
+
+        hostValidationState.value = serverAddress.host.validation
+        portValidationState.value = serverAddress.port.validation
+
+        if (hostValidationState.value.isSuccess && portValidationState.value.isSuccess) {
+            onIconDoneClick(serverAddress)
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
             modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
@@ -114,20 +130,7 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
             actions = {
                 IconButton(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = {
-                        serverAddress.host = ServerAddress.Host(hostState.value)
-                        serverAddress.port = ServerAddress.Port(portState.value)
-                        serverAddress.protocol = if (!secureState.value) {
-                            ServerAddress.Protocol.WS
-                        } else ServerAddress.Protocol.WSS
-
-                        hostValidationState.value = serverAddress.host.validation
-                        portValidationState.value = serverAddress.port.validation
-
-                        if (hostValidationState.value.isSuccess && portValidationState.value.isSuccess) {
-                            onIconDoneClick(serverAddress)
-                        }
-                    }
+                    onClick = onDone
                 ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
             }
         )
@@ -171,7 +174,8 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
                     unfocusedIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next)
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardActions = KeyboardActions(onDone = { onDone() })
             )
             Row(
                 modifier = Modifier.padding(vertical = 8.dp),
