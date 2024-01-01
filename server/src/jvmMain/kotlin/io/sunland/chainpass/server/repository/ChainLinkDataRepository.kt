@@ -6,6 +6,7 @@ import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.server.ChainLinkTable
 import io.sunland.chainpass.server.Database
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 object ChainLinkDataRepository : ChainLinkRepository {
     override suspend fun create(chainLinkEntity: ChainLinkEntity) = runCatching {
@@ -48,7 +49,7 @@ object ChainLinkDataRepository : ChainLinkRepository {
     override suspend fun delete(chainLinkEntity: ChainLinkEntity) = runCatching {
         Database.execute<Unit> {
             ChainLinkTable.deleteWhere {
-                (ChainLinkTable.id eq chainLinkEntity.id) and (ChainLinkTable.chainId eq chainLinkEntity.chainKey.id)
+                (id eq chainLinkEntity.id) and (chainId eq chainLinkEntity.chainKey.id)
             }
         }
     }

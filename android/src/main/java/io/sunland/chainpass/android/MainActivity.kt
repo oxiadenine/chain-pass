@@ -4,8 +4,6 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.websocket.*
 import io.sunland.chainpass.common.*
 
@@ -23,9 +21,8 @@ class MainActivity : AppCompatActivity() {
             appState = rememberAppState(
                 Settings(),
                 Storage(settingsManager.dirPath),
-                HttpClient(CIO) {
+                HttpClient {
                     install(WebSockets)
-                    install(Logging)
                 },
                 Screen.SERVER_CONNECTION
             )

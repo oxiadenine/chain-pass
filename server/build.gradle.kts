@@ -26,8 +26,11 @@ kotlin {
 
                 implementation(compose.desktop.currentOs)
 
-                implementation(ktorDependency("server-netty"))
+                implementation(ktorDependency("server-cio"))
                 implementation(ktorDependency("server-websockets"))
+
+                implementation(typesafeDependency("config"))
+                implementation(logbackDependency("classic"))
 
                 implementation(exposedDependency("core"))
                 implementation(exposedDependency("dao"))
