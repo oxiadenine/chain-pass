@@ -7,6 +7,7 @@ import io.sunland.chainpass.common.ChainLinkStatus
 import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
+import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
 
 class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
@@ -15,7 +16,9 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     val chainLinks = mutableStateListOf<ChainLink>()
 
     suspend fun getAll(): Result<Unit> {
-        val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
+        val passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
+
+        val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.encrypt(passphrase, chain!!.key.value))
 
         return repository.read(chainKeyEntity).map { chainLinkEntities ->
             this.chainLinks.clear()
@@ -23,7 +26,7 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
                 ChainLink().apply {
                     id = chainLinkEntity.id
                     name = ChainLink.Name(chainLinkEntity.name)
-                    password = ChainLink.Password(PasswordEncoder.decrypt(chain!!.key.value, chain!!.name.value, chainLinkEntity.password))
+                    password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLinkEntity.password))
                     status = ChainLinkStatus.ACTUAL
                 }
             })
@@ -41,17 +44,17 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     }
 
     suspend fun new(chainLink: ChainLink): Result<Unit> {
-        chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(chain!!.key.value, chain!!.name.value, chainLink.password.value))
+        val passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
-        val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
+        val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.encrypt(passphrase, chain!!.key.value))
+
+        chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(passphrase, chainLink.password.value))
 
         val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.password.value, chainKeyEntity)
 
         return repository.create(chainLinkEntity).map { chainLinkId ->
             chainLink.id = chainLinkId
-            chainLink.password = ChainLink.Password(
-                PasswordEncoder.decrypt(chain!!.key.value, chain!!.name.value, chainLink.password.value)
-            )
+            chainLink.password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLink.password.value))
             chainLink.status = ChainLinkStatus.ACTUAL
 
             val chainLinks = chainLinks.toList()
@@ -88,14 +91,16 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     }
 
     suspend fun edit(chainLink: ChainLink): Result<Unit> {
-        chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(chain!!.key.value, chain!!.name.value, chainLink.password.value))
+        val passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
-        val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
+        val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.encrypt(passphrase, chain!!.key.value))
+
+        chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(passphrase, chainLink.password.value))
 
         val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.password.value, chainKeyEntity)
 
         return repository.update(chainLinkEntity).onSuccess {
-            chainLink.password = ChainLink.Password(PasswordEncoder.decrypt(chain!!.key.value, chain!!.name.value, chainLink.password.value))
+            chainLink.password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLink.password.value))
 
             endEdit(chainLink)
         }
@@ -112,9 +117,11 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     }
 
     suspend fun remove(chainLink: ChainLink): Result<Unit> {
-        chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(chain!!.key.value, chain!!.name.value, chainLink.password.value))
+        val passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
 
-        val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
+        val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.encrypt(passphrase, chain!!.key.value))
+
+        chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(passphrase, chainLink.password.value))
 
         val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.password.value, chainKeyEntity)
 

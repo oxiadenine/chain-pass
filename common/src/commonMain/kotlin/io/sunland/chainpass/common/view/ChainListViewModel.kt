@@ -6,6 +6,7 @@ import io.sunland.chainpass.common.ChainStatus
 import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainRepository
+import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
 
 class ChainListViewModel(private val repository: ChainRepository) {
@@ -35,7 +36,13 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     suspend fun new(chain: Chain): Result<Unit> {
-        chain.key = Chain.Key(PasswordEncoder.hash(chain.key.value, chain.name.value))
+        var passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
+
+        chain.key = PasswordEncoder.hash(passphrase).let { secretKey ->
+            passphrase = EncoderSpec.Passphrase(secretKey, chain.name.value)
+
+            Chain.Key(PasswordEncoder.encrypt(passphrase, secretKey))
+        }
 
         val chainEntity = ChainEntity(chain.id, chain.name.value, chain.key.value)
 
@@ -51,18 +58,27 @@ class ChainListViewModel(private val repository: ChainRepository) {
         }
     }
 
-    fun remove(chain: Chain, onItemRemove: (Chain) -> Unit) = Chain().apply {
-        id = chain.id
-        name = chain.name
-        key = Chain.Key(PasswordEncoder.hash(chain.key.value, chain.name.value))
-        status = chain.status
+    fun remove(chain: Chain, onItemRemove: (Chain) -> Unit): Chain {
+        var passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
 
         chain.key = Chain.Key()
 
-        chains.remove(chain)
+        return Chain().apply {
+            id = chain.id
+            name = chain.name
+            key = PasswordEncoder.hash(passphrase).let { secretKey ->
+                passphrase = EncoderSpec.Passphrase(secretKey, chain.name.value)
 
-        onItemRemove(this)
+                Chain.Key(PasswordEncoder.encrypt(passphrase, secretKey))
+            }
+            status = chain.status
+
+            chains.remove(chain)
+
+            onItemRemove(this)
+        }
     }
+
 
     fun undoRemove(chain: Chain) {
         chain.key = Chain.Key()
@@ -76,14 +92,18 @@ class ChainListViewModel(private val repository: ChainRepository) {
         return repository.delete(chainKeyEntity)
     }
 
-    fun select(chain: Chain, onItemSelect: (Chain) -> Unit) = Chain().apply {
-        id = chain.id
-        name = chain.name
-        key = Chain.Key(PasswordEncoder.hash(chain.key.value, chain.name.value))
-        status = chain.status
+    fun select(chain: Chain, onItemSelect: (Chain) -> Unit): Chain {
+        val passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
 
         chain.key = Chain.Key()
 
-        onItemSelect(this)
+        return Chain().apply {
+            id = chain.id
+            name = chain.name
+            key = Chain.Key(PasswordEncoder.hash(passphrase))
+            status = chain.status
+
+            onItemSelect(this)
+        }
     }
 }

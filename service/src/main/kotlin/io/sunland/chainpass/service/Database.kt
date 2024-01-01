@@ -17,7 +17,7 @@ object ChainTable : IntIdTable("chain") {
 
 object ChainLinkTable : IntIdTable("chain_link") {
     val name = varchar("name", 16).index()
-    val password = varchar("password", 32)
+    val password = varchar("password", 64)
 
     val chainId = reference("chain_id", ChainTable, onDelete = ReferenceOption.CASCADE).index()
 }
