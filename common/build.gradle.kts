@@ -39,9 +39,10 @@ kotlin {
             dependencies {
                 api(compose.desktop.common)
 
-                api(ktorDependency("client-core"))
-                api(ktorDependency("client-websockets"))
                 api(ktorDependency("client-cio"))
+                api(ktorDependency("client-websockets"))
+
+                api(rsocketDependency("ktor-client"))
             }
         }
         named("desktopTest") {
@@ -55,9 +56,10 @@ kotlin {
                 api(androidxDependency("core-ktx"))
                 api(androidxDependency("appcompat"))
 
-                api(ktorDependency("client-core"))
-                api(ktorDependency("client-websockets"))
                 api(ktorDependency("client-cio"))
+                api(ktorDependency("client-websockets"))
+
+                api(rsocketDependency("ktor-client"))
             }
         }
         named("androidTest") {

@@ -1,37 +1,25 @@
 package io.sunland.chainpass.common.repository
 
 import io.ktor.client.*
-import io.ktor.client.plugins.websocket.*
-import io.ktor.websocket.*
-import io.sunland.chainpass.common.network.SocketMessage
-import io.sunland.chainpass.common.network.SocketRoute
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
+import io.rsocket.kotlin.ktor.client.rSocket
+import io.sunland.chainpass.common.Settings
+import io.sunland.chainpass.common.network.Payload
+import io.sunland.chainpass.common.network.PayloadRoute
+import io.sunland.chainpass.common.network.decodeFromPayload
+import io.sunland.chainpass.common.network.encodeToPayload
 import kotlinx.serialization.json.Json
 
-class ChainNetRepository(private val httpClient: HttpClient) : ChainRepository {
+class ChainNetRepository(private val httpClient: HttpClient, private val settings: Settings) : ChainRepository {
     override suspend fun create(chainEntity: ChainEntity) = runCatching {
-        httpClient.webSocket(path = SocketRoute.CHAIN_CREATE.path) {
-            send(SocketMessage.success(Json.encodeToString(chainEntity)).toFrame())
-
-            val message = SocketMessage.from(incoming.receive() as Frame.Text)
-
-            message.data.getOrThrow()
-        }
+        httpClient.rSocket(settings.serverHost, settings.serverPort)
+            .requestResponse(Json.encodeToPayload(PayloadRoute.CHAIN_CREATE, chainEntity)).close()
     }
 
     override suspend fun read() = runCatching {
-        val chainEntities = mutableListOf<ChainEntity>()
+        val payload = httpClient.rSocket(settings.serverHost, settings.serverPort)
+            .requestResponse(Payload(PayloadRoute.CHAIN_READ))
 
-        httpClient.webSocket(path = SocketRoute.CHAIN_READ.path) {
-            send(SocketMessage.success().toFrame())
-
-            val message = SocketMessage.from(incoming.receive() as Frame.Text)
-
-            chainEntities.addAll(Json.decodeFromString<List<ChainEntity>>(message.data.getOrThrow()))
-        }
-
-        chainEntities.toList()
+        Json.decodeFromPayload<List<ChainEntity>>(payload)
     }
 
     override suspend fun read(id: Int): Result<ChainEntity> {
@@ -39,26 +27,14 @@ class ChainNetRepository(private val httpClient: HttpClient) : ChainRepository {
     }
 
     override suspend fun delete(chainKeyEntity: ChainKeyEntity) = runCatching {
-        httpClient.webSocket(path = SocketRoute.CHAIN_DELETE.path) {
-            send(SocketMessage.success(Json.encodeToString(chainKeyEntity)).toFrame())
-
-            val message = SocketMessage.from(incoming.receive() as Frame.Text)
-
-            message.data.getOrThrow()
-        }
+        httpClient.rSocket(settings.serverHost, settings.serverPort)
+            .requestResponse(Json.encodeToPayload(PayloadRoute.CHAIN_DELETE, chainKeyEntity)).close()
     }
 
     override suspend fun key(id: Int) = runCatching {
-        var key: ChainKeyEntity? = null
+        val payload = httpClient.rSocket(settings.serverHost, settings.serverPort)
+            .requestResponse(Json.encodeToPayload(PayloadRoute.CHAIN_KEY, id))
 
-        httpClient.webSocket(path = SocketRoute.CHAIN_KEY.path) {
-            send(SocketMessage.success(id.toString()).toFrame())
-
-            val message = SocketMessage.from(incoming.receive() as Frame.Text)
-
-            key = Json.decodeFromString(message.data.getOrThrow())
-        }
-
-        key!!
+        Json.decodeFromPayload<ChainKeyEntity>(payload)
     }
 }

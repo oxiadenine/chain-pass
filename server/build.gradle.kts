@@ -29,6 +29,8 @@ kotlin {
                 implementation(ktorDependency("server-cio"))
                 implementation(ktorDependency("server-websockets"))
 
+                implementation(rsocketDependency("ktor-server"))
+
                 implementation(typesafeDependency("config"))
                 implementation(logbackDependency("classic"))
 
