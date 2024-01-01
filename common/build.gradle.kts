@@ -11,11 +11,17 @@ kotlin {
     jvm("desktop") {
         compilations.all {
             kotlinOptions {
-                jvmTarget = "11"
+                jvmTarget = JavaVersion.VERSION_11.toString()
             }
         }
     }
-    android()
+    android {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = JavaVersion.VERSION_11.toString()
+            }
+        }
+    }
 
     sourceSets {
         commonMain {

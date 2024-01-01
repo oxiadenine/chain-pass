@@ -12,6 +12,19 @@ dependencies {
     testImplementation(kotlin("test", kotlinVersion()))
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+kotlin {
+    target.compilations.all {
+        kotlinOptions {
+            jvmTarget = JavaVersion.VERSION_11.toString()
+        }
+    }
+}
+
 android {
     compileSdk = 31
 
@@ -34,7 +47,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = "11"
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
 
     signingConfigs {
