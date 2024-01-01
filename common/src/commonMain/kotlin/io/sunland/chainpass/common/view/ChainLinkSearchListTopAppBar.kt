@@ -59,8 +59,9 @@ fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (Stri
                     }
                 } else null,
                 singleLine = true,
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.Transparent,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
                     errorIndicatorColor = Color.Transparent

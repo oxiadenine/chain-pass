@@ -13,9 +13,17 @@ class ChainLink(val chain: Chain) {
     }
 
     class Name(value: String? = null) {
-        object EmptyError : Error()
-        object LengthError : Error()
-        object InvalidError : Error()
+        object EmptyError : Error() {
+            private fun readResolve(): Any = EmptyError
+        }
+
+        object LengthError : Error() {
+            private fun readResolve(): Any = LengthError
+        }
+
+        object InvalidError : Error() {
+            private fun readResolve(): Any = InvalidError
+        }
 
         var value = value ?: ""
             private set
@@ -32,7 +40,9 @@ class ChainLink(val chain: Chain) {
     }
 
     class Description(value: String? = null) {
-        object LengthError : Error()
+        object LengthError : Error() {
+            private fun readResolve(): Any = LengthError
+        }
 
         var value = value ?: ""
             private set
@@ -45,8 +55,13 @@ class ChainLink(val chain: Chain) {
     }
 
     class Password(value: String? = null) {
-        object EmptyError : Error()
-        object LengthError : Error()
+        object EmptyError : Error() {
+            private fun readResolve(): Any = EmptyError
+        }
+
+        object LengthError : Error() {
+            private fun readResolve(): Any = LengthError
+        }
 
         var value = value ?: ""
             private set

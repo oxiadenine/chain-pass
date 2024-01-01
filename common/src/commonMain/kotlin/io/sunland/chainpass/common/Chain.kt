@@ -5,7 +5,9 @@ import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.common.security.Random
 
 class Chain() {
-    object KeyInvalidError : Error()
+    object KeyInvalidError : Error() {
+        private fun readResolve(): Any = KeyInvalidError
+    }
 
     constructor(chain: Chain) : this() {
         id = chain.id
@@ -14,9 +16,17 @@ class Chain() {
     }
 
     class Name(value: String? = null) {
-        object EmptyError : Error()
-        object LengthError : Error()
-        object InvalidError : Error()
+        object EmptyError : Error() {
+            private fun readResolve(): Any = EmptyError
+        }
+
+        object LengthError : Error() {
+            private fun readResolve(): Any = LengthError
+        }
+
+        object InvalidError : Error() {
+            private fun readResolve(): Any = InvalidError
+        }
 
         var value = value ?: ""
             private set
@@ -33,8 +43,13 @@ class Chain() {
     }
 
     class Key(value: String? = null) {
-        object EmptyError : Error()
-        object LengthError : Error()
+        object EmptyError : Error() {
+            private fun readResolve(): Any = EmptyError
+        }
+
+        object LengthError : Error() {
+            private fun readResolve(): Any = LengthError
+        }
 
         var value = value ?: ""
             private set

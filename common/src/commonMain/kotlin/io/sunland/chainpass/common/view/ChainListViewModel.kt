@@ -13,9 +13,17 @@ class ChainListViewModel(
     private val chainRepository: ChainRepository,
     private val chainLinkRepository: ChainLinkRepository
 ) {
-    object StorableFormatError : Error()
-    object StorablePrivateError : Error()
-    object SyncNetworkError : Error()
+    object StorableFormatError : Error() {
+        private fun readResolve(): Any = StorableFormatError
+    }
+
+    object StorablePrivateError : Error() {
+        private fun readResolve(): Any = StorablePrivateError
+    }
+
+    object SyncNetworkError : Error() {
+        private fun readResolve(): Any = SyncNetworkError
+    }
 
     val chainListState = mutableStateListOf<Chain>()
 

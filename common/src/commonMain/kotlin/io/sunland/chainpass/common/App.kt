@@ -99,7 +99,6 @@ enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST, CHAIN_LINK_SEARCH_LIST }
 
 val LocalIntl = staticCompositionLocalOf { Intl() }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun App(
     chainRepository: ChainRepository,

@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -29,7 +28,9 @@ import io.sunland.chainpass.common.component.Dialog
 import io.sunland.chainpass.common.component.ValidationTextField
 
 class DeviceAddress(value: String? = null) {
-    object InvalidIPv4Error : Error()
+    object InvalidIPv4Error : Error() {
+        private fun readResolve(): Any = InvalidIPv4Error
+    }
 
     var value = value ?: ""
         private set
@@ -41,7 +42,6 @@ class DeviceAddress(value: String? = null) {
     } ?: Result.success(this.value)
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPath: String) {
     val intl = LocalIntl.current
@@ -159,8 +159,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                                 intl.translate("dialog.settings.item.sync.textFiled.device.error")
                             } else null
                         },
-                        colors = TextFieldDefaults.textFieldColors(
-                            containerColor = Color.Transparent,
+                        colors = TextFieldDefaults.colors(
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             errorIndicatorColor = Color.Transparent

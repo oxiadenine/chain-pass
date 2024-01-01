@@ -45,7 +45,15 @@ class Database private constructor(private val connection: Database) {
 
     init {
         transaction(connection) {
-            SchemaUtils.create(ChainTable, ChainLinkTable)
+            if (platform == Platform.ANDROID) {
+                val tables = SchemaUtils.listTables().filter { table ->
+                    table.contains("public", ignoreCase = true)
+                }
+
+                if (tables.isEmpty()) {
+                    SchemaUtils.create(ChainTable, ChainLinkTable)
+                }
+            } else SchemaUtils.create(ChainTable, ChainLinkTable)
         }
     }
 

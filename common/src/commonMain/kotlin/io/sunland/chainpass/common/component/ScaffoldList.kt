@@ -62,7 +62,6 @@ fun rememberScaffoldListState(): ScaffoldListState {
     return ScaffoldListState(popupHostState, snackbarHostState, lazyListState)
 }
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ScaffoldList(
     scaffoldListState: ScaffoldListState,
@@ -114,11 +113,11 @@ fun ScaffoldList(
                             slideInVertically(
                                 initialOffsetY = { 0 },
                                 animationSpec = tween(easing = LinearEasing, durationMillis = 150)
-                            ) with ExitTransition.None
+                            ) togetherWith ExitTransition.None
                         } else slideInVertically(
                             initialOffsetY = { 0 },
                             animationSpec = tween(easing = LinearEasing, durationMillis = 75)
-                        ) with ExitTransition.None
+                        ) togetherWith ExitTransition.None
                     }
                 ) {
                     val (scrollDirection, scrollPosition) = scaffoldListState.lazyListState.scrollInfo()

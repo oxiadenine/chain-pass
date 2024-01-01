@@ -5,7 +5,7 @@ plugins {
 }
 
 kotlin {
-    android()
+    androidTarget()
 
     sourceSets {
         named("androidMain") {
@@ -26,11 +26,11 @@ kotlin {
 
 android {
     namespace = "${project.group}.chainpass"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 26
-        targetSdk = 33
+        targetSdk = 34
 
         applicationId = "${project.group}.chainpass"
         versionCode = (project.version as String).replace(".", "").toInt()
@@ -42,8 +42,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_20
+        targetCompatibility = JavaVersion.VERSION_20
     }
 
     signingConfigs {
@@ -53,6 +53,10 @@ android {
             storeFile = file("${project.projectDir}/keystore.jks")
             storePassword = System.getenv("SIGNING_STORE_PASSWORD")
         }
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {

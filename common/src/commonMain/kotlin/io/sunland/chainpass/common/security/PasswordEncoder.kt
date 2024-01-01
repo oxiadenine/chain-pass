@@ -5,8 +5,8 @@ object EncoderSpec {
     const val SHA256 = "SHA-256"
 
     object Algorithm {
-        const val AESGCMNoPadding = "AES/GCM/NoPadding"
-        const val PBKDF2WithHmacSHA256 = "PBKDF2WithHmacSHA256"
+        const val AES_GCM_NO_PADDING = "AES/GCM/NoPadding"
+        const val PBKDF2_WITH_HMAC_SHA256 = "PBKDF2WithHmacSHA256"
     }
 
     object Strength {

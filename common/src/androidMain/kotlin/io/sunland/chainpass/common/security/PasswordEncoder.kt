@@ -22,7 +22,7 @@ actual object PasswordEncoder {
             EncoderSpec.Strength.KEY_LENGTH
         )
 
-        val secretKey = SecretKeyFactory.getInstance(EncoderSpec.Algorithm.PBKDF2WithHmacSHA256).generateSecret(keySpec)
+        val secretKey = SecretKeyFactory.getInstance(EncoderSpec.Algorithm.PBKDF2_WITH_HMAC_SHA256).generateSecret(keySpec)
 
         return Base64.encode(secretKey.encoded)
     }
@@ -35,7 +35,7 @@ actual object PasswordEncoder {
             MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.salt))
         )
 
-        return Cipher.getInstance(EncoderSpec.Algorithm.AESGCMNoPadding).let { cipher ->
+        return Cipher.getInstance(EncoderSpec.Algorithm.AES_GCM_NO_PADDING).let { cipher ->
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParamSpec)
             Base64.encode(cipher.doFinal(Base64.decode(password)))
         }
@@ -49,7 +49,7 @@ actual object PasswordEncoder {
             MessageDigest.getInstance(EncoderSpec.SHA256).digest(Base64.decode(passphrase.salt))
         )
 
-        return Cipher.getInstance(EncoderSpec.Algorithm.AESGCMNoPadding).let { cipher ->
+        return Cipher.getInstance(EncoderSpec.Algorithm.AES_GCM_NO_PADDING).let { cipher ->
             cipher.init(Cipher.DECRYPT_MODE, secretKey, ivParamSpec)
             Base64.encode(cipher.doFinal(Base64.decode(password)))
         }

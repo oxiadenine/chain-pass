@@ -4,6 +4,8 @@ import java.security.SecureRandom
 import java.util.*
 
 actual object Random : SecureRandom() {
+    private fun readResolve(): Any = Random
+
     actual override fun nextInt() = super.nextInt()
     actual fun nextInt(range: Pair<Int, Int>) = this.nextInts(1, range).first()
 
