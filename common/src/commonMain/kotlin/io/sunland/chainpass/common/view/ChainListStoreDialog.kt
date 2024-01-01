@@ -1,9 +1,9 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,8 +54,8 @@ fun ChainListStoreDialog(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onC
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+            verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (isSingle) {
                 Row(
@@ -71,9 +71,8 @@ fun ChainListStoreDialog(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onC
                 }
             }
             Button(
-                onClick = { isStoreTypeMenuExpandedState.value = true },
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
+                onClick = { isStoreTypeMenuExpandedState.value = !isStoreTypeMenuExpandedState.value },
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
@@ -89,6 +88,7 @@ fun ChainListStoreDialog(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onC
                     offset = DpOffset(x = 8.dp, y = (-16).dp)
                 ) {
                     DropdownMenuItem(
+                        text = { Text(text = "JSON", fontSize = 14.sp) },
                         onClick = {
                             isStoreTypeMenuExpandedState.value = false
 
@@ -96,8 +96,9 @@ fun ChainListStoreDialog(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onC
                         },
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         contentPadding = PaddingValues(horizontal = 16.dp)
-                    ) { Text(text = "JSON", fontSize = 12.sp) }
+                    )
                     DropdownMenuItem(
+                        text = { Text(text = "CSV", fontSize = 14.sp) },
                         onClick = {
                             isStoreTypeMenuExpandedState.value = false
 
@@ -105,8 +106,9 @@ fun ChainListStoreDialog(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onC
                         },
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         contentPadding = PaddingValues(horizontal = 16.dp)
-                    ) { Text(text = "CSV", fontSize = 12.sp) }
+                    )
                     DropdownMenuItem(
+                        text = { Text(text = "TXT", fontSize = 14.sp) },
                         onClick = {
                             isStoreTypeMenuExpandedState.value = false
 
@@ -114,7 +116,7 @@ fun ChainListStoreDialog(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onC
                         },
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         contentPadding = PaddingValues(horizontal = 16.dp)
-                    ) { Text(text = "TXT", fontSize = 12.sp) }
+                    )
                 }
             }
         }

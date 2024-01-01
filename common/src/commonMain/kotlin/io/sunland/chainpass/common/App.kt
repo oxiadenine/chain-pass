@@ -1,51 +1,54 @@
 package io.sunland.chainpass.common
 
 import androidx.compose.animation.*
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Outline
-import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.ktor.server.cio.*
-import io.ktor.server.engine.*
 import io.rsocket.kotlin.RSocketRequestHandler
 import io.rsocket.kotlin.payload.Payload
 import io.sunland.chainpass.common.component.rememberScaffoldListState
-import io.sunland.chainpass.common.network.*
+import io.sunland.chainpass.common.network.WebSocket
+import io.sunland.chainpass.common.network.decode
+import io.sunland.chainpass.common.network.encode
+import io.sunland.chainpass.common.network.getRoute
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.common.security.PasswordGenerator
 import io.sunland.chainpass.common.view.*
 import io.sunland.chainpass.sqldelight.Database
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 
-object Theme {
-    enum class Palette(val color: Color) {
-        ANTHRACITE(Color(0.22f, 0.24f, 0.26f)),
-        QUARTZ(Color(0.91f, 0.87f, 0.88f)),
-        COPPER(Color(0.72f, 0.46f, 0.28f))
-    }
+enum class ThemeMode { DARK, LIGHT }
+
+class ThemeState(val mode: MutableState<ThemeMode>) {
+    val isDarkMode by derivedStateOf { mode.value == ThemeMode.DARK }
+}
+
+@Composable
+fun rememberThemeState(mode: ThemeMode = ThemeMode.LIGHT) = remember {
+    ThemeState(mutableStateOf(mode))
 }
 
 enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST }
@@ -111,30 +114,9 @@ fun rememberNetworkState(): NetworkState {
     return remember { networkState }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
-fun App(settingsManager: SettingsManager, database: Database, storage: Storage) = MaterialTheme(
-    colors = darkColors(
-        primary = Theme.Palette.QUARTZ.color,
-        primaryVariant = Theme.Palette.QUARTZ.color,
-        secondary = Theme.Palette.QUARTZ.color,
-        secondaryVariant = Theme.Palette.QUARTZ.color,
-        background = Theme.Palette.ANTHRACITE.color,
-        surface = Theme.Palette.ANTHRACITE.color,
-        error = Theme.Palette.COPPER.color,
-        onPrimary = Theme.Palette.ANTHRACITE.color,
-        onSecondary = Theme.Palette.ANTHRACITE.color,
-        onBackground = Theme.Palette.QUARTZ.color,
-        onSurface = Theme.Palette.QUARTZ.color,
-        onError = Theme.Palette.COPPER.color
-    ),
-    typography = Typography(defaultFontFamily = FontFamily.Monospace),
-    shapes = Shapes(
-        small = RoundedCornerShape(percent = 0),
-        medium = RoundedCornerShape(percent = 0),
-        large = RoundedCornerShape(percent = 0)
-    )
-) {
+fun App(settingsManager: SettingsManager, database: Database, storage: Storage, themeState: ThemeState) {
     val chainRepository = ChainRepository(database)
     val chainLinkRepository = ChainLinkRepository(database)
 
@@ -155,8 +137,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
         )
     }
 
-    ModalDrawer(
-        drawerState = drawerState,
+    ModalNavigationDrawer(
         drawerContent = {
             val socketServerState = mutableStateOf<CIOApplicationEngine?>(null)
 
@@ -184,43 +165,58 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                 socketServerState.value?.application?.dispose()
             }
 
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(space = 4.dp)
-            ) {
-                Text(text = platform)
-                Text(text = networkState.hostAddressState.value.ifEmpty { "Not connected" }, fontSize = 14.sp)
-            }
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().clickable {
+            ModalDrawerSheet(drawerShape = if (platform == Platform.DESKTOP) {
+                RectangleShape
+            } else DrawerDefaults.shape) {
+                Box(modifier = Modifier.fillMaxWidth().padding(all = 4.dp)) {
+                    Row(modifier = Modifier.align(alignment = Alignment.TopEnd)) {
+                        IconButton(
+                            onClick = {
+                                themeState.mode.value = if (themeState.isDarkMode) {
+                                    ThemeMode.LIGHT
+                                } else ThemeMode.DARK
+                            },
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                        ) {
+                            AnimatedVisibility(
+                                visible = themeState.isDarkMode,
+                                enter = fadeIn(animationSpec = tween(durationMillis = 500)),
+                                exit = fadeOut(animationSpec = tween(durationMillis = 500))
+                            ) { Icon(imageVector = Icons.Default.LightMode, contentDescription = null) }
+                            AnimatedVisibility(
+                                visible = !themeState.isDarkMode,
+                                enter = fadeIn(animationSpec = tween(durationMillis = 500)),
+                                exit = fadeOut(animationSpec = tween(durationMillis = 500))
+                            ) { Icon(imageVector = Icons.Default.DarkMode, contentDescription = null) }
+                        }
+                    }
+                    Column(
+                        modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(space = 4.dp)
+                    ) {
+                        Text(text = platform.name.lowercase().replaceFirstChar { char -> char.uppercase() })
+                        Text(text = networkState.hostAddressState.value.ifEmpty { "Not connected" }, fontSize = 14.sp)
+                    }
+                }
+                NavigationDrawerItem(
+                    label = { Text(text = "Settings") },
+                    selected = false,
+                    onClick = {
                         coroutineScope.launch {
                             drawerState.close()
 
                             isSettingsDialogVisibleState.value = true
                         }
-                    }.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        modifier = Modifier.padding(start = 16.dp),
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = null
-                    )
-                    Text(text = "Settings", modifier = Modifier.padding(vertical = 16.dp), fontSize = 14.sp)
-                }
+                    },
+                    icon = { Icon(imageVector = Icons.Default.Settings, contentDescription = null) },
+                    modifier = Modifier
+                        .padding(paddingValues = NavigationDrawerItemDefaults.ItemPadding)
+                        .pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                )
             }
         },
-        drawerShape = object : Shape {
-            override fun createOutline(size: Size, layoutDirection: LayoutDirection, density: Density): Outline {
-                return with(density) {
-                    Outline.Rectangle(Rect(0f,0f, 300.dp.roundToPx().toFloat(), size.height))
-                }
-            }
-        },
-        drawerBackgroundColor = MaterialTheme.colors.surface,
-        scrimColor = Color.Black.copy(alpha = if (platform == "Desktop") 0.3f else 0.6f)
+        drawerState = drawerState,
+        scrimColor = Color.Black.copy(alpha = if (platform == Platform.DESKTOP) 0.3f else 0.6f)
     ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Crossfade(targetState = navigationState.screenState.value) { screen ->

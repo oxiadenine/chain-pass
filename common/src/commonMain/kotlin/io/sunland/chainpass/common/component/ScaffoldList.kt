@@ -6,9 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.SnackbarHost
-import androidx.compose.material.SnackbarHostState
-import androidx.compose.material.Surface
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -39,22 +38,20 @@ fun ScaffoldList(
     floatingButton: @Composable () -> Unit = {},
     floatingButtonPosition: Alignment = Alignment.BottomEnd,
     content: @Composable BoxScope.(LazyListState) -> Unit
-) = Surface {
-    Column(modifier = modifier) {
-        topBar()
+) = Column(modifier = modifier) {
+    topBar()
 
-        Box(modifier = Modifier.fillMaxSize()) {
-            popupHost(scaffoldListState.popupHostState)
+    Box(modifier = Modifier.fillMaxSize()) {
+        popupHost(scaffoldListState.popupHostState)
 
-            content(scaffoldListState.lazyListState)
+        content(scaffoldListState.lazyListState)
 
-            Column(modifier = Modifier.align(alignment = floatingButtonPosition)) {
-                floatingButton()
-            }
+        Column(modifier = Modifier.align(alignment = floatingButtonPosition)) {
+            floatingButton()
+        }
 
-            Column(modifier = Modifier.align(alignment = Alignment.BottomEnd)) {
-                snackbarHost(scaffoldListState.snackbarHostState)
-            }
+        Column(modifier = Modifier.align(alignment = Alignment.BottomCenter)) {
+            snackbarHost(scaffoldListState.snackbarHostState)
         }
     }
 }

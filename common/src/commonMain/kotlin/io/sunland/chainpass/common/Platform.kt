@@ -1,3 +1,5 @@
 package io.sunland.chainpass.common
 
-expect val platform: String
+enum class Platform { DESKTOP, ANDROID }
+
+expect val platform: Platform

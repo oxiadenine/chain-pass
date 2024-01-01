@@ -3,12 +3,9 @@ package io.sunland.chainpass.common.view
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -29,7 +26,7 @@ import io.sunland.chainpass.common.ChainLink
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ChainLinkListItemEditDialog(chainLink: ChainLink, onEdit: () -> Unit, onCancel: () -> Unit) {
     val descriptionState = remember { mutableStateOf(chainLink.description.value) }
@@ -105,7 +102,7 @@ fun ChainLinkListItemEditDialog(chainLink: ChainLink, onEdit: () -> Unit, onCanc
             ValidationTextField(
                 value = descriptionState.value,
                 onValueChange = onDescriptionChange,
-                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent = onKeyEvent),
+                modifier = Modifier.onKeyEvent(onKeyEvent = onKeyEvent),
                 placeholder = { Text(text = "Description") },
                 trailingIcon = if (descriptionValidationState.value.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
@@ -125,7 +122,6 @@ fun ChainLinkListItemEditDialog(chainLink: ChainLink, onEdit: () -> Unit, onCanc
                 value = passwordState.value,
                 onValueChange = onPasswordChange,
                 modifier = Modifier
-                    .fillMaxWidth()
                     .focusRequester(focusRequester = focusRequester)
                     .onKeyEvent(onKeyEvent = onKeyEvent),
                 placeholder = { Text(text = "Password") },

@@ -1,7 +1,7 @@
 package io.sunland.chainpass.desktop
 
-import androidx.compose.foundation.DefaultContextMenuRepresentation
-import androidx.compose.foundation.LocalContextMenuRepresentation
+import androidx.compose.foundation.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Window
@@ -22,13 +22,19 @@ fun main() {
         ) {
             window.minimumSize = Dimension(360, 480)
 
+            val themeState = rememberThemeState(ThemeMode.DARK)
+
             CompositionLocalProvider(
-                LocalContextMenuRepresentation provides DefaultContextMenuRepresentation(
-                    backgroundColor = Theme.Palette.ANTHRACITE.color,
-                    textColor = Theme.Palette.QUARTZ.color,
-                    itemHoverColor = Theme.Palette.ANTHRACITE.color
-                )
-            ) { App(settingsManager, database, storage) }
+                LocalContextMenuRepresentation provides if (themeState.isDarkMode) {
+                    DarkDefaultContextMenuRepresentation
+                } else LightDefaultContextMenuRepresentation
+            ) {
+                MaterialTheme(colorScheme = if (themeState.isDarkMode) {
+                    Theme.DarkColors
+                } else Theme.LightColors) {
+                    App(settingsManager, database, storage, themeState)
+                }
+            }
         }
     }
 }

@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
@@ -14,11 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -39,7 +37,7 @@ class DeviceAddress(value: String? = null) {
     } ?: Result.success(this.value)
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () -> Unit) {
     val deviceAddressState = remember { mutableStateOf(settingsState.deviceAddressState.value) }
@@ -82,8 +80,8 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
         title = {
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "Settings")
                 IconButton(
@@ -103,11 +101,11 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
 
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).verticalScroll(state = scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(space = 16.dp)
+            verticalArrangement = Arrangement.spacedBy(space = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
-                Text(text = "Sync", fontSize = 14.sp)
+                Text(text = "Sync", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -122,19 +120,16 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
                         value = deviceAddressState.value,
                         onValueChange = onDeviceAddressChange,
                         modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                        textStyle = TextStyle(fontSize = 14.sp),
                         placeholder = { Text(text = "Device Address", fontSize = 14.sp) },
                         singleLine = true,
-                        leadingIcon = {
-                            Icon(imageVector = Icons.Default.Devices, contentDescription = null)
-                        },
+                        leadingIcon = { Icon(imageVector = Icons.Default.Devices, contentDescription = null) },
                         trailingIcon = if (deviceAddressErrorState.value) {
                             { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                         } else null,
                         isError = deviceAddressErrorState.value,
                         errorMessage = DeviceAddress(deviceAddressState.value).validation.exceptionOrNull()?.message,
                         colors = TextFieldDefaults.textFieldColors(
-                            backgroundColor = Color.Transparent,
+                            containerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             errorIndicatorColor = Color.Transparent
@@ -144,26 +139,26 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
-                Text(text = "Password", fontSize = 14.sp)
+                Text(text = "Password", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
                 Column {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "Length", fontSize = 14.sp)
+                        Text(text = "Length")
                         Slider(
                             value = passwordLengthState.value,
                             onValueChange = onPasswordLengthChange,
                             modifier = Modifier.weight(1f, false).pointerHoverIcon(icon = PointerIconDefaults.Hand),
                             valueRange = 8f..32f
                         )
-                        Text(text = passwordLengthState.value.toInt().toString(), fontSize = 14.sp)
+                        Text(text = passwordLengthState.value.toInt().toString())
                     }
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "Alphanumeric", fontSize = 14.sp)
+                        Text(text = "Alphanumeric")
                         Switch(
                             checked = passwordIsAlphanumericState.value,
                             onCheckedChange = onPasswordIsAlphanumericChange,
@@ -173,18 +168,14 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
-                Text(text = "Store", fontSize = 14.sp)
+                Text(text = "Store", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
                 Text(
                     text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(fontSize = 14.sp)) {
-                            append("Files are stored at ")
-                        }
-                        withStyle(style = SpanStyle(fontSize = 14.sp, fontWeight = FontWeight.SemiBold)) {
+                        append("Files are stored at ")
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
                             append(storePath)
                         }
-                        withStyle(style = SpanStyle(fontSize = 14.sp)) {
-                            append(" directory.")
-                        }
+                        append(" directory.")
                     }
                 )
             }

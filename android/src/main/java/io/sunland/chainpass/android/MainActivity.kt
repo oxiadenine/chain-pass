@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.os.Environment
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.MaterialTheme
 import io.sunland.chainpass.common.*
 
 class MainActivity : AppCompatActivity() {
@@ -17,7 +18,11 @@ class MainActivity : AppCompatActivity() {
         setContent {
             title = "Chain Pass"
 
-            App(settingsManager, database, storage)
+            val themeState = rememberThemeState(ThemeMode.DARK)
+
+            MaterialTheme(colorScheme = if (themeState.isDarkMode) {
+                Theme.DarkColors
+            } else Theme.LightColors) { App(settingsManager, database, storage, themeState) }
         }
     }
 }

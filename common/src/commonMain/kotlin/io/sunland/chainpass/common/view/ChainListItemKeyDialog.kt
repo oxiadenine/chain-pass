@@ -1,16 +1,20 @@
 package io.sunland.chainpass.common.view
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -32,7 +36,7 @@ import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ChainListItemKeyDialog(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
     var chainKey = Chain.Key()
@@ -97,7 +101,6 @@ fun ChainListItemKeyDialog(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
                 value = keyState.value,
                 onValueChange = onKeyChange,
                 modifier = Modifier
-                    .fillMaxWidth()
                     .focusRequester(focusRequester = focusRequester)
                     .onKeyEvent(onKeyEvent = onKeyEvent),
                 placeholder = { Text(text = "Key") },
@@ -109,9 +112,16 @@ fun ChainListItemKeyDialog(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
                             onClick = onKeyVisibleChange,
                             modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                         ) {
-                            Icon(imageVector = if (keyVisibleState.value) {
-                                Icons.Default.Visibility
-                            } else Icons.Default.VisibilityOff, contentDescription = null)
+                            AnimatedVisibility(
+                                visible = keyVisibleState.value,
+                                enter = fadeIn(animationSpec = tween(durationMillis = 500)),
+                                exit = fadeOut(animationSpec = tween(durationMillis = 500))
+                            ) { Icon(imageVector = Icons.Default.Visibility, contentDescription = null) }
+                            AnimatedVisibility(
+                                visible = !keyVisibleState.value,
+                                enter = fadeIn(animationSpec = tween(durationMillis = 500)),
+                                exit = fadeOut(animationSpec = tween(durationMillis = 500))
+                            ) { Icon(imageVector = Icons.Default.VisibilityOff, contentDescription = null) }
                         }
                     }
                 },

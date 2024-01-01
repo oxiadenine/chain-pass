@@ -2,7 +2,7 @@ package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.Delete
@@ -107,56 +107,38 @@ fun ChainLinkListItem(
                     offset = dropDownMenuOffsetState.value
                 ) {
                     DropdownMenuItem(
-                        onClick = {
-                            isDropDownMenuExpandedState.value = false
-
-                            onEdit()
-                        },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(imageVector = Icons.Default.Edit, contentDescription = null)
-                            Text(text = "Edit", fontSize = 12.sp)
-                        }
-                    }
-                    DropdownMenuItem(
-                        onClick = {
-                            isDropDownMenuExpandedState.value = false
-
-                            onRemove()
-                        },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-                            Text(text = "Delete", fontSize = 12.sp)
-                        }
-                    }
-                    DropdownMenuItem(
+                        text = { Text(text = "Copy", fontSize = 14.sp) },
                         onClick = {
                             isDropDownMenuExpandedState.value = false
 
                             onPasswordCopy()
                         },
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        leadingIcon = { Icon(imageVector = Icons.Default.CopyAll, contentDescription = null) },
                         contentPadding = PaddingValues(horizontal = 16.dp)
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(imageVector = Icons.Default.CopyAll, contentDescription = null)
-                            Text(text = "Copy", fontSize = 12.sp)
-                        }
-                    }
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Edit", fontSize = 14.sp) },
+                        onClick = {
+                            isDropDownMenuExpandedState.value = false
+
+                            onEdit()
+                        },
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        leadingIcon = { Icon(imageVector = Icons.Default.Edit, contentDescription = null) },
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = "Delete", fontSize = 14.sp) },
+                        onClick = {
+                            isDropDownMenuExpandedState.value = false
+
+                            onRemove()
+                        },
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        leadingIcon = { Icon(imageVector = Icons.Default.Delete, contentDescription = null) },
+                        contentPadding = PaddingValues(horizontal = 16.dp)
+                    )
                 }
             }
         }
