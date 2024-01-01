@@ -26,39 +26,14 @@ class ChainListViewModel(
 
     private var chains = emptyList<Chain>()
 
-    fun draft() {
-        val chainDraft = Chain(passwordGenerator).apply {
-            isLatest = true
-        }
-
-        chainListState.add(chainDraft)
-
-        val chains = chainListState.map { chain ->
-            if (chain.id != chainDraft.id) {
-                chain.apply { isLatest = false }
-            } else chain
-        }
-
-        chainListState.clear()
-        chainListState.addAll(chains)
-    }
-
-    fun rejectDraft(chain: Chain) {
-        chainListState.remove(chain)
-    }
+    fun draft() = Chain(passwordGenerator).apply { isLatest = true }
 
     fun setSelected(chainSelect: Chain? = null) {
-        val chainsDraft = chainListState.filter { chain -> chain.status == Chain.Status.DRAFT }
+        val chains = chainListState.map { chain ->
+            chain.isSelected = chain.id == chainSelect?.id
 
-        val chains = chainListState
-            .filter { chain -> chain.status != Chain.Status.DRAFT }
-            .map { chain ->
-                chain.isSelected = chain.id == chainSelect?.id
-
-                chain
-            }
-            .sortedBy { chain -> chain.name.value }
-            .plus(chainsDraft)
+            chain
+        }.sortedBy { chain -> chain.name.value }
 
         chainListState.clear()
         chainListState.addAll(chains)
@@ -69,13 +44,12 @@ class ChainListViewModel(
     }
 
     fun undoRemove(chainRemove: Chain) {
-        val chainsDraft = chainListState.filter { chain -> chain.status == Chain.Status.DRAFT }
-
         val chains = chainListState
-            .filter { chain -> chain.status != Chain.Status.DRAFT }
-            .plus(chainRemove.apply { key = Chain.Key() })
+            .plus(chainRemove.apply {
+                key = Chain.Key()
+                isLatest = true
+            })
             .sortedBy { chain -> chain.name.value }
-            .plus(chainsDraft)
 
         chainListState.clear()
         chainListState.addAll(chains)
@@ -86,16 +60,10 @@ class ChainListViewModel(
             Chain(passwordGenerator).apply {
                 id = chainEntity.id
                 name = Chain.Name(chainEntity.name)
-                status = Chain.Status.ACTUAL
             }
         }
 
-        val chainsDraft = chainListState.filter { chain -> chain.status == Chain.Status.DRAFT }
-
-        val chains = chains
-            .map { chain -> Chain(chain) }
-            .sortedBy { chain -> chain.name.value }
-            .plus(chainsDraft)
+        val chains = chains.map { chain -> Chain(chain) }.sortedBy { chain -> chain.name.value }
 
         chainListState.clear()
         chainListState.addAll(chains)
@@ -110,7 +78,8 @@ class ChainListViewModel(
         chainRepository.create(chainEntity)
 
         chain.key = Chain.Key()
-        chain.status = Chain.Status.ACTUAL
+
+        chainListState.add(chain)
 
         update()
     }
@@ -233,17 +202,9 @@ class ChainListViewModel(
             !chainListState.any { chainToFind -> chain.id == chainToFind.id }
         }
 
-        chains = chainListState
-            .filter { chain -> chain.status != Chain.Status.DRAFT }
-            .map { chain -> Chain(chain) }
-            .plus(chainsRemove)
+        chains = chainListState.map { chain -> Chain(chain) }.plus(chainsRemove)
 
-        val chainsDraft = chainListState.filter { chain -> chain.status == Chain.Status.DRAFT }
-
-        val chains = chainListState
-            .filter { chain -> chain.status != Chain.Status.DRAFT }
-            .sortedBy { chain -> chain.name.value }
-            .plus(chainsDraft)
+        val chains = chainListState.sortedBy { chain -> chain.name.value }
 
         chainListState.clear()
         chainListState.addAll(chains)

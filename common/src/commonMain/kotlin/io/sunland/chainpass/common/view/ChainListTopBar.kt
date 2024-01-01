@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 fun ChainListTopBar(
     onSettings: () -> Unit,
     onSync: () -> Unit,
-    onAdd: () -> Unit,
     onStore: () -> Unit,
     onUnstore: () -> Unit
 ) {
@@ -67,23 +66,6 @@ fun ChainListTopBar(
                     ) {
                         Icon(imageVector = Icons.Default.Sync, contentDescription = null)
                         Text(text = "Sync", fontSize = 12.sp)
-                    }
-                }
-                DropdownMenuItem(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = {
-                        isActionMenuExpandedState.value = false
-
-                        onAdd()
-                    },
-                    contentPadding = PaddingValues(horizontal = 16.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
-                        Text(text = "Add", fontSize = 12.sp)
                     }
                 }
                 DropdownMenuItem(

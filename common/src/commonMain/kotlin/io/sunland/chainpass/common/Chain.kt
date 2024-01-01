@@ -10,7 +10,6 @@ class Chain constructor(val passwordGenerator: PasswordGenerator) {
         id = chain.id
         name = chain.name
         key = chain.key
-        status = chain.status
         isLatest = chain.isLatest
     }
 
@@ -40,12 +39,9 @@ class Chain constructor(val passwordGenerator: PasswordGenerator) {
         } ?: Result.success(this.value)
     }
 
-    enum class Status { ACTUAL, DRAFT }
-
     var id = Random.uuid()
     var name = Name()
     var key = Key()
-    var status = Status.DRAFT
     var isSelected = false
     var isLatest = false
 
