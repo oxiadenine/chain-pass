@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
 
-class ChainLinkSearchListState(private val chainLinks: List<ChainLink>) {
+class ChainLinkSearchListState(val chain: Chain, private val chainLinks: List<ChainLink>) {
     val chainLinkSearchListState = chainLinks.toMutableStateList()
 
     fun search(keyword: String) {
@@ -29,8 +29,8 @@ class ChainLinkSearchListState(private val chainLinks: List<ChainLink>) {
 }
 
 @Composable
-fun rememberChainLinkSearchListState(chainLinks: List<ChainLink>) = remember {
-    ChainLinkSearchListState(chainLinks)
+fun rememberChainLinkSearchListState(chain: Chain, chainLinks: List<ChainLink>) = remember {
+    ChainLinkSearchListState(chain, chainLinks)
 }
 
 @Composable
@@ -41,7 +41,7 @@ fun ChainLinkSearchList(
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         ChainLinkSearchListTopAppBar(
-            onBackClick = { onTopAppBarBackClick(state.chainLinkSearchListState[0].chain) },
+            onBackClick = { onTopAppBarBackClick(state.chain) },
             onKeywordChange = { keyword -> state.search(keyword) }
         )
 
