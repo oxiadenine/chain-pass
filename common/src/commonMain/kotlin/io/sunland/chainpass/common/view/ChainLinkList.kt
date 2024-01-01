@@ -81,17 +81,10 @@ fun ChainLinkList(
                                 ChainLink.Status.ACTUAL -> ChainLinkListItem(
                                     chainLink = chainLink,
                                     onIconEditClick = {
-                                        if (chainLink.password.isPrivate) {
-                                            viewModel.unlockPassword(chainLink)
-                                        }
-
-                                        viewModel.startEdit(chainLink.id)
+                                        viewModel.cancelEdit()
+                                        viewModel.startEdit(chainLink)
                                     },
                                     onIconDeleteClick = {
-                                        if (!chainLink.password.isPrivate) {
-                                            viewModel.lockPassword(chainLink)
-                                        }
-
                                         viewModel.removeLater(chainLink)
 
                                         onItemRemove(chainLink)
