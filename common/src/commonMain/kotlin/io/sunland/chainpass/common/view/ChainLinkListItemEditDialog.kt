@@ -61,35 +61,15 @@ fun ChainLinkListItemEditDialog(chainLink: ChainLink, onEdit: () -> Unit, onCanc
         }
     }
 
-    val onKeyEvent = { keyEvent: KeyEvent ->
-        if (keyEvent.type == KeyEventType.KeyDown) {
-            false
-        } else when (keyEvent.key) {
-            Key.Escape -> {
-                onCancel()
-
-                true
-            }
-            Key.Enter -> {
-                onDone()
-
-                true
-            }
-            else -> false
-        }
-    }
-
-    val onPreviewKeyEvent = { keyEvent: KeyEvent ->
-        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-            onPasswordChange(chainLink.generatePassword())
-
-            true
-        } else false
-    }
-
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
+            modifier = Modifier.fillMaxWidth().padding(all = 16.dp).onKeyEvent { keyEvent: KeyEvent ->
+                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+                    onDone()
+
+                    true
+                } else false
+            },
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -102,7 +82,6 @@ fun ChainLinkListItemEditDialog(chainLink: ChainLink, onEdit: () -> Unit, onCanc
             ValidationTextField(
                 value = descriptionState.value,
                 onValueChange = onDescriptionChange,
-                modifier = Modifier.onKeyEvent(onKeyEvent = onKeyEvent),
                 placeholder = { Text(text = "Description") },
                 trailingIcon = if (descriptionValidationState.value.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
@@ -121,9 +100,7 @@ fun ChainLinkListItemEditDialog(chainLink: ChainLink, onEdit: () -> Unit, onCanc
             ValidationTextField(
                 value = passwordState.value,
                 onValueChange = onPasswordChange,
-                modifier = Modifier
-                    .focusRequester(focusRequester = focusRequester)
-                    .onKeyEvent(onKeyEvent = onKeyEvent),
+                modifier = Modifier.focusRequester(focusRequester = focusRequester),
                 placeholder = { Text(text = "Password") },
                 leadingIcon = {
                     IconButton(
@@ -131,7 +108,13 @@ fun ChainLinkListItemEditDialog(chainLink: ChainLink, onEdit: () -> Unit, onCanc
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                            .onPreviewKeyEvent(onPreviewKeyEvent = onPreviewKeyEvent)
+                            .onPreviewKeyEvent { keyEvent: KeyEvent ->
+                                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+                                    onPasswordChange(chainLink.generatePassword())
+
+                                    true
+                                } else false
+                            }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
                 trailingIcon = if (passwordValidationState.value.isFailure) {
