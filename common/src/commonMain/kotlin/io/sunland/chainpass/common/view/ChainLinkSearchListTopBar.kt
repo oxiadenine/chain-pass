@@ -54,7 +54,7 @@ fun ChainLinkSearchListTopBar(keywordState: MutableState<String>, onBack: () -> 
         title = {
             TextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
-                placeholder = { Text(text = "Search...") },
+                placeholder = { Text(text = "Search") },
                 value = keywordState.value,
                 onValueChange = onSearchChange,
                 trailingIcon = if (keywordState.value.isNotEmpty()) {

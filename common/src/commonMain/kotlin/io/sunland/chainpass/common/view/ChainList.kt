@@ -185,6 +185,7 @@ fun ChainList(
 
     Column(modifier = Modifier.fillMaxSize()) {
         ChainListTopBar(
+            title = "Chain Pass",
             onSettings = { navigationState.screenState.value = Screen.SETTINGS },
             onSync = {
                 snackbarHostState.currentSnackbarData?.performAction()

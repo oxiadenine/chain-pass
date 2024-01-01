@@ -153,7 +153,6 @@ fun ChainLinkList(
     LaunchedEffect(Unit) {
         isWorkInProgressState.value = true
 
-        viewModel.chain = navigationState.chainState.value
         viewModel.getAll()
 
         isWorkInProgressState.value = false
@@ -168,6 +167,7 @@ fun ChainLinkList(
             )
         } else {
             ChainLinkListTopBar(
+                title = viewModel.chain!!.name.value,
                 onBack = {
                     snackbarHostState.currentSnackbarData?.dismiss()
 
