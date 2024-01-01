@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import io.sunland.chainpass.common.*
+import io.sunland.chainpass.common.component.LazyListScrollDirection
+import io.sunland.chainpass.common.component.scrollDirection
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -234,8 +236,8 @@ fun ChainLinkList(
                     }
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize(), state = lazyListState) {
-                    items(chainLinks, key = { chainLink -> chainLink.id }) { chainLink ->
+                LazyColumn(state = lazyListState, modifier = Modifier.fillMaxSize()) {
+                    items(items = chainLinks, key = { chainLink -> chainLink.id }) { chainLink ->
                         if (viewModel.isSearchState.value) {
                             ChainLinkSearchListItem(
                                 chainLink = chainLink,
@@ -306,43 +308,26 @@ fun ChainLinkList(
             }
 
             if (!viewModel.isSearchState.value) {
-                val prevFirstVisibleItemIndexState = remember {
-                    mutableStateOf(lazyListState.firstVisibleItemIndex)
-                }
-                val prevFirstVisibleItemScrollOffsetState = remember {
-                    mutableStateOf(lazyListState.firstVisibleItemScrollOffset)
-                }
-
-                val isLazyListScrollingUpState = remember {
-                    derivedStateOf {
-                        if (prevFirstVisibleItemIndexState.value != lazyListState.firstVisibleItemIndex) {
-                            prevFirstVisibleItemIndexState.value > lazyListState.firstVisibleItemIndex
-                        } else {
-                            prevFirstVisibleItemScrollOffsetState.value >= lazyListState.firstVisibleItemScrollOffset
-                        }.also {
-                            prevFirstVisibleItemIndexState.value = lazyListState.firstVisibleItemIndex
-                            prevFirstVisibleItemScrollOffsetState.value = lazyListState.firstVisibleItemScrollOffset
-                        }
-                    }
-                }
-
                 val density = LocalDensity.current
 
                 Column(modifier = Modifier.align(alignment = Alignment.BottomEnd)) {
                     AnimatedContent(
                         targetState = isSnackbarVisibleState.value,
                         transitionSpec = {
-                            slideInVertically(animationSpec = tween(easing = LinearEasing, durationMillis = 150)) {
-                                with(density) {
-                                    if (targetState && !initialState) {
-                                        16.dp.roundToPx()
-                                    } else -16.dp.roundToPx()
-                                }
-                            } with ExitTransition.None
+                            if (targetState && !initialState) {
+                                slideInVertically(
+                                    initialOffsetY = { 0 },
+                                    animationSpec = tween(easing = LinearEasing, durationMillis = 150)
+                                ) with ExitTransition.None
+                            } else slideInVertically(
+                                initialOffsetY = { 0 },
+                                animationSpec = tween(easing = LinearEasing, durationMillis = 75)
+                            ) with ExitTransition.None
                         }
                     ) { isSnackbarVisible ->
                         AnimatedVisibility(
-                            visible = if (isSnackbarVisible) true else isLazyListScrollingUpState.value,
+                            visible = isSnackbarVisible ||
+                                    lazyListState.scrollDirection() == LazyListScrollDirection.BACKWARD,
                             enter = slideInVertically {
                                 with(density) { -16.dp.roundToPx() }
                             } + expandVertically(expandFrom = Alignment.Top),
@@ -351,14 +336,14 @@ fun ChainLinkList(
                             } + shrinkVertically(shrinkTowards = Alignment.Top)
                         ) {
                             FloatingActionButton(
+                                onClick = {
+                                    chainLinkListActionState.value = ChainLinkListAction.NEW
+                                    isInputDialogVisibleState.value = true
+                                },
                                 modifier = Modifier
                                     .padding(end = 16.dp, bottom = if (isSnackbarVisible) 80.dp else 16.dp)
                                     .pointerHoverIcon(icon = PointerIconDefaults.Hand),
                                 backgroundColor = MaterialTheme.colors.surface,
-                                onClick = {
-                                    chainLinkListActionState.value = ChainLinkListAction.NEW
-                                    isInputDialogVisibleState.value = true
-                                }
                             ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
                         }
                     }
@@ -369,8 +354,8 @@ fun ChainLinkList(
         val density = LocalDensity.current
 
         AnimatedContent(
-            modifier = Modifier.align(alignment = Alignment.CenterHorizontally),
             targetState = isSnackbarVisibleState.value,
+            modifier = Modifier.align(alignment = Alignment.CenterHorizontally),
             transitionSpec = {
                 slideInVertically(animationSpec = tween(easing = LinearEasing, durationMillis = 150)) {
                     with(density) {
