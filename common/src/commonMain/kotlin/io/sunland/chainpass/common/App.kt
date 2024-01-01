@@ -120,7 +120,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
 
                             settingsState.value = settings
                             navigationState.screenState.value = Screen.CHAIN_LIST
-                        }
+                        },
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
                 Screen.CHAIN_LIST -> {
@@ -139,7 +140,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         settingsState = settingsState,
                         navigationState = navigationState,
                         snackbarHostState = SnackbarHostState(),
-                        popupHostState = PopupHostState()
+                        popupHostState = PopupHostState(),
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
                 Screen.CHAIN_LINK_LIST -> {
@@ -152,7 +154,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         settingsState = settingsState,
                         navigationState = navigationState,
                         snackbarHostState = SnackbarHostState(),
-                        popupHostState = PopupHostState()
+                        popupHostState = PopupHostState(),
+                        modifier = Modifier.fillMaxSize()
                     )
                 }
             }

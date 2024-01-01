@@ -23,37 +23,38 @@ fun ChainListTopBar(
     onSettings: () -> Unit,
     onSync: () -> Unit,
     onStore: () -> Unit,
-    onUnstore: () -> Unit
+    onUnstore: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val isActionMenuExpandedState = remember { mutableStateOf(false) }
 
     TopAppBar(
-        modifier = Modifier.fillMaxWidth(),
         title = { Text(text = title) },
+        modifier = modifier,
         navigationIcon = {
             IconButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onSettings
+                onClick = onSettings,
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
             ) { Icon(imageVector = Icons.Default.Settings, contentDescription = null) }
         },
         actions = {
             IconButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = { isActionMenuExpandedState.value = true }
+                onClick = { isActionMenuExpandedState.value = true },
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
             ) { Icon(imageVector = Icons.Default.MoreVert, contentDescription = null) }
             DropdownMenu(
-                modifier = Modifier.width(width = 150.dp),
                 expanded = isActionMenuExpandedState.value,
                 onDismissRequest = { isActionMenuExpandedState.value = false },
+                modifier = Modifier.width(width = 150.dp),
                 offset = DpOffset(x = 4.dp, y = (-48).dp)
             ) {
                 DropdownMenuItem(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
                         isActionMenuExpandedState.value = false
 
                         onSync()
                     },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     Row(
@@ -65,12 +66,12 @@ fun ChainListTopBar(
                     }
                 }
                 DropdownMenuItem(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
                         isActionMenuExpandedState.value = false
 
                         onStore()
                     },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     Row(
@@ -82,12 +83,12 @@ fun ChainListTopBar(
                     }
                 }
                 DropdownMenuItem(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
                         isActionMenuExpandedState.value = false
 
                         onUnstore()
                     },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
                     Row(

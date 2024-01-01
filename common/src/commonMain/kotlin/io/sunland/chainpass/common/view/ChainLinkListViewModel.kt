@@ -19,10 +19,8 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
     val chainLinkSelected: ChainLink?
         get() = chainLinkListState.firstOrNull { chainLink -> chainLink.isSelected }
 
-    val chainLinkLatestIndex: Int
-        get() {
-            return chainLinkListState.indexOfFirst { chainLink -> chainLink.isLatest }
-        }
+    val chainLinkSelectedIndex: Int
+        get() = chainLinkListState.indexOfFirst { chainLink -> chainLink.isSelected }
 
     var chain: Chain? = null
 
@@ -35,9 +33,15 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         chainLinkListState.addAll(chainLinks)
     }
 
-    fun draft()  = ChainLink(chain!!).apply { isLatest = true }
+    fun draft(): ChainLink {
+        clearSelection()
+
+        return ChainLink(chain!!).apply { isSelected = true }
+    }
 
     fun startEdit(chainLinkEdit: ChainLink) {
+        clearSelection()
+
         val chainLinks = chainLinkListState.map { chainLink ->
             if (chainLink.id == chainLinkEdit.id) {
                 val secretKey = chainLink.chain.secretKey()
@@ -75,9 +79,9 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
     }
 
     fun undoRemove(chainLinkRemove: ChainLink) {
-        val chainLinks = chainLinkListState
-            .plus(chainLinkRemove.apply { isLatest = true })
-            .sortedBy { chainLink -> chainLink.name.value }
+        val chainLinks = chainLinkListState.plus(chainLinkRemove.apply {
+            isSelected = true
+        }).sortedBy { chainLink -> chainLink.name.value }
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)
@@ -94,6 +98,8 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
     }
 
     fun startSearch() {
+        clearSelection()
+
         isSearchState.value = true
         searchKeywordState.value = ""
 
@@ -114,7 +120,7 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
     }
 
     fun endSearch(chainLink: ChainLink? = null) {
-        chainLink?.isLatest = true
+        chainLink?.isSelected = true
 
         isSearchState.value = false
         searchKeywordState.value = ""
@@ -174,8 +180,6 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         )
 
         chainLinkRepository.update(chainLinkEntity)
-
-        chainLink.isSelected = false
 
         update()
     }
@@ -270,6 +274,19 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         val webSocket = WebSocket.connect(deviceAddress)
 
         ChainLinkApi(chainLinkRepository, webSocket).sync(chain!!.id).getOrThrow()
+    }
+
+    private fun clearSelection() {
+        val chainLinks = chainLinkListState.map { chainLink ->
+            if (chainLink.isSelected) {
+                chainLink.isSelected = false
+            }
+
+            chainLink
+        }
+
+        chainLinkListState.clear()
+        chainLinkListState.addAll(chainLinks)
     }
 
     private fun update() {

@@ -26,15 +26,14 @@ fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCa
     val isStoreTypeMenuExpandedState = remember { mutableStateOf(false) }
 
     val storeTypeState = remember { mutableStateOf(StorageType.JSON) }
-
-    val onStoreTypeChange = { value: StorageType ->
-        storeTypeState.value = value
-    }
-
     val storeIsPrivateState = remember { mutableStateOf(true) }
 
-    val onStoreIsPrivateChange = { value: Boolean ->
-        storeIsPrivateState.value = value
+    val onStoreTypeChange = { storageType: StorageType ->
+        storeTypeState.value = storageType
+    }
+
+    val onStoreIsPrivateChange = { storeIsPrivate: Boolean ->
+        storeIsPrivateState.value = storeIsPrivate
     }
 
     val onDone = {
@@ -60,15 +59,15 @@ fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCa
                 ) {
                     Text(text = "Private")
                     Switch(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         checked = storeIsPrivateState.value,
-                        onCheckedChange = onStoreIsPrivateChange
+                        onCheckedChange = onStoreIsPrivateChange,
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                     )
                 }
             }
             Button(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 onClick = { isStoreTypeMenuExpandedState.value = true },
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
             ) {
                 Row(
@@ -79,36 +78,36 @@ fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCa
                     Icon(imageVector = Icons.Default.ExpandMore, contentDescription = null)
                 }
                 DropdownMenu(
-                    modifier = Modifier.width(width = 150.dp),
                     expanded = isStoreTypeMenuExpandedState.value,
                     onDismissRequest = { isStoreTypeMenuExpandedState.value = false },
+                    modifier = Modifier.width(width = 150.dp),
                     offset = DpOffset(x = 8.dp, y = (-16).dp)
                 ) {
                     DropdownMenuItem(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = {
                             isStoreTypeMenuExpandedState.value = false
 
                             onStoreTypeChange(StorageType.JSON)
                         },
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     ) { Text(text = "JSON", fontSize = 12.sp) }
                     DropdownMenuItem(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = {
                             isStoreTypeMenuExpandedState.value = false
 
                             onStoreTypeChange(StorageType.CSV)
                         },
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     ) { Text(text = "CSV", fontSize = 12.sp) }
                     DropdownMenuItem(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = {
                             isStoreTypeMenuExpandedState.value = false
 
                             onStoreTypeChange(StorageType.TXT)
                         },
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     ) { Text(text = "TXT", fontSize = 12.sp) }
                 }

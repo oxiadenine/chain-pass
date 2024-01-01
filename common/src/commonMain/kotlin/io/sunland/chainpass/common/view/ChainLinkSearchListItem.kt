@@ -14,18 +14,13 @@ import io.sunland.chainpass.common.ChainLink
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkSearchListItem(chainLink: ChainLink, onSelect: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onSelect)
-            .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-    ) {
+fun ChainLinkSearchListItem(chainLink: ChainLink, onSelect: () -> Unit, modifier: Modifier = Modifier) {
+    Column(modifier = modifier.clickable(onClick = onSelect).pointerHoverIcon(icon = PointerIconDefaults.Hand)) {
         Text(modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp), text = chainLink.name.value)
         if (chainLink.description.value.isNotEmpty()) {
             Text(
-                modifier = Modifier.padding(all = 16.dp),
                 text = chainLink.description.value,
+                modifier = Modifier.padding(all = 16.dp),
                 fontSize = 14.sp
             )
         }

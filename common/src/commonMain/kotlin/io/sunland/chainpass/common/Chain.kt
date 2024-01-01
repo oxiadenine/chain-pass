@@ -10,7 +10,7 @@ class Chain constructor(val passwordGenerator: PasswordGenerator) {
         id = chain.id
         name = chain.name
         key = chain.key
-        isLatest = chain.isLatest
+        isSelected = chain.isSelected
     }
 
     class Name(value: String? = null) {
@@ -43,7 +43,6 @@ class Chain constructor(val passwordGenerator: PasswordGenerator) {
     var name = Name()
     var key = Key()
     var isSelected = false
-    var isLatest = false
 
     fun generateKey() = passwordGenerator.generate()
 

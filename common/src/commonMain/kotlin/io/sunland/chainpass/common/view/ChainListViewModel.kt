@@ -21,16 +21,22 @@ class ChainListViewModel(
     val chainSelected: Chain?
         get() = chainListState.firstOrNull { chain -> chain.isSelected }
 
-    val chainLatestIndex: Int
-        get() = chainListState.indexOfFirst { chain -> chain.isLatest }
+    val chainSelectedIndex: Int
+        get() = chainListState.indexOfFirst { chain -> chain.isSelected }
 
     private var chains = emptyList<Chain>()
 
-    fun draft() = Chain(passwordGenerator).apply { isLatest = true }
+    fun draft(): Chain {
+        clearSelection()
 
-    fun setSelected(chainSelect: Chain? = null) {
+        return Chain(passwordGenerator).apply { isSelected = true }
+    }
+
+    fun selectForKey(chainSelect: Chain) {
+        clearSelection()
+
         val chains = chainListState.map { chain ->
-            chain.isSelected = chain.id == chainSelect?.id
+            chain.isSelected = chain.id == chainSelect.id
 
             chain
         }.sortedBy { chain -> chain.name.value }
@@ -44,12 +50,10 @@ class ChainListViewModel(
     }
 
     fun undoRemove(chainRemove: Chain) {
-        val chains = chainListState
-            .plus(chainRemove.apply {
-                key = Chain.Key()
-                isLatest = true
-            })
-            .sortedBy { chain -> chain.name.value }
+        val chains = chainListState.plus(chainRemove.apply {
+            key = Chain.Key()
+            isSelected = true
+        }).sortedBy { chain -> chain.name.value }
 
         chainListState.clear()
         chainListState.addAll(chains)
@@ -195,6 +199,19 @@ class ChainListViewModel(
         val webSocket = WebSocket.connect(deviceAddress)
 
         ChainApi(chainRepository, chainLinkRepository, webSocket).sync().getOrThrow()
+    }
+
+    private fun clearSelection() {
+        val chains = chainListState.map { chain ->
+            if (chain.isSelected) {
+                chain.isSelected = false
+            }
+
+            chain
+        }
+
+        chainListState.clear()
+        chainListState.addAll(chains)
     }
 
     private fun update() {

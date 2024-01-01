@@ -31,22 +31,22 @@ import io.sunland.chainpass.common.component.ValidationTextField
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListItemNewInput(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
+fun ChainListItemNewInput(chain: Chain, onNew: (Chain) -> Unit, onCancel: () -> Unit) {
     val nameState = remember { mutableStateOf(chain.name.value) }
     val nameValidationState = remember { mutableStateOf(chain.name.validation) }
 
     val keyState = remember { mutableStateOf(chain.key.value) }
     val keyValidationState = remember { mutableStateOf(chain.key.validation) }
 
-    val onNameChange = { value: String ->
-        chain.name = Chain.Name(value)
+    val onNameChange = { name: String ->
+        chain.name = Chain.Name(name)
 
         nameState.value = chain.name.value
         nameValidationState.value = chain.name.validation
     }
 
-    val onKeyChange = { value: String ->
-        chain.key = Chain.Key(value)
+    val onKeyChange = { key: String ->
+        chain.key = Chain.Key(key)
 
         keyState.value = chain.key.value
         keyValidationState.value = chain.key.validation
@@ -60,7 +60,7 @@ fun ChainListItemNewInput(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit)
         keyValidationState.value = chain.key.validation
 
         if (nameValidationState.value.isSuccess && keyValidationState.value.isSuccess) {
-            onNew()
+            onNew(chain)
         }
     }
 
@@ -98,15 +98,18 @@ fun ChainListItemNewInput(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit)
         ) {
             val focusRequester = remember { FocusRequester() }
 
-            if (chain.isLatest) {
-                LaunchedEffect(Unit) { focusRequester.requestFocus() }
+            LaunchedEffect(focusRequester) {
+                focusRequester.requestFocus()
             }
 
             ValidationTextField(
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
-                placeholder = { Text(text = "Name") },
                 value = nameState.value,
                 onValueChange = onNameChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester = focusRequester)
+                    .onKeyEvent(onKeyEvent = onKeyEvent),
+                placeholder = { Text(text = "Name") },
                 trailingIcon = if (nameValidationState.value.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
@@ -122,17 +125,17 @@ fun ChainListItemNewInput(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit)
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             ValidationTextField(
-                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent),
-                placeholder = { Text(text = "Key") },
                 value = keyState.value,
                 onValueChange = onKeyChange,
+                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent = onKeyEvent),
+                placeholder = { Text(text = "Key") },
                 leadingIcon = {
                     IconButton(
+                        onClick = { onKeyChange(chain.generateKey()) },
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                            .onPreviewKeyEvent(onPreviewKeyEvent = onPreviewKeyEvent),
-                        onClick = { onKeyChange(chain.generateKey()) }
+                            .onPreviewKeyEvent(onPreviewKeyEvent = onPreviewKeyEvent)
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
                 trailingIcon = if (keyValidationState.value.isFailure) {

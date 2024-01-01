@@ -22,9 +22,10 @@ fun ChainLinkListItem(
     chainLink: ChainLink,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onPasswordCopy: () -> Unit
+    onPasswordCopy: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = modifier) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -36,8 +37,8 @@ fun ChainLinkListItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    modifier = Modifier.padding(horizontal = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onPasswordCopy
+                    onClick = onPasswordCopy,
+                    modifier = Modifier.padding(horizontal = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand)
                 ) { Icon(imageVector = Icons.Default.ContentCopy, contentDescription = null) }
                 Text(text = chainLink.name.value)
             }
@@ -47,20 +48,20 @@ fun ChainLinkListItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onEdit
+                    onClick = onEdit,
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                 ) { Icon(imageVector = Icons.Default.Edit, contentDescription = null) }
                 IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onDelete
+                    onClick = onDelete,
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                 ) { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
             }
         }
 
         if (chainLink.description.value.isNotEmpty()) {
             Text(
-                modifier = Modifier.padding(all = 16.dp),
                 text = chainLink.description.value,
+                modifier = Modifier.padding(all = 16.dp),
                 fontSize = 14.sp
             )
         }

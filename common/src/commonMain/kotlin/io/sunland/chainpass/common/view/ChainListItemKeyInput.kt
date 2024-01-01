@@ -29,18 +29,21 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.component.InputDialog
+import io.sunland.chainpass.common.component.ValidationTextField
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListItemKeyInput(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
-    val keyState = remember { mutableStateOf("") }
-    val keyErrorState = remember { mutableStateOf(false) }
+    var chainKey = Chain.Key()
 
-    val onKeyChange = { value: String ->
-        val chainKey = Chain.Key(value)
+    val keyState = remember { mutableStateOf(chainKey.value) }
+    val keyValidationState = remember { mutableStateOf(chainKey.validation) }
+
+    val onKeyChange = { key: String ->
+        chainKey = Chain.Key(key)
 
         keyState.value = chainKey.value
-        keyErrorState.value = chainKey.validation.isFailure
+        keyValidationState.value = chainKey.validation
     }
 
     val keyVisibleState = remember { mutableStateOf(false) }
@@ -50,11 +53,11 @@ fun ChainListItemKeyInput(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
     }
 
     val onDone = {
-        val chainKey = Chain.Key(keyState.value)
+        chainKey = Chain.Key(keyState.value)
 
-        keyErrorState.value = chainKey.validation.isFailure
+        keyValidationState.value = chainKey.validation
 
-        if (!keyErrorState.value) {
+        if (keyValidationState.value.isSuccess) {
             onKey(chainKey)
         }
     }
@@ -85,28 +88,34 @@ fun ChainListItemKeyInput(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
         ) {
             val focusRequester = remember { FocusRequester() }
 
-            TextField(
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
-                placeholder = { Text(text = "Key") },
+            LaunchedEffect(focusRequester) {
+                focusRequester.requestFocus()
+            }
+
+            ValidationTextField(
                 value = keyState.value,
                 onValueChange = onKeyChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester = focusRequester)
+                    .onKeyEvent(onKeyEvent = onKeyEvent),
+                placeholder = { Text(text = "Key") },
                 trailingIcon = {
-                    if (keyErrorState.value) {
+                    if (keyValidationState.value.isFailure) {
                         Icon(imageVector = Icons.Default.Info, contentDescription = null)
                     } else {
                         IconButton(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                            onClick = onKeyVisibleChange
+                            onClick = onKeyVisibleChange,
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                         ) {
-                            Icon(
-                                imageVector = if (keyVisibleState.value) {
-                                    Icons.Default.Visibility
-                                } else Icons.Default.VisibilityOff, contentDescription = null
-                            )
+                            Icon(imageVector = if (keyVisibleState.value) {
+                                Icons.Default.Visibility
+                            } else Icons.Default.VisibilityOff, contentDescription = null)
                         }
                     }
                 },
-                isError = keyErrorState.value,
+                isError = keyValidationState.value.isFailure,
+                errorMessage = keyValidationState.value.exceptionOrNull()?.message,
                 singleLine = true,
                 visualTransformation = if (!keyVisibleState.value) {
                     PasswordVisualTransformation()
@@ -120,8 +129,6 @@ fun ChainListItemKeyInput(onKey: (Chain.Key) -> Unit, onCancel: () -> Unit) {
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 keyboardActions = KeyboardActions(onDone = { onDone() })
             )
-
-            LaunchedEffect(Unit) { focusRequester.requestFocus() }
         }
     }
 }
