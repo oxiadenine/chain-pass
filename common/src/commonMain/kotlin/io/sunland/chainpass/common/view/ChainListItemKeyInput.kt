@@ -1,6 +1,7 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -15,10 +16,9 @@ fun ChainListItemKeyInput(onInputDismiss: () -> Unit, onInputConfirm: (Chain.Key
     val keyErrorState = remember { mutableStateOf(false) }
 
     InputDialog(
-        title = null,
-        placeholder = "Key",
+        placeholder = { Text(text = "Key") },
         value = keyState.value,
-        ontValueChange = { value ->
+        onValueChange = { value ->
             val chainKey = Chain.Key(value)
 
             keyState.value = chainKey.value

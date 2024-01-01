@@ -24,26 +24,27 @@ import androidx.compose.ui.unit.dp
 @Composable
 actual fun InputDialog(
     title: @Composable (() -> Unit)?,
-    placeholder: String,
+    placeholder: @Composable (() -> Unit)?,
     value: String,
-    ontValueChange: (String) -> Unit,
+    onValueChange: (String) -> Unit,
     visualTransformation: VisualTransformation,
     isError: Boolean,
     keyboardOptions: KeyboardOptions,
     onDismissRequest: () -> Unit,
     onConfirmRequest: () -> Unit
 ) = PopupAlertDialogProvider.AlertDialog(onDismissRequest) {
-    val focusRequester = remember { FocusRequester() }
-
     title ?: Text(text = "")
+
     Column(
         modifier = Modifier.size(width = 300.dp, height = 170.dp).padding(horizontal = 16.dp).padding(top = 32.dp),
         verticalArrangement = Arrangement.spacedBy(space = 16.dp)
     ) {
+        val focusRequester = remember { FocusRequester() }
+
         TextField(modifier = Modifier.padding(horizontal = 16.dp).focusRequester(focusRequester),
-            placeholder = { Text(text = placeholder) },
+            placeholder = placeholder,
             value = value,
-            onValueChange = ontValueChange,
+            onValueChange = onValueChange,
             trailingIcon = if (isError) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
             } else null,

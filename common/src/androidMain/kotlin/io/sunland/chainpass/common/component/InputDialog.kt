@@ -1,9 +1,6 @@
 package io.sunland.chainpass.common.component
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -23,27 +20,28 @@ import androidx.compose.ui.unit.dp
 @Composable
 actual fun InputDialog(
     title: @Composable (() -> Unit)?,
-    placeholder: String,
+    placeholder: @Composable (() -> Unit)?,
     value: String,
-    ontValueChange: (String) -> Unit,
+    onValueChange: (String) -> Unit,
     visualTransformation: VisualTransformation,
     isError: Boolean,
     keyboardOptions: KeyboardOptions,
     onDismissRequest: () -> Unit,
     onConfirmRequest: () -> Unit
 ) {
-    val focusRequester = remember { FocusRequester() }
-
     AlertDialog(
+        modifier = Modifier.requiredWidth(width = 300.dp),
         onDismissRequest = onDismissRequest,
         title = title ?: { Text(text = "") },
         text = {
             Column {
+                val focusRequester = remember { FocusRequester() }
+
                 TextField(
-                    modifier = Modifier.padding(horizontal = 8.dp).focusRequester(focusRequester),
-                    placeholder = { Text(text = placeholder) },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).focusRequester(focusRequester),
+                    placeholder = placeholder,
                     value = value,
-                    onValueChange = ontValueChange,
+                    onValueChange = onValueChange,
                     trailingIcon = if (isError) {
                         { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                     } else null,
@@ -59,6 +57,8 @@ actual fun InputDialog(
                     keyboardOptions = keyboardOptions,
                     keyboardActions = KeyboardActions(onDone = { onConfirmRequest() })
                 )
+
+                LaunchedEffect(Unit) { focusRequester.requestFocus() }
             }
         },
         buttons = {
@@ -70,6 +70,4 @@ actual fun InputDialog(
             }
         }
     )
-
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }
