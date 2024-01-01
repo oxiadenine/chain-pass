@@ -24,6 +24,8 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
                     name = chainLinkEntity.name
                     password = chainLinkEntity.password
                     status = ChainLinkStatus.ACTUAL
+
+                    decryptPassword(chain!!.key.value)
                 }
             })
         }
@@ -40,6 +42,8 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     }
 
     suspend fun new(chainLink: ChainLink): Result<Unit> {
+        chainLink.encryptPassword(chain!!.key.value)
+
         val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
 
         val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name, chainLink.password, chainKeyEntity)
@@ -47,6 +51,8 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
         return repository.create(chainLinkEntity).map { chainLinkId ->
             chainLink.id = chainLinkId
             chainLink.status = ChainLinkStatus.ACTUAL
+
+            chainLink.decryptPassword(chain!!.key.value)
 
             val chainLinks = chainLinks.toList()
 
@@ -74,11 +80,15 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     }
 
     suspend fun edit(chainLink: ChainLink): Result<Unit> {
+        chainLink.encryptPassword(chain!!.key.value)
+
         val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
 
         val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name, chainLink.password, chainKeyEntity)
 
         return repository.update(chainLinkEntity).onSuccess {
+            chainLink.decryptPassword(chain!!.key.value)
+
             this.endEdit(chainLink)
         }
     }
@@ -94,6 +104,8 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     }
 
     suspend fun remove(chainLink: ChainLink): Result<Unit> {
+        chainLink.encryptPassword(chain!!.key.value)
+
         val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
 
         val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name, chainLink.password, chainKeyEntity)

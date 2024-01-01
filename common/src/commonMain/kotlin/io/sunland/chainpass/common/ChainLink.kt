@@ -1,5 +1,7 @@
 package io.sunland.chainpass.common
 
+import io.sunland.chainpass.common.security.PasswordEncoder
+
 enum class ChainLinkStatus { ACTUAL, DRAFT, EDIT }
 
 class ChainLink {
@@ -21,4 +23,7 @@ class ChainLink {
             }
         }
     var status: ChainLinkStatus = ChainLinkStatus.DRAFT
+
+    fun encryptPassword(key: String) = apply { password = PasswordEncoder.encrypt(key, name, password) }
+    fun decryptPassword(key: String) = apply { password = PasswordEncoder.decrypt(key, name, password) }
 }

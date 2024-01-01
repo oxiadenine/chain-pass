@@ -37,5 +37,5 @@ class Chain {
         }
     }
 
-    fun hashKey(value: String) = apply { key = Key(PasswordEncoder.encode(value, name)) }
+    fun hashKey(value: String) = apply { key = Key(PasswordEncoder.hash(value, name)) }
 }
