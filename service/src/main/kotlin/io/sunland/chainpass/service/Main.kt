@@ -70,57 +70,73 @@ fun main() {
 
                         val fromMessage = SocketMessage.from(frame)
 
-                        val toMessage: SocketMessage? = when (fromMessage.type) {
-                            SocketMessageType.CREATE_CHAIN -> {
+                        val toMessage = when (fromMessage.type) {
+                            SocketMessageType.CHAIN_CREATE -> {
                                 val chain = Json.decodeFromString<Chain>(fromMessage.text)
 
-                                chain.id = ChainDataRepository.create(chain)
+                                ChainDataRepository.create(chain).map { chainId ->
+                                    chain.id = chainId
 
-                                SocketMessage(SocketMessageType.CREATE_CHAIN, fromMessage.id, Json.encodeToString(chain))
+                                    SocketMessage(
+                                        SocketMessageType.CHAIN_CREATE,
+                                        fromMessage.id,
+                                        Json.encodeToString(chain)
+                                    )
+                                }
                             }
-                            SocketMessageType.READ_CHAIN -> {
-                                val chains = ChainDataRepository.read()
-
-                                SocketMessage(SocketMessageType.READ_CHAIN, fromMessage.id, Json.encodeToString(chains))
+                            SocketMessageType.CHAIN_READ -> {
+                                ChainDataRepository.read().map { chains ->
+                                    SocketMessage(
+                                        SocketMessageType.CHAIN_READ,
+                                        fromMessage.id,
+                                        Json.encodeToString(chains)
+                                    )
+                                }
                             }
-                            SocketMessageType.DELETE_CHAIN -> {
+                            SocketMessageType.CHAIN_DELETE -> {
                                 val chain = Json.decodeFromString<Chain>(fromMessage.text)
 
                                 ChainDataRepository.delete(chain)
-
-                                null
                             }
-                            SocketMessageType.CREATE_CHAIN_LINK -> {
+                            SocketMessageType.CHAIN_LINK_CREATE -> {
                                 val chainLink = Json.decodeFromString<ChainLink>(fromMessage.text)
 
-                                chainLink.id = ChainLinkDataRepository.create(chainLink)
+                                ChainLinkDataRepository.create(chainLink).map { chainLinkId ->
+                                    chainLink.id = chainLinkId
 
-                                SocketMessage(SocketMessageType.CREATE_CHAIN_LINK, fromMessage.id, Json.encodeToString(chainLink))
+                                    SocketMessage(
+                                        SocketMessageType.CHAIN_LINK_CREATE,
+                                        fromMessage.id,
+                                        Json.encodeToString(chainLink)
+                                    )
+                                }
                             }
-                            SocketMessageType.READ_CHAIN_LINK -> {
+                            SocketMessageType.CHAIN_LINK_READ -> {
                                 val chain = Json.decodeFromString<Chain>(fromMessage.text)
 
-                                val chainLinks = ChainLinkDataRepository.read(chain)
-
-                                SocketMessage(SocketMessageType.READ_CHAIN_LINK, fromMessage.id, Json.encodeToString(chainLinks))
+                                ChainLinkDataRepository.read(chain).map { chainLinks ->
+                                    SocketMessage(
+                                        SocketMessageType.CHAIN_LINK_READ,
+                                        fromMessage.id,
+                                        Json.encodeToString(chainLinks)
+                                    )
+                                }
                             }
-                            SocketMessageType.UPDATE_CHAIN_LINK -> {
+                            SocketMessageType.CHAIN_LINK_UPDATE -> {
                                 val chainLink = Json.decodeFromString<ChainLink>(fromMessage.text)
 
                                 ChainLinkDataRepository.update(chainLink)
-
-                                null
                             }
-                            SocketMessageType.DELETE_CHAIN_LINK -> {
+                            SocketMessageType.CHAIN_LINK_DELETE -> {
                                 val chainLink = Json.decodeFromString<ChainLink>(fromMessage.text)
 
                                 ChainLinkDataRepository.delete(chainLink)
-
-                                null
                             }
-                        }
+                        }.getOrThrow()
 
-                        toMessage?.run { send(toMessage.toFrame()) }
+                        if (toMessage is SocketMessage) {
+                            send(toMessage.toFrame())
+                        }
                     }
                 }
             } catch (ex: Throwable) {

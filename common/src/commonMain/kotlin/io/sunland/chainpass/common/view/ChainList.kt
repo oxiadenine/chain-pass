@@ -15,7 +15,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.VerticalScrollbar
-import kotlinx.coroutines.*
 
 enum class ChainListItemStatus { ACTUAL, DRAFT }
 
@@ -23,8 +22,8 @@ data class ChainListItem(var id: Int, var name: String, var key: String, var sta
 
 @Composable
 fun ChainList(
-    coroutineScope: CoroutineScope,
     viewModel: ChainListViewModel,
+    onItemCreate: (ChainListItem) -> Unit,
     onItemSelect: (ChainListItem) -> Unit,
     onItemDelete: (ChainListItem) -> Unit
 ) {
@@ -87,14 +86,7 @@ fun ChainList(
                         )
                         ChainListItemStatus.DRAFT -> ChainListItemDraft(
                             chainListItem = chainListItem,
-                            onIconDoneClick = {
-                                chainListItem.status = ChainListItemStatus.ACTUAL
-
-                                coroutineScope.launch {
-                                    viewModel.create(chainListItem)
-                                    viewModel.refresh()
-                                }
-                            },
+                            onIconDoneClick = { onItemCreate(chainListItem) },
                             onIconClearClick = { viewModel.chainListItems.remove(chainListItem) }
                         )
                     }
