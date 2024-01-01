@@ -3,7 +3,6 @@ package io.sunland.chainpass.android
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material.MaterialTheme
 import com.typesafe.config.ConfigFactory
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -45,9 +44,7 @@ class MainActivity : AppCompatActivity() {
         setContent {
             title = "Chain Pass"
 
-            MaterialTheme {
-                App(httpClient)
-            }
+            App(httpClient)
         }
     }
 }

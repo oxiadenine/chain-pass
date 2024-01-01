@@ -1,17 +1,51 @@
 package io.sunland.chainpass.common
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import io.ktor.client.*
 import io.sunland.chainpass.common.view.*
 import kotlinx.coroutines.launch
 
 enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST }
 
+enum class ThemeColor(val color: Color) {
+    ANTHRACITE(Color(0.22f, 0.24f, 0.26f)),
+    QUARTZ(Color(0.91f, 0.87f, 0.88f)),
+    COPPER(Color(0.72f, 0.46f, 0.28f))
+}
+
 @Composable
-fun App(httpClient: HttpClient) {
+fun App(httpClient: HttpClient) = MaterialTheme(
+    colors = if (isSystemInDarkTheme()) {
+        darkColors(
+            surface = ThemeColor.ANTHRACITE.color,
+            onSurface = ThemeColor.QUARTZ.color,
+            background = ThemeColor.ANTHRACITE.color,
+            onBackground = ThemeColor.QUARTZ.color,
+            error = ThemeColor.COPPER.color
+        )
+    } else lightColors(
+        primary = ThemeColor.ANTHRACITE.color,
+        onPrimary = ThemeColor.QUARTZ.color,
+        background = ThemeColor.QUARTZ.color,
+        onBackground = ThemeColor.ANTHRACITE.color,
+        surface = ThemeColor.QUARTZ.color,
+        onSurface = ThemeColor.ANTHRACITE.color,
+        error = ThemeColor.COPPER.color
+    ),
+    typography = Typography(defaultFontFamily = FontFamily.Monospace),
+    shapes = Shapes(
+        small = RoundedCornerShape(percent = 0),
+        medium = RoundedCornerShape(percent = 0),
+        large = RoundedCornerShape( percent = 0)
+    )
+) {
     val coroutineScope = rememberCoroutineScope()
 
     val screenState = remember { mutableStateOf(Screen.CHAIN_LIST) }
