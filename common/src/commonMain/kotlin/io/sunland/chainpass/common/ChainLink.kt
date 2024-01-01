@@ -1,7 +1,7 @@
 package io.sunland.chainpass.common
 
-class ChainLink constructor() {
-    constructor(chainLink: ChainLink) : this() {
+class ChainLink(val chain: Chain) {
+    constructor(chainLink: ChainLink) : this(chainLink.chain) {
         id = chainLink.id
         name = chainLink.name
         description = chainLink.description
