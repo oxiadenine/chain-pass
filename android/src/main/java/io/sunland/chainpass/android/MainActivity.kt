@@ -27,7 +27,7 @@ class MainActivity : AppCompatActivity() {
                 Screen.SERVER_CONNECTION
             )
 
-            App(SettingsManager(applicationContext.filesDir.absolutePath), appState)
+            App(SettingsManager(applicationContext.getExternalFilesDir("")!!.absolutePath), appState)
         }
     }
 
