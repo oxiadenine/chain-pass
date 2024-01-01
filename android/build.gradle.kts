@@ -9,8 +9,6 @@ dependencies {
 
     implementation(androidxDependency("activity-compose"))
 
-    implementation(logbackDependency("classic"))
-
     testImplementation(kotlin("test"))
 }
 
