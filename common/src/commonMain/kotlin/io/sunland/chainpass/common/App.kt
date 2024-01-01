@@ -318,6 +318,24 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                         scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                     }
                             }
+                        },
+                        onUnstore = { storageOptions, filePath ->
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+
+                                val storage = Storage(settingsManager.dirPath, storageOptions)
+
+                                chainLinkListViewModel.unstore(storage, filePath.value)
+                                    .mapCatching { chainLinks ->
+                                        chainLinks.forEach { chainLink -> chainLinkListViewModel.new(chainLink) }
+                                    }
+                                    .onSuccess {
+                                        scaffoldState.snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
+                                    }
+                                    .onFailure { exception ->
+                                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    }
+                            }
                         }
                     )
                 }

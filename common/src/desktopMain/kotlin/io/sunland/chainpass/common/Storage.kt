@@ -5,6 +5,8 @@ import java.nio.file.Path
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.io.path.extension
+import kotlin.io.path.readText
 import kotlin.io.path.writeText
 
 actual class Storage actual constructor(
@@ -37,5 +39,15 @@ actual class Storage actual constructor(
         filePath.writeText(storable.toString(options))
 
         return fileName
+    }
+
+    actual fun unstore(filePath: String): Storable {
+        if (!Files.exists(Path.of(filePath))) {
+            throw IllegalArgumentException("File $filePath does not exists")
+        }
+
+        val storageType = StorageType.valueOf(Path.of(filePath).extension.uppercase())
+
+        return Path.of(filePath).readText().toStorable(storageType)
     }
 }
