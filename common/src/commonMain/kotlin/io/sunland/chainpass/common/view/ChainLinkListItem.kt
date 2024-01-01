@@ -1,6 +1,5 @@
 package io.sunland.chainpass.common.view
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -24,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItem(
     chainLink: ChainLink,
@@ -53,7 +52,7 @@ fun ChainLinkListItem(
                 }
             } else {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 18.dp, horizontal = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -79,8 +78,8 @@ fun ChainLinkListItem(
                             if (event.pressed && (event.type == PointerType.Mouse || event.type == PointerType.Touch)) {
                                 dropDownMenuOffsetState.value = with(density) {
                                     DpOffset(
-                                        x = event.position.x.toDp(),
-                                        y = event.position.y.toDp() - 48.dp
+                                        x = event.position.x.toDp() - 20.dp,
+                                        y = event.position.y.toDp() - 40.dp
                                     )
                                 }
                             }
@@ -98,7 +97,7 @@ fun ChainLinkListItem(
                     Text(text = chainLink.name.value)
                     Text(text = chainLink.description.value, fontSize = 14.sp)
                 }
-            } else Text(text = chainLink.name.value, modifier = Modifier.padding(all = 16.dp))
+            } else Text(text = chainLink.name.value, modifier = Modifier.padding(vertical = 18.dp, horizontal = 16.dp))
 
             if (isDropDownMenuExpandedState.value && !chainLink.isDraft) {
                 DropdownMenu(

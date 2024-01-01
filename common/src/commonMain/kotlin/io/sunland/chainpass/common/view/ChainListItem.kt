@@ -51,14 +51,14 @@ fun ChainListItem(chain: Chain, onSelect: () -> Unit, onRemove: () -> Unit, modi
                             if (event.pressed && (event.type == PointerType.Mouse || event.type == PointerType.Touch)) {
                                 dropDownMenuOffsetState.value = with(density) {
                                     DpOffset(
-                                        x = event.position.x.toDp(),
-                                        y = event.position.y.toDp() - 48.dp
+                                        x = event.position.x.toDp() - 20.dp,
+                                        y = event.position.y.toDp() - 40.dp
                                     )
                                 }
                             }
                         }
                     }
-                }.padding(all = 16.dp),
+                }.padding(vertical = 18.dp, horizontal = 16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
