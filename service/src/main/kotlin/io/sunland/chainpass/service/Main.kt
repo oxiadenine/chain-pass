@@ -69,9 +69,9 @@ fun main() {
 
             httpClient.webSocket {
                 while (true) {
-                    runCatching {
-                        val frame = incoming.receive() as Frame.Text
+                    val frame = incoming.receive() as? Frame.Text ?: continue
 
+                    runCatching {
                         val fromMessage = SocketMessage.from(frame)
 
                         val toMessage = when (fromMessage.type) {
