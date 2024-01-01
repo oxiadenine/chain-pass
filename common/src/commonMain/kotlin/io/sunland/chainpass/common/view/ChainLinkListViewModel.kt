@@ -37,6 +37,8 @@ class ChainLinkListViewModel(
         }
 
         chainLinkListState.add(chainLink)
+
+        update()
     }
 
     fun rejectDraft(chainLink: ChainLink) {
