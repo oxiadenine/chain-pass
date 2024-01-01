@@ -51,11 +51,11 @@ object ChainDataRepository : ChainRepository {
         var key = keys.firstOrNull { key -> key.id == id }
 
         if (key == null) {
-            val seedBytes = ByteArray(16)
+            val salt = ByteArray(16)
 
-            SecureRandom().nextBytes(seedBytes)
+            SecureRandom().nextBytes(salt)
 
-            key = ChainKeyEntity(id, PasswordEncoder.Base64.encode(seedBytes))
+            key = ChainKeyEntity(id, PasswordEncoder.Base64.encode(salt))
 
             keys.add(key)
         } else keys.remove(key)

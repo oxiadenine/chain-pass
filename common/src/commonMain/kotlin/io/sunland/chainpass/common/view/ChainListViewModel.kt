@@ -102,15 +102,15 @@ class ChainListViewModel(private val repository: ChainRepository) {
         }
     }
 
-    suspend fun remove(chain: Chain) = repository.key(chain.id).mapCatching { key ->
+    suspend fun remove(chain: Chain) = repository.key(chain.id).mapCatching { chainKeyEntity ->
         val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
             chain.key.value,
             PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
         ), chain.key.value)
 
-        val hashKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, key.key))
+        val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
-        repository.delete(ChainKeyEntity(chain.id, hashKey)).getOrThrow()
+        repository.delete(ChainKeyEntity(chain.id, saltKey)).getOrThrow()
 
         update()
     }
