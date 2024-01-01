@@ -8,10 +8,7 @@ import io.ktor.client.features.*
 import io.ktor.client.features.logging.*
 import io.ktor.client.features.websocket.*
 import io.ktor.http.*
-import io.sunland.chainpass.common.App
-import io.sunland.chainpass.common.Screen
-import io.sunland.chainpass.common.Settings
-import io.sunland.chainpass.common.rememberAppState
+import io.sunland.chainpass.common.*
 import io.sunland.chainpass.common.view.ServerAddress
 
 fun main() = application {
@@ -30,5 +27,5 @@ fun main() = application {
         appState.httpClientState.value.close()
 
         exitApplication()
-    }) { App(Settings("${System.getProperty("user.home")}/.chain-pass"), appState) }
+    }) { App(SettingsFactory("${System.getProperty("user.home")}/.chain-pass"), appState) }
 }
