@@ -3,6 +3,7 @@ package io.sunland.chainpass.common.view
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -22,7 +23,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Settings
 import io.sunland.chainpass.common.component.ValidationTextField
@@ -72,9 +77,10 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
 
         if (!deviceAddressErrorState.value) {
             onSave(Settings(
-                deviceAddressState.value,
-                passwordLengthState.value.toInt(),
-                passwordIsAlphanumericState.value
+                hostAddress = settings.hostAddress,
+                deviceAddress = deviceAddressState.value,
+                passwordLength = passwordLengthState.value.toInt(),
+                passwordIsAlphanumeric = passwordIsAlphanumericState.value
             ))
         }
     }
@@ -121,8 +127,20 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
                 Text(text = "Sync", fontWeight = FontWeight.Bold)
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(space = 8.dp)
+                    verticalArrangement = Arrangement.spacedBy(space = 16.dp)
                 ) {
+                    SelectionContainer {
+                        Text(
+                            text = buildAnnotatedString {
+                                append("Your IPv4 address ")
+                                withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                                    append(settings.hostAddress)
+                                }
+                                append(" to sync with other devices.")
+                            },
+                            textAlign = TextAlign.Center
+                        )
+                    }
                     ValidationTextField(
                         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
                         placeholder = { Text(text = "Device Address") },
