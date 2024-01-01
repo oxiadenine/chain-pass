@@ -9,13 +9,14 @@ import org.jetbrains.exposed.sql.*
 
 object ChainLinkDataRepository : ChainLinkRepository {
     override suspend fun create(chainLinkEntity: ChainLinkEntity) = runCatching {
-        Database.execute {
-            ChainLinkTable.insertAndGetId { statement ->
+        Database.execute<Unit> {
+            ChainLinkTable.insert { statement ->
+                statement[id] = chainLinkEntity.id
                 statement[name] = chainLinkEntity.name
                 statement[description] = chainLinkEntity.description
                 statement[password] = chainLinkEntity.password
                 statement[chainId] = chainLinkEntity.chainKey.id
-            }.value
+            }
         }
     }
 

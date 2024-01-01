@@ -16,10 +16,8 @@ class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepo
 
             val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-            chainLinkEntity.id = Json.decodeFromString<ChainLinkEntity>(message.data.getOrThrow()).id
+            message.data.getOrThrow()
         }
-
-        chainLinkEntity.id
     }
 
     override suspend fun read(chainKeyEntity: ChainKeyEntity) = runCatching {

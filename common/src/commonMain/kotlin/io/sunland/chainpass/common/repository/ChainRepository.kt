@@ -9,7 +9,7 @@ data class ChainEntity(var id: Int, val name: String, val key: String = "")
 data class ChainKeyEntity(val id: Int, val key: String)
 
 interface ChainRepository {
-    suspend fun create(chainEntity: ChainEntity): Result<Int>
+    suspend fun create(chainEntity: ChainEntity): Result<Unit>
     suspend fun read(): Result<List<ChainEntity>>
     suspend fun read(id: Int): Result<ChainEntity>
     suspend fun delete(chainKeyEntity: ChainKeyEntity): Result<Unit>

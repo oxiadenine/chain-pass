@@ -12,7 +12,7 @@ data class ChainLinkEntity(
 )
 
 interface ChainLinkRepository {
-    suspend fun create(chainLinkEntity: ChainLinkEntity): Result<Int>
+    suspend fun create(chainLinkEntity: ChainLinkEntity): Result<Unit>
     suspend fun read(chainKeyEntity: ChainKeyEntity): Result<List<ChainLinkEntity>>
     suspend fun update(chainLinkEntity: ChainLinkEntity): Result<Unit>
     suspend fun delete(chainLinkEntity: ChainLinkEntity): Result<Unit>

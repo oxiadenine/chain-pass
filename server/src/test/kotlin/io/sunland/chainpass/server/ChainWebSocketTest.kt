@@ -22,7 +22,7 @@ import kotlin.test.assertTrue
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class ChainWebSocketTest {
-    private var chainEntity = ChainEntity(0, "test", "test")
+    private var chainEntity = ChainEntity(1, "test", "test")
     private var chainKeyEntity = ChainKeyEntity(chainEntity.id, chainEntity.key)
 
     private enum class Operation { CREATE, READ, DELETE }
@@ -68,7 +68,7 @@ class ChainWebSocketTest {
 
                 val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-                chainEntity.id = Json.decodeFromString<ChainEntity>(message.data.getOrThrow()).id
+                message.data.getOrThrow()
 
                 assertTrue { chainEntity.id != 0 }
             }
