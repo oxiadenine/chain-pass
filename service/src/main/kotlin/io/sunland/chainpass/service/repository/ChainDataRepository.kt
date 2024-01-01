@@ -9,8 +9,12 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
+import java.security.SecureRandom
+import java.util.*
 
 object ChainDataRepository : ChainRepository {
+    private val seeds = Collections.synchronizedList<String>(mutableListOf())
+
     override suspend fun create(chainEntity: ChainEntity) = runCatching {
         Database.execute {
             ChainTable.insertAndGetId { statement ->
@@ -23,7 +27,7 @@ object ChainDataRepository : ChainRepository {
     override suspend fun read() = runCatching {
         Database.execute {
             ChainTable.selectAll().map { record ->
-                ChainEntity(record[ChainTable.id].value, record[ChainTable.name], record[ChainTable.key])
+                ChainEntity(record[ChainTable.id].value, record[ChainTable.name])
             }
         }
     }
@@ -39,6 +43,22 @@ object ChainDataRepository : ChainRepository {
     override suspend fun delete(chainKeyEntity: ChainKeyEntity) = runCatching {
         Database.execute<Unit> {
             ChainTable.deleteWhere { ChainTable.id eq chainKeyEntity.id }
+        }
+    }
+
+    override suspend fun seed(saved: Boolean) = runCatching {
+        if (saved) {
+            seeds.removeAt(0)
+        } else {
+            val seedBytes = ByteArray(16)
+
+            SecureRandom().nextBytes(seedBytes)
+
+            val seed = Base64.getEncoder().encodeToString(seedBytes)
+
+            seeds.add(seed)
+
+            seed
         }
     }
 }

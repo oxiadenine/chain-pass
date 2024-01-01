@@ -54,7 +54,7 @@ fun App(httpClient: HttpClient) = MaterialTheme(
     val scaffoldState = rememberScaffoldState()
 
     val chainListViewModel = ChainListViewModel(ChainNetRepository(httpClient))
-    val chainLinkListViewModel = ChainLinkListViewModel(ChainLinkNetRepository(httpClient))
+    val chainLinkListViewModel = ChainLinkListViewModel(ChainNetRepository(httpClient), ChainLinkNetRepository(httpClient))
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
