@@ -121,7 +121,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
         Box {
             when (appState.screenState.value) {
                 Screen.SERVER_CONNECTION -> {
-                    val serverConnectionState = ServerConnectionState(ServerAddress())
+                    val serverConnectionState = ServerConnectionState(ServerAddress(), StorageType.JSON)
 
                     ServerConnection(
                         serverConnectionState = serverConnectionState,
@@ -149,10 +149,11 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                             serverConnectionState.discoveringState.value?.cancel()
                             serverConnectionState.discoveringState.value = null
                         },
-                        onConnect = { serverAddress ->
+                        onConnect = { serverAddress, storageType ->
                             appState.settingsState.value = Settings(
                                 serverAddress.host.value,
-                                serverAddress.port.value.toInt()
+                                serverAddress.port.value.toInt(),
+                                storageType
                             )
                             appState.httpClientState.value = appState.httpClientState.value.config {
                                 defaultRequest {
@@ -297,7 +298,24 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                 }
                             }
                         },
-                        onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.performAction() }
+                        onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.performAction() },
+                        onStore = {
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+
+                                val storageType = appState.settingsState.value.storageType
+
+                                val storage = Storage(settingsManager.dirPath, storageType)
+
+                                chainLinkListViewModel.store(storage)
+                                    .onSuccess { filePath ->
+                                        scaffoldState.snackbarHostState.showSnackbar("Stored to $filePath")
+                                    }
+                                    .onFailure { exception ->
+                                        scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                    }
+                            }
+                        }
                     )
                 }
             }

@@ -11,4 +11,8 @@ expect class SettingsManager(dirPath: String) {
 }
 
 @Serializable
-data class Settings(val serverHost: String = "", val serverPort: Int = 0)
+data class Settings(
+    val serverHost: String = "",
+    val serverPort: Int = 0,
+    val storageType: StorageType = StorageType.JSON
+)

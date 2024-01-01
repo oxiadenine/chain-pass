@@ -26,6 +26,7 @@ fun ChainLinkList(
     onEdit: (ChainLink) -> Unit,
     onRemove: (ChainLink) -> Unit,
     onSearch: () -> Unit,
+    onStore: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         if (viewModel.isSearchState.value) {
@@ -49,7 +50,8 @@ fun ChainLinkList(
                     viewModel.startSearch()
 
                     onSearch()
-                }
+                },
+                onStore = onStore
             )
         }
         Box(modifier = Modifier.fillMaxSize()) {

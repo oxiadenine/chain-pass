@@ -27,7 +27,8 @@ fun ChainLinkListTopBar(
     onBack: () -> Unit,
     onSync: () -> Unit,
     onAdd: () -> Unit,
-    onSearch: () -> Unit
+    onSearch: () -> Unit,
+    onStore: () -> Unit
 ) {
     val actionMenuExpandedState = remember { mutableStateOf(false) }
 
@@ -100,6 +101,23 @@ fun ChainLinkListTopBar(
                     ) {
                         Icon(imageVector = Icons.Default.Search, contentDescription = null)
                         Text(text = "Search", fontSize = 12.sp)
+                    }
+                }
+                DropdownMenuItem(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    onClick = {
+                        actionMenuExpandedState.value = false
+
+                        onStore()
+                    },
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Icons.Default.Archive, contentDescription = null)
+                        Text(text = "Store", fontSize = 12.sp)
                     }
                 }
             }
