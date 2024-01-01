@@ -44,7 +44,6 @@ fun ChainLinkList(viewModel: ChainLinkListViewModel, onItemNew: (ChainLink) -> U
                             onIconClearClick = { viewModel.rejectDraft(chainLink) }
                         )
                         ChainLinkStatus.EDIT -> ChainLinkListItemEdit(
-                            password = chainLink.password.value,
                             chainLink = chainLink,
                             onIconDoneClick = { onItemEdit(chainLink) },
                             onIconClearClick = { viewModel.endEdit(chainLink)}
