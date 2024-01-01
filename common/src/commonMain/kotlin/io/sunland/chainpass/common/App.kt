@@ -1,5 +1,6 @@
 package io.sunland.chainpass.common
 
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -108,7 +109,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                 }
             )
         }
-    ) {
+    ) { paddingValues ->
         val settingsState = remember {
             settingsManager.load()?.let { settings ->
                 mutableStateOf(settings)
@@ -137,8 +138,11 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
             )
         }
 
-        Box {
-            when (navigationState.screenState.value) {
+        Crossfade(
+            modifier = Modifier.padding(paddingValues = paddingValues),
+            targetState = navigationState.screenState.value
+        ) { screen ->
+            when (screen) {
                 Screen.SETTINGS -> {
                     Settings(
                         settings = settingsState.value,
@@ -152,20 +156,34 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                     )
                 }
                 Screen.CHAIN_LIST -> {
-                    val passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
-                        settingsState.value.passwordLength,
-                        settingsState.value.passwordIsAlphanumeric
-                    ))
+                    val chainListViewModel = ChainListViewModel(
+                        chainRepository,
+                        chainLinkRepository,
+                        PasswordGenerator(PasswordGenerator.Strength(
+                            settingsState.value.passwordLength,
+                            settingsState.value.passwordIsAlphanumeric
+                        )),
+                        storage
+                    )
 
-                    val chainListViewModel = ChainListViewModel(chainRepository, chainLinkRepository, passwordGenerator, storage)
-
-                    ChainList(chainListViewModel, settingsState, navigationState, scaffoldState.snackbarHostState)
+                    ChainList(
+                        viewModel = chainListViewModel,
+                        settingsState = settingsState,
+                        navigationState = navigationState,
+                        snackbarHostState = scaffoldState.snackbarHostState
+                    )
                 }
                 Screen.CHAIN_LINK_LIST -> {
-                    val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository, storage)
-                    chainLinkListViewModel.chain = navigationState.chainState.value
+                    val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository, storage).apply {
+                        chain = navigationState.chainState.value
+                    }
 
-                    ChainLinkList(chainLinkListViewModel, settingsState, navigationState, scaffoldState.snackbarHostState)
+                    ChainLinkList(
+                        viewModel = chainLinkListViewModel,
+                        settingsState = settingsState,
+                        navigationState = navigationState,
+                        snackbarHostState = scaffoldState.snackbarHostState
+                    )
                 }
             }
         }
