@@ -1,0 +1,25 @@
+services:
+  chain-pass-service:
+    image: chain-pass-service
+    container_name: chain-pass-service
+    build:
+      context: ./
+      dockerfile: ./service/Dockerfile
+    expose:
+      - 8080
+    env_file: ./service/.env
+    labels:
+      - traefik.http.routers.ws.rule=Host(`${HOST}`)
+      - traefik.http.routers.ws.tls=true
+  chain-pass-proxy:
+    image: traefik
+    container_name: chain-pass-proxy
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command:
+      - --providers.docker=true
+      - --entrypoints.ws.address=:80
+      - --entrypoints.wss.address=:443
