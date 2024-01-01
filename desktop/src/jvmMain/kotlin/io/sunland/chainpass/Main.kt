@@ -1,4 +1,4 @@
-package io.sunland.chainpass.desktop
+package io.sunland.chainpass
 
 import androidx.compose.foundation.*
 import androidx.compose.material3.MaterialTheme

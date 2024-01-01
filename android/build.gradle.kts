@@ -1,16 +1,27 @@
 plugins {
+    kotlin("multiplatform")
     id("com.android.application")
-    kotlin("android")
     id("org.jetbrains.compose")
 }
 
-dependencies {
-    implementation(project(":common"))
+kotlin {
+    android()
 
-    implementation(exposedDependency("jdbc"))
-    implementation(h2databaseDependency())
+    sourceSets {
+        named("androidMain") {
+            dependencies {
+                implementation(project(":common"))
 
-    testImplementation(kotlin("test"))
+                implementation(exposedDependency("jdbc"))
+                implementation(h2databaseDependency())
+            }
+        }
+        named("androidUnitTest") {
+            dependencies {
+                implementation(kotlin("test"))
+            }
+        }
+    }
 }
 
 android {
@@ -20,8 +31,8 @@ android {
         minSdk = 26
         targetSdk = 33
 
-        applicationId = "${project.group}.chainpass.${project.name}"
-        versionCode = 1
+        applicationId = "${project.group}.chainpass"
+        versionCode = (project.version as String).replace(".", "").toInt()
         versionName = project.version as String
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

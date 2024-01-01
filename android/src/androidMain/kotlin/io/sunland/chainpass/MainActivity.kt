@@ -1,4 +1,4 @@
-package io.sunland.chainpass.android
+package io.sunland.chainpass
 
 import android.os.Bundle
 import android.os.Environment

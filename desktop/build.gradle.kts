@@ -10,10 +10,9 @@ kotlin {
         withJava()
 
         compilations.all {
-            kotlinOptions {
-                jvmTarget = JavaVersion.VERSION_11.toString()
-            }
+            kotlinOptions.jvmTarget = JavaVersion.VERSION_11.toString()
         }
+
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
@@ -42,7 +41,7 @@ compose.desktop {
     application {
         javaHome = System.getenv("JAVA_HOME") ?: ""
 
-        mainClass = "${rootProject.group}.chainpass.${project.name}.MainKt"
+        mainClass = "${rootProject.group}.chainpass.MainKt"
 
         setProperty("archivesBaseName", "${rootProject.name}-${project.name}")
 
