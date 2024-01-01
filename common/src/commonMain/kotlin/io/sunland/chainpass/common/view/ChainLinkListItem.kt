@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -40,7 +41,7 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
             }
         }
         if (chainLink.description.value.isNotEmpty()) {
-            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.description.value)
+            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.description.value, fontSize = 14.sp)
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             SelectionContainer(Modifier.padding(all = 16.dp)) {
