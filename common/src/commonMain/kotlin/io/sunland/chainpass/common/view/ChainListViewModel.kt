@@ -18,41 +18,29 @@ class ChainListViewModel(
 ) {
     val chainListState = mutableStateListOf<Chain>()
 
-    val chainSelected: Chain?
-        get() = chainListState.firstOrNull { chain -> chain.isSelected }
-
     val chainSelectedIndex: Int
-        get() = chainListState.indexOfFirst { chain -> chain.isSelected }
+        get() = chainListState.indexOfFirst { chain -> chain.id == chainSelected?.id }
+
+    var chainSelected: Chain? = null
+        private set
 
     private var chains = emptyList<Chain>()
 
     fun draft(): Chain {
-        clearSelection()
+        chainSelected = Chain(passwordGenerator)
 
-        return Chain(passwordGenerator).apply { isSelected = true }
+        return chainSelected!!
     }
 
-    fun selectForKey(chainSelect: Chain) {
-        clearSelection()
+    fun selectForKey(chain: Chain) = withSelection(chain)
 
-        val chains = chainListState.map { chain ->
-            chain.isSelected = chain.id == chainSelect.id
-
-            chain
-        }.sortedBy { chain -> chain.name.value }
-
-        chainListState.clear()
-        chainListState.addAll(chains)
-    }
-
-    fun removeLater(chainRemove: Chain) {
+    fun removeLater(chainRemove: Chain) = withSelection(chainRemove) {
         chainListState.removeIf { chain -> chain.id == chainRemove.id }
     }
 
-    fun undoRemove(chainRemove: Chain) {
+    fun undoRemove(chainRemove: Chain) = withSelection(chainRemove) {
         val chains = chainListState.plus(chainRemove.apply {
             key = Chain.Key()
-            isSelected = true
         }).sortedBy { chain -> chain.name.value }
 
         chainListState.clear()
@@ -201,17 +189,10 @@ class ChainListViewModel(
         ChainApi(chainRepository, chainLinkRepository, webSocket).sync().getOrThrow()
     }
 
-    private fun clearSelection() {
-        val chains = chainListState.map { chain ->
-            if (chain.isSelected) {
-                chain.isSelected = false
-            }
+    private fun withSelection(chain: Chain, action: () -> Unit = {}) {
+        chainSelected = chain
 
-            chain
-        }
-
-        chainListState.clear()
-        chainListState.addAll(chains)
+        action()
     }
 
     private fun update() {
