@@ -1,6 +1,8 @@
 package io.sunland.chainpass.common
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -61,7 +63,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
     shapes = Shapes(
         small = RoundedCornerShape(percent = 0),
         medium = RoundedCornerShape(percent = 0),
-        large = RoundedCornerShape( percent = 0)
+        large = RoundedCornerShape(percent = 0)
     )
 ) {
     if (!appState.isServerConnected.value) {

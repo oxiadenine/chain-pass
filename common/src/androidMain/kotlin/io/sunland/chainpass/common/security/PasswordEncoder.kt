@@ -13,7 +13,12 @@ actual object PasswordEncoder {
         val digest = MessageDigest.getInstance(EncoderSpec.Algorithm.SHA256)
         val salt = digest.digest(passphrase.seed.encodeToByteArray())
 
-        val keySpec = PBEKeySpec(passphrase.key.toCharArray(), salt, EncoderSpec.Strength.ITERATION_COUNT, EncoderSpec.Strength.KEY_LENGTH)
+        val keySpec = PBEKeySpec(
+            passphrase.key.toCharArray(),
+            salt,
+            EncoderSpec.Strength.ITERATION_COUNT,
+            EncoderSpec.Strength.KEY_LENGTH
+        )
         val secretKey = SecretKeyFactory.getInstance(EncoderSpec.Algorithm.PBKDF2WithHmacSHA256).generateSecret(keySpec)
 
         return Base64.encodeToString(secretKey.encoded, Base64.NO_WRAP)

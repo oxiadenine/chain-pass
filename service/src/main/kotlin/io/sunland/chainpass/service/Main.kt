@@ -11,9 +11,7 @@ fun main(args: Array<String>) {
             HoconApplicationConfig(ConfigFactory.load(name))
         }
 
-        module {
-            main()
-        }
+        module { main() }
 
         connector {
             host = config.property("server.host").getString()

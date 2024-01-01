@@ -71,7 +71,13 @@ class ChainLinkListViewModel(
 
             chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(passphrase, chainLink.password.value))
 
-            val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.description.value, chainLink.password.value, chainKeyEntity)
+            val chainLinkEntity = ChainLinkEntity(
+                chainLink.id,
+                chainLink.name.value,
+                chainLink.description.value,
+                chainLink.password.value,
+                chainKeyEntity
+            )
 
             chainLinkRepository.create(chainLinkEntity).getOrThrow()
         }.map { chainLinkId ->
@@ -89,7 +95,7 @@ class ChainLinkListViewModel(
             Unit
         }
     }
-    
+
     fun startEdit(chainLinkId: Int) {
         chainLinks.clear()
         chainLinks.addAll(_chainLinks.map { chainLink ->
@@ -126,7 +132,13 @@ class ChainLinkListViewModel(
 
             chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(passphrase, chainLink.password.value))
 
-            val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.description.value, chainLink.password.value, chainKeyEntity)
+            val chainLinkEntity = ChainLinkEntity(
+                chainLink.id,
+                chainLink.name.value,
+                chainLink.description.value,
+                chainLink.password.value,
+                chainKeyEntity
+            )
 
             chainLinkRepository.update(chainLinkEntity).getOrThrow()
         }.map {
@@ -167,7 +179,13 @@ class ChainLinkListViewModel(
 
             chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(passphrase, chainLink.password.value))
 
-            val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.description.value, chainLink.password.value, chainKeyEntity)
+            val chainLinkEntity = ChainLinkEntity(
+                chainLink.id,
+                chainLink.name.value,
+                chainLink.description.value,
+                chainLink.password.value,
+                chainKeyEntity
+            )
 
             chainLinkRepository.delete(chainLinkEntity).getOrThrow()
 

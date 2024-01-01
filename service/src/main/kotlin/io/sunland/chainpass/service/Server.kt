@@ -5,7 +5,6 @@ import io.ktor.features.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
-import io.ktor.websocket.WebSockets
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.network.SocketMessage
 import io.sunland.chainpass.common.network.SocketRoute
