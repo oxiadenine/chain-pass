@@ -6,9 +6,9 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.routing.*
 import io.ktor.websocket.*
 import io.ktor.websocket.WebSockets
-import io.sunland.chainpass.common.SocketConnection
-import io.sunland.chainpass.common.SocketMessage
-import io.sunland.chainpass.common.SocketConnectionType
+import io.sunland.chainpass.common.network.SocketConnection
+import io.sunland.chainpass.common.network.SocketMessage
+import io.sunland.chainpass.common.network.SocketConnectionType
 import kotlinx.coroutines.isActive
 import org.slf4j.event.Level
 import java.util.*
@@ -48,18 +48,12 @@ fun Application.main() {
                                         connection.socketId == message.socketId &&
                                         connection.session.isActive
                             }
-                            SocketConnectionType.CLIENT -> {
-                                val serviceConnection = socketConnections.first { connection ->
-                                    connection.type == SocketConnectionType.SERVICE && connection.session.isActive
-                                }
-
-                                message.socketId = fromConnection.socketId
-
-                                serviceConnection
+                            SocketConnectionType.CLIENT -> socketConnections.first { connection ->
+                                connection.type == SocketConnectionType.SERVICE && connection.session.isActive
                             }
                         }
 
-                        toConnection.session.send(message.toFrame())
+                        toConnection.session.send(message.toFrame(fromConnection.socketId))
                     }
                 }.onFailure { exception -> log.info(exception.message) }
 
