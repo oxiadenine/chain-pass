@@ -4,27 +4,19 @@ import io.ktor.client.*
 import io.ktor.client.features.websocket.*
 import io.ktor.http.cio.websocket.*
 import io.sunland.chainpass.common.network.SocketMessage
-import io.sunland.chainpass.common.network.SocketMessageType
+import io.sunland.chainpass.common.network.SocketRoute
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepository {
     override suspend fun create(chainLinkEntity: ChainLinkEntity) = runCatching {
-        httpClient.webSocket {
-            send(SocketMessage.success(SocketMessageType.CHAIN_LINK_CREATE, Json.encodeToString(chainLinkEntity)).toFrame())
+        httpClient.webSocket(path = SocketRoute.CHAIN_LINK_CREATE.path) {
+            send(SocketMessage.success(Json.encodeToString(chainLinkEntity)).toFrame())
 
-            while (true) {
-                val frame = incoming.receive() as? Frame.Text ?: continue
+            val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-                val message = SocketMessage.from(frame)
-
-                if (message.type == SocketMessageType.CHAIN_LINK_CREATE) {
-                    chainLinkEntity.id = Json.decodeFromString<ChainLinkEntity>(message.data.getOrThrow()).id
-                }
-
-                break
-            }
+            chainLinkEntity.id = Json.decodeFromString<ChainLinkEntity>(message.data.getOrThrow()).id
         }
 
         chainLinkEntity.id
@@ -33,58 +25,34 @@ class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepo
     override suspend fun read(chainKeyEntity: ChainKeyEntity) = runCatching {
         val chainLinkEntities = mutableListOf<ChainLinkEntity>()
 
-        httpClient.webSocket {
-            send(SocketMessage.success(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chainKeyEntity)).toFrame())
+        httpClient.webSocket(path = SocketRoute.CHAIN_LINK_READ.path) {
+            send(SocketMessage.success(Json.encodeToString(chainKeyEntity)).toFrame())
 
-            while (true) {
-                val frame = incoming.receive() as? Frame.Text ?: continue
+            val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-                val message = SocketMessage.from(frame)
-
-                if (message.type == SocketMessageType.CHAIN_LINK_READ) {
-                    chainLinkEntities.addAll(Json.decodeFromString<List<ChainLinkEntity>>(message.data.getOrThrow()))
-                }
-
-                break
-            }
+            chainLinkEntities.addAll(Json.decodeFromString<List<ChainLinkEntity>>(message.data.getOrThrow()))
         }
 
         chainLinkEntities.toList()
     }
 
     override suspend fun update(chainLinkEntity: ChainLinkEntity) = runCatching {
-        httpClient.webSocket {
-            send(SocketMessage.success(SocketMessageType.CHAIN_LINK_UPDATE, Json.encodeToString(chainLinkEntity)).toFrame())
+        httpClient.webSocket(path = SocketRoute.CHAIN_LINK_UPDATE.path) {
+            send(SocketMessage.success(Json.encodeToString(chainLinkEntity)).toFrame())
 
-            while (true) {
-                val frame = incoming.receive() as? Frame.Text ?: continue
+            val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-                val message = SocketMessage.from(frame)
-
-                if (message.type == SocketMessageType.CHAIN_LINK_UPDATE) {
-                    message.data.getOrThrow()
-                }
-
-                break
-            }
+            message.data.getOrThrow()
         }
     }
 
     override suspend fun delete(chainLinkEntity: ChainLinkEntity) = runCatching {
-        httpClient.webSocket {
-            send(SocketMessage.success(SocketMessageType.CHAIN_LINK_DELETE, Json.encodeToString(chainLinkEntity)).toFrame())
+        httpClient.webSocket(path = SocketRoute.CHAIN_LINK_DELETE.path) {
+            send(SocketMessage.success(Json.encodeToString(chainLinkEntity)).toFrame())
 
-            while (true) {
-                val frame = incoming.receive() as? Frame.Text ?: continue
+            val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-                val message = SocketMessage.from(frame)
-
-                if (message.type == SocketMessageType.CHAIN_LINK_DELETE) {
-                    message.data.getOrThrow()
-                }
-
-                break
-            }
+            message.data.getOrThrow()
         }
     }
 }
