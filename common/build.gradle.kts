@@ -67,7 +67,7 @@ kotlin {
                 api(androidxDependency("activity-compose"))
             }
         }
-        named("androidTest") {
+        named("androidUnitTest") {
             dependencies {
                 implementation(kotlin("test"))
             }
