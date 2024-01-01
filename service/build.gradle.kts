@@ -1,10 +1,15 @@
+import org.jetbrains.compose.compose
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+
 plugins {
     kotlin("jvm")
-    application
+    id("org.jetbrains.compose")
 }
 
 dependencies {
     implementation(project(":common"))
+
+    implementation(compose.desktop.currentOs)
 
     implementation(ktorDependency("server-netty"))
     implementation(ktorDependency("websockets"))
@@ -32,29 +37,38 @@ kotlin {
     }
 }
 
-application {
-    applicationName = "${rootProject.name}-${project.name}"
+compose.desktop {
+    application {
+        mainClass = "${rootProject.group}.chainpass.${project.name}.MainKt"
 
-    mainClass.set("${rootProject.group}.chainpass.${project.name}.MainKt")
-}
+        setProperty("archivesBaseName", "${rootProject.name}-${project.name}")
 
-tasks {
-    named<Jar>("jar") {
-        manifest {
-            attributes["Main-Class"] = application.mainClass.get()
+        args += System.getenv("APP_ENV")?.let { env -> listOf(env) } ?: listOf()
+
+        nativeDistributions {
+            targetFormats(TargetFormat.Deb, TargetFormat.Exe)
+
+            packageName = "Chain Pass Service"
+            packageVersion = rootProject.version as String
+            description = "Chain Pass Service"
+            vendor = "SunLand"
+
+            val iconsDir = "${project.buildDir}/resources/main/icons"
+
+            linux {
+                packageName = "${rootProject.name}-${project.name}"
+
+                iconFile.set(project.file("$iconsDir/icon_linux.png"))
+            }
+
+            windows {
+                perUserInstall = true
+                menu = true
+
+                iconFile.set(project.file("$iconsDir/icon_windows.ico"))
+            }
+
+            modules("java.naming", "java.sql")
         }
-
-        archiveBaseName.set("${rootProject.name}-${project.name}")
-        archiveVersion.set("")
-
-        from(configurations["runtimeClasspath"].map { file: File ->
-            if (file.isDirectory) file else zipTree(file)
-        })
-
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    }
-
-    named<CreateStartScripts>("startScripts") {
-        applicationName = "${rootProject.name}-${project.name}"
     }
 }
