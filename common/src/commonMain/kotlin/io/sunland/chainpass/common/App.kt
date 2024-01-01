@@ -220,7 +220,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
             }
         },
         drawerBackgroundColor = MaterialTheme.colors.surface,
-        scrimColor = Color.Black.copy(alpha = 0.5f)
+        scrimColor = Color.Black.copy(alpha = if (platform == "Desktop") 0.3f else 0.6f)
     ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Crossfade(targetState = navigationState.screenState.value) { screen ->
