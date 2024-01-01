@@ -44,24 +44,27 @@ actual fun ValidationTextField(
     placeholder = placeholder,
     leadingIcon = leadingIcon,
     trailingIcon = if (isError) {
-        { if (errorMessage != null) {
-            TooltipArea(
-                tooltip = {
-                    Surface(modifier = Modifier.shadow(4.dp), elevation = 4.dp) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            text = errorMessage,
-                            fontSize = 12.sp,
-                            color = MaterialTheme.colors.error
-                        )
-                    }
-                },
-                delayMillis = 100,
-                tooltipPlacement = TooltipPlacement.CursorPoint(
-                    alignment = Alignment.CenterStart,
-                    offset = DpOffset((-32).dp, 0.dp)
-                )) { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
-        } else Icon(imageVector = Icons.Default.Info, contentDescription = null) }
+        {
+            if (errorMessage != null) {
+                TooltipArea(
+                    tooltip = {
+                        Surface(modifier = Modifier.shadow(4.dp), elevation = 4.dp) {
+                            Text(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                text = errorMessage,
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colors.error
+                            )
+                        }
+                    },
+                    delayMillis = 100,
+                    tooltipPlacement = TooltipPlacement.CursorPoint(
+                        alignment = Alignment.CenterStart,
+                        offset = DpOffset((-32).dp, 0.dp)
+                    )
+                ) { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
+            } else Icon(imageVector = Icons.Default.Info, contentDescription = null)
+        }
     } else null,
     isError = isError,
     visualTransformation = visualTransformation,

@@ -5,7 +5,7 @@
         </encoder>
     </appender>
     <root level="info">
-        <appender-ref ref="stdout" />
+        <appender-ref ref="stdout"/>
     </root>
-    <logger name="Exposed" level="debug" />
+    <logger name="Exposed" level="debug"/>
 </configuration>
