@@ -56,7 +56,7 @@ class Storage(dirPath: String) {
 enum class StorageType { JSON, CSV, TXT }
 
 @Serializable
-data class StorableOptions(val isPrivate: Boolean)
+data class StorableOptions(val isPrivate: Boolean, val isSingle: Boolean)
 
 @Serializable
 data class StorableChain(val name: String, val key: String, val chainLinks: List<StorableChainLink>)
@@ -132,6 +132,33 @@ fun Storable.toString(storageType: StorageType) = when (storageType) {
 }
 
 fun String.toStorable(storageType: StorageType) = when (storageType) {
-    StorageType.JSON -> Json.decodeFromString<Storable>(this)
-    else -> throw IllegalArgumentException("Storage type $storageType not supported")
+    StorageType.JSON -> Json.decodeFromString(this)
+    StorageType.CSV -> {
+        val data = split("\n")
+
+        val optionsRecord = data[1].split(",")
+
+        val chainRecord = data[3].split(",").map { value ->
+            value.replace("\"", "")
+        }
+
+        val chainLinkRecords = mutableListOf<Array<String>>()
+
+        for (i in 5 until data.size - 1) {
+            val chainLinkRecord = data[i].split(",").map { value ->
+                value.replace("\"", "")
+            }
+
+            chainLinkRecords.add(chainLinkRecord.toTypedArray())
+        }
+
+        val storableOptions = StorableOptions(optionsRecord[0].toBoolean(), optionsRecord[1].toBoolean())
+        val storableChainLinks = chainLinkRecords.map { chainLinkRecord ->
+            StorableChainLink(chainLinkRecord[0], chainLinkRecord[1], chainLinkRecord[2])
+        }
+        val storableChain = StorableChain(chainRecord[0], chainRecord[1], storableChainLinks)
+
+        Storable(storableOptions, listOf(storableChain))
+    }
+    else -> throw IllegalArgumentException("Storage type $storageType is not supported")
 }

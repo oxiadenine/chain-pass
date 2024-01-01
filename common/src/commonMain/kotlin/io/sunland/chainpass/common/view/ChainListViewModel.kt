@@ -165,7 +165,7 @@ class ChainListViewModel(
             }
         }
 
-        val storableOptions = StorableOptions(storeOptions.isPrivate)
+        val storableOptions = StorableOptions(storeOptions.isPrivate, storeOptions.isSingle)
         val storableChains = chains.map { chain ->
             val storableChainLinks = chainLinks
                 .filter { chainLink -> chainLink.chain.id == chain.id }
@@ -194,11 +194,11 @@ class ChainListViewModel(
             }
 
             chains.add(chain)
-            chainLinks.addAll(storableChain.chainLinks.map { storableChainlink ->
+            chainLinks.addAll(storableChain.chainLinks.map { storableChainLink ->
                 ChainLink(chain).apply {
-                    name = ChainLink.Name(storableChainlink.name)
-                    description = ChainLink.Description(storableChainlink.description)
-                    password = ChainLink.Password(storableChainlink.password)
+                    name = ChainLink.Name(storableChainLink.name)
+                    description = ChainLink.Description(storableChainLink.description)
+                    password = ChainLink.Password(storableChainLink.password)
                 }
             })
         }

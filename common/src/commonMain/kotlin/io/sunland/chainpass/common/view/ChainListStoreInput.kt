@@ -18,11 +18,11 @@ import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.common.component.InputDialog
 
-data class StoreOptions(val type: StorageType = StorageType.JSON, val isPrivate: Boolean = true)
+data class StoreOptions(val type: StorageType, val isPrivate: Boolean, val isSingle: Boolean)
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListStoreInput(onSelect: (StoreOptions) -> Unit, onCancel: () -> Unit) {
+fun ChainListStoreInput(isSingle: Boolean, onStore: (StoreOptions) -> Unit, onCancel: () -> Unit) {
     val storeTypeState = remember { mutableStateOf(StorageType.JSON) }
 
     val storeTypeMenuExpandedState = remember { mutableStateOf(false) }
@@ -31,18 +31,41 @@ fun ChainListStoreInput(onSelect: (StoreOptions) -> Unit, onCancel: () -> Unit) 
         storeTypeState.value = value
     }
 
-    val onDone = {
-        val storeOptions = StoreOptions(storeTypeState.value)
+    val storeIsPrivateState = remember { mutableStateOf(true) }
 
-        onSelect(storeOptions)
+    val onStoreIsPrivateChange = { value: Boolean ->
+        storeIsPrivateState.value = value
+    }
+
+    val onDone = {
+        val storeOptions = StoreOptions(storeTypeState.value, storeIsPrivateState.value, isSingle)
+
+        onStore(storeOptions)
     }
 
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
+        Text(
+            modifier = Modifier.padding(bottom = 32.dp),
+            text = if (isSingle) "Single Store" else "Multiple Store"
+        )
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(space = 16.dp)
         ) {
+            if (isSingle) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "Private")
+                    Switch(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        checked = storeIsPrivateState.value,
+                        onCheckedChange = onStoreIsPrivateChange
+                    )
+                }
+            }
             Button(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                 onClick = { storeTypeMenuExpandedState.value = true },

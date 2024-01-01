@@ -18,7 +18,7 @@ import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.common.component.InputDialog
 
 @Composable
-actual fun ChainListUnstoreInput(onSelect: (FilePath) -> Unit, onCancel: () -> Unit) {
+actual fun ChainListUnstoreInput(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onCancel: () -> Unit) {
     val filePathState = remember { mutableStateOf("") }
     val filePathErrorState = remember { mutableStateOf(false) }
 
@@ -28,25 +28,37 @@ actual fun ChainListUnstoreInput(onSelect: (FilePath) -> Unit, onCancel: () -> U
         filePathErrorState.value = filePath.value.isEmpty()
 
         if (!filePathErrorState.value) {
-            onSelect(filePath)
+            onUnstore(filePath)
         }
     }
 
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
-        val resultLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            filePathState.value = uri?.path?.let { path ->
-                "${Environment.getExternalStorageDirectory().absolutePath}/${path.substringAfterLast(":")}"
-            } ?: ""
-            filePathErrorState.value = filePathState.value.isEmpty()
-        }
-
+        Text(
+            modifier = Modifier.padding(bottom = 32.dp),
+            text = if (isSingle) "Single Unstore" else "Multiple Unstore"
+        )
         Column(
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(space = 16.dp)
         ) {
+            val resultLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                filePathState.value = uri?.path?.let { path ->
+                    "${Environment.getExternalStorageDirectory().absolutePath}/${path.substringAfterLast(":")}"
+                } ?: ""
+                filePathErrorState.value = filePathState.value.isEmpty()
+            }
+
             Button(
-                onClick = { resultLauncher.launch(arrayOf("application/${StorageType.JSON.name.lowercase()}")) },
+                onClick = {
+                    val fileExtensions = mutableListOf("application/${StorageType.JSON.name.lowercase()}")
+
+                    if (isSingle) {
+                        fileExtensions.add("application/comma-separated-values")
+                    }
+
+                    resultLauncher.launch(fileExtensions.toTypedArray())
+                },
                 colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
             ) {
                 Row(
