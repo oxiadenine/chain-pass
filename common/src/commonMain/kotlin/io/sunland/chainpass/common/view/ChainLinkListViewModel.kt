@@ -27,13 +27,13 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
 
     var chainLinks = emptyList<ChainLink>()
 
-    fun draft(chainLinkDraft: ChainLink = ChainLink(chain!!)) {
-        val chainLinkIds = chainLinks.plus(chainLinkListState.filter { chainLink ->
-            chainLink.status == ChainLink.Status.DRAFT
-        }).map { chainLink -> chainLink.id }
-
-        chainLinkDraft.id = chainLinkIds.maxOrNull()?.let { it + 1 } ?: 1
-        chainLinkDraft.isLatest = true
+    fun draft() {
+        val chainLinkDraft = ChainLink(chain!!).apply {
+            id = chainLinks.plus(chainLinkListState.filter { chainLink ->
+                chainLink.status == ChainLink.Status.DRAFT
+            }).maxOfOrNull { chainLink -> chainLink.id }?.let { it + 1 } ?: 1
+            isLatest = true
+        }
 
         chainLinkListState.add(chainLinkDraft)
 
@@ -241,6 +241,8 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
             EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chainLink.chain.name.value.encodeToByteArray()))
         )
 
+        println("New ${chainKeyEntity.key}")
+
         val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
         val privatePassword = PasswordEncoder.encrypt(
@@ -259,6 +261,8 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
         )
 
         chainLinkApi.create(listOf(chainLinkEntity)).getOrThrow()
+
+        println("new")
 
         chainLink.status = ChainLink.Status.ACTUAL
 
@@ -311,6 +315,8 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
             EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chainLink.chain.name.value.encodeToByteArray()))
         )
 
+        println("Remove ${chainKeyEntity.key}")
+
         val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
         val chainLinkEntity = ChainLinkEntity(
@@ -322,6 +328,8 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
         )
 
         chainLinkApi.delete(chainLinkEntity).getOrThrow()
+
+        println("remove")
 
         update()
     }
