@@ -7,15 +7,11 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.websocket.*
-import io.sunland.chainpass.common.App
-import io.sunland.chainpass.common.Screen
-import io.sunland.chainpass.common.SettingsFactory
-import io.sunland.chainpass.common.rememberAppState
-import io.sunland.chainpass.common.view.ServerAddress
+import io.sunland.chainpass.common.*
 
 fun main() = application {
     val appState = rememberAppState(
-        ServerAddress(),
+        Settings(),
         HttpClient(CIO) {
             install(WebSockets)
             install(Logging)
@@ -31,5 +27,5 @@ fun main() = application {
 
             exitApplication()
         }
-    ) { App(SettingsFactory("${System.getProperty("user.home")}/.chain-pass"), appState) }
+    ) { App(SettingsManager("${System.getProperty("user.home")}/.chain-pass"), appState) }
 }

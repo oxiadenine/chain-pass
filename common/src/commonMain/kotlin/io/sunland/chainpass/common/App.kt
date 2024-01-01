@@ -31,20 +31,20 @@ enum class ThemeColor(val color: Color) {
 }
 
 class AppState(
-    val serverAddressState: MutableState<ServerAddress>,
+    val settingsState: MutableState<Settings>,
     val httpClientState: MutableState<HttpClient>,
     val screenState: MutableState<Screen>,
     val isServerConnected: MutableState<Boolean>
 )
 
 @Composable
-fun rememberAppState(serverAddress: ServerAddress, httpClient: HttpClient, screen: Screen) = remember {
-    AppState(mutableStateOf(serverAddress), mutableStateOf(httpClient), mutableStateOf(screen), mutableStateOf(false))
+fun rememberAppState(settings: Settings, httpClient: HttpClient, screen: Screen) = remember {
+    AppState(mutableStateOf(settings), mutableStateOf(httpClient), mutableStateOf(screen), mutableStateOf(false))
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
+fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
     colors = darkColors(
         primary = ThemeColor.QUARTZ.color,
         primaryVariant = ThemeColor.QUARTZ.color,
@@ -67,12 +67,12 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
     )
 ) {
     if (!appState.isServerConnected.value) {
-        settingsFactory.load(appState.serverAddressState.value)?.let { settings ->
-            appState.serverAddressState.value = settings as ServerAddress
+        settingsManager.load(appState.settingsState.value)?.let { settings ->
+            appState.settingsState.value = settings
             appState.httpClientState.value = appState.httpClientState.value.config {
                 defaultRequest {
-                    host = settings.host.value
-                    port = settings.port.value.toInt()
+                    host = settings.serverHost
+                    port = settings.serverPort
                     url {
                         protocol = URLProtocol.WS
                     }
@@ -121,7 +121,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
         Box {
             when (appState.screenState.value) {
                 Screen.SERVER_CONNECTION -> {
-                    val serverConnectionState = ServerConnectionState(appState.serverAddressState.value)
+                    val serverConnectionState = ServerConnectionState(ServerAddress())
 
                     ServerConnection(
                         serverConnectionState = serverConnectionState,
@@ -150,20 +150,23 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                             serverConnectionState.discoveringState.value = null
                         },
                         onConnect = { serverAddress ->
-                            settingsFactory.save(serverAddress).let {
-                                appState.serverAddressState.value = serverAddress
-                                appState.httpClientState.value = appState.httpClientState.value.config {
-                                    defaultRequest {
-                                        host = serverAddress.host.value
-                                        port = serverAddress.port.value.toInt()
-                                        url {
-                                            protocol = URLProtocol.WS
-                                        }
+                            appState.settingsState.value = Settings(
+                                serverAddress.host.value,
+                                serverAddress.port.value.toInt()
+                            )
+                            appState.httpClientState.value = appState.httpClientState.value.config {
+                                defaultRequest {
+                                    host = serverAddress.host.value
+                                    port = serverAddress.port.value.toInt()
+                                    url {
+                                        protocol = URLProtocol.WS
                                     }
                                 }
-                                appState.screenState.value = Screen.CHAIN_LIST
-                                appState.isServerConnected.value = true
                             }
+                            appState.screenState.value = Screen.CHAIN_LIST
+                            appState.isServerConnected.value = true
+
+                            settingsManager.save(appState.settingsState.value)
                         }
                     )
                 }
@@ -177,7 +180,10 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                     }
 
                     ChainList(
-                        serverAddress = appState.serverAddressState.value,
+                        serverAddress = ServerAddress().apply {
+                            host = ServerAddress.Host(appState.settingsState.value.serverHost)
+                            port = ServerAddress.Port(appState.settingsState.value.serverPort.toString())
+                        },
                         viewModel = chainListViewModel,
                         onNew = { chain ->
                             coroutineScope.launch {
@@ -231,12 +237,12 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                         onDisconnect = {
                             scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
-                            settingsFactory.delete(appState.serverAddressState.value).let {
-                                appState.serverAddressState.value = ServerAddress()
-                                appState.httpClientState.value.close()
-                                appState.screenState.value = Screen.SERVER_CONNECTION
-                                appState.isServerConnected.value = false
-                            }
+                            appState.settingsState.value = Settings()
+                            appState.httpClientState.value.close()
+                            appState.screenState.value = Screen.SERVER_CONNECTION
+                            appState.isServerConnected.value = false
+
+                            settingsManager.delete(appState.settingsState.value)
                         }
                     )
                 }

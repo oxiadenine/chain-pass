@@ -1,6 +1,8 @@
 package io.sunland.chainpass.common
 
-expect class SettingsFactory(dirPath: String) {
+import kotlinx.serialization.Serializable
+
+expect class SettingsManager(dirPath: String) {
     val dirPath: String
 
     fun save(settings: Settings)
@@ -8,9 +10,5 @@ expect class SettingsFactory(dirPath: String) {
     fun delete(settings: Settings)
 }
 
-interface Settings {
-    val fileName: String
-
-    fun toMap(): Map<String, String>
-    fun fromMap(data: Map<String, String>): Settings
-}
+@Serializable
+data class Settings(val serverHost: String = "", val serverPort: Int = 0)

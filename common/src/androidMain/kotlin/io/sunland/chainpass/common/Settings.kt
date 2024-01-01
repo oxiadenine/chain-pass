@@ -5,25 +5,33 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-actual class SettingsFactory actual constructor(actual val dirPath: String) {
+actual class SettingsManager actual constructor(actual val dirPath: String) {
+    private val filePath = "$dirPath/settings.json"
+
     actual fun save(settings: Settings) {
         if (!File(dirPath).exists()) {
             File(dirPath).mkdir()
         }
 
-        val file = File("$dirPath/${settings.fileName}.json")
+        val file = File(filePath)
 
-        file.writeText(Json.encodeToString(settings.toMap()))
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+
+        file.writeText(Json.encodeToString(settings))
     }
 
     actual fun load(settings: Settings): Settings? {
-        return if (File("$dirPath/${settings.fileName}.json").exists()) {
-            settings.fromMap(Json.decodeFromString(File("$dirPath/${settings.fileName}.json").readText()))
+        val file = File(filePath)
+
+        return if (file.exists()) {
+            Json.decodeFromString(file.readText())
         } else null
     }
 
     actual fun delete(settings: Settings) {
-        val file = File("$dirPath/${settings.fileName}.json")
+        val file = File(filePath)
 
         if (file.exists()) {
             file.delete()
