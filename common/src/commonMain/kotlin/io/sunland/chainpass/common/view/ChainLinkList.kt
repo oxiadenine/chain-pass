@@ -95,7 +95,7 @@ fun ChainLinkList(
                                             onRemove(chainLink)
                                         },
                                         onPasswordCopy = {
-                                            clipboardManager.setText(AnnotatedString(chainLink.unlockPassword().value))
+                                            clipboardManager.setText(AnnotatedString(viewModel.copyPassword(chainLink).value))
                                         }
                                     )
                                 }

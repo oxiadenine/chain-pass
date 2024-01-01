@@ -5,17 +5,14 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-expect class Storage(dirPath: String, options: StorageOptions = StorageOptions()) {
+expect class Storage(dirPath: String) {
     val dirPath: String
-    val options: StorageOptions
 
-    fun store(storable: Storable): String
+    fun store(storable: Storable, storageType: StorageType): String
     fun unstore(filePath: String): Storable
 }
 
 enum class StorageType { JSON, CSV, TXT }
-
-data class StorageOptions(val isPrivate: Boolean = true, val type: StorageType = StorageType.JSON)
 
 @Serializable
 data class Storable(
@@ -24,7 +21,7 @@ data class Storable(
     val chainLinks: List<Map<String, String>>
 )
 
-fun Storable.toString(options: StorageOptions) = when (options.type) {
+fun Storable.toString(storageType: StorageType) = when (storageType) {
     StorageType.JSON -> Json.encodeToString(value = this)
     StorageType.CSV -> buildString {
         val optionsHeader = this@toString.options.keys.toSet().joinToString(",")

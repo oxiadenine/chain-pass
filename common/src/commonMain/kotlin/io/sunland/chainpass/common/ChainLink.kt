@@ -59,18 +59,12 @@ class ChainLink(val chain: Chain) {
     var status = Status.DRAFT
     var isLatest = false
 
-    fun unlockPassword(): Password {
-        val secretKey = PasswordEncoder.hash(
-            EncoderSpec.Passphrase(
-                PasswordEncoder.Base64.encode(chain.key.value.encodeToByteArray()),
-                PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
-            ))
+    fun privatePassword(secretKey: Chain.Key) = Password(PasswordEncoder.encrypt(
+        PasswordEncoder.Base64.encode(password.value.encodeToByteArray()),
+        EncoderSpec.Passphrase(secretKey.value, PasswordEncoder.Base64.encode(name.value.encodeToByteArray()))
+    ))
 
-        val password = PasswordEncoder.decrypt(
-            password.value,
-            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(name.value.encodeToByteArray()))
-        )
-
-        return Password(PasswordEncoder.Base64.decode(password).decodeToString(), false)
-    }
+    fun plainPassword(secretKey: Chain.Key) = Password(PasswordEncoder.Base64.decode(PasswordEncoder.decrypt(
+        password.value, EncoderSpec.Passphrase(secretKey.value, PasswordEncoder.Base64.encode(name.value.encodeToByteArray()))
+    )).decodeToString())
 }

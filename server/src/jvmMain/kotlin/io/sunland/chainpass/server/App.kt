@@ -18,8 +18,6 @@ import io.sunland.chainpass.common.network.WebSocket
 import io.sunland.chainpass.common.network.WebSocket.decode
 import io.sunland.chainpass.common.network.WebSocket.encode
 import io.sunland.chainpass.common.network.WebSocket.getRoute
-import io.sunland.chainpass.common.security.EncoderSpec
-import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.server.repository.ChainLinkRepository
 import io.sunland.chainpass.server.repository.ChainRepository
 import kotlinx.coroutines.Dispatchers
@@ -39,14 +37,22 @@ fun Application.main() {
                             .mapCatching { Payload.Empty }
                         WebSocket.Route.CHAIN_READ -> ChainRepository.read()
                             .mapCatching { chainEntities -> Payload.encode(chainEntities) }
-                        WebSocket.Route.CHAIN_DELETE -> payload.decode<ChainKeyEntity>().let { chainKeyEntity ->
+                        WebSocket.Route.CHAIN_DELETE -> {
+                            val chainKeyEntity = payload.decode<ChainKeyEntity>()
+
                             ChainRepository.read(chainKeyEntity.id)
                                 .mapCatching { chainEntity ->
-                                    val key = ChainRepository.key(chainEntity.id).map { key ->
-                                        PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
+                                    Chain().apply {
+                                        id = chainEntity.id
+                                        name = Chain.Name(chainEntity.name)
+                                        key = Chain.Key(chainEntity.key)
+                                    }
+                                }.mapCatching { chain ->
+                                    chain.key = ChainRepository.key(chain.id).map { chainKeyEntity ->
+                                        chain.saltKey(chain.key, chainKeyEntity.key)
                                     }.getOrThrow()
 
-                                    Chain.Key(key).matches(chainKeyEntity.key).getOrThrow()
+                                    chain.validateKey(Chain.Key(chainKeyEntity.key))
                                 }
                                 .mapCatching { ChainRepository.delete(chainKeyEntity).getOrThrow() }
                                 .mapCatching { Payload.Empty }
@@ -54,54 +60,86 @@ fun Application.main() {
                         WebSocket.Route.CHAIN_KEY -> ChainRepository.key(payload.decode())
                             .mapCatching { chainKeyEntity -> Payload.encode(chainKeyEntity) }
                         WebSocket.Route.CHAIN_LINK_CREATE -> payload.decode<List<ChainLinkEntity>>().let { chainLinkEntities ->
-                            ChainRepository.read(chainLinkEntities[0].chainKey.id)
+                            val chainKeyEntity = chainLinkEntities[0].chainKey
+
+                            ChainRepository.read(chainKeyEntity.id)
                                 .mapCatching { chainEntity ->
-                                    val key = ChainRepository.key(chainEntity.id).map { key ->
-                                        PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
+                                    Chain().apply {
+                                        id = chainEntity.id
+                                        name = Chain.Name(chainEntity.name)
+                                        key = Chain.Key(chainEntity.key)
+                                    }
+                                }.mapCatching { chain ->
+                                    chain.key = ChainRepository.key(chain.id).map { chainKeyEntity ->
+                                        chain.saltKey(chain.key, chainKeyEntity.key)
                                     }.getOrThrow()
 
-                                    Chain.Key(key).matches(chainLinkEntities[0].chainKey.key).getOrThrow()
+                                    chain.validateKey(Chain.Key(chainKeyEntity.key))
                                 }
                                 .mapCatching { ChainLinkRepository.create(chainLinkEntities).getOrThrow() }
                                 .mapCatching { Payload.Empty }
                         }
-                        WebSocket.Route.CHAIN_LINK_READ -> payload.decode<ChainKeyEntity>().let { chainKeyEntity ->
+                        WebSocket.Route.CHAIN_LINK_READ -> {
+                            val chainKeyEntity = payload.decode<ChainKeyEntity>()
+
                             ChainRepository.read(chainKeyEntity.id)
                                 .mapCatching { chainEntity ->
-                                    val key = ChainRepository.key(chainEntity.id).map { key ->
-                                        PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
+                                    Chain().apply {
+                                        id = chainEntity.id
+                                        name = Chain.Name(chainEntity.name)
+                                        key = Chain.Key(chainEntity.key)
+                                    }
+                                }.mapCatching { chain ->
+                                    chain.key = ChainRepository.key(chain.id).map { chainKeyEntity ->
+                                        chain.saltKey(chain.key, chainKeyEntity.key)
                                     }.getOrThrow()
 
-                                    Chain.Key(key).matches(chainKeyEntity.key).getOrThrow()
+                                    chain.validateKey(Chain.Key(chainKeyEntity.key))
                                 }
                                 .mapCatching { ChainLinkRepository.read(chainKeyEntity).getOrThrow() }
                                 .mapCatching { chainLinkEntities -> Payload.encode(chainLinkEntities) }
                         }
                         WebSocket.Route.CHAIN_LINK_UPDATE -> payload.decode<ChainLinkEntity>().let { chainLinkEntity ->
-                            ChainRepository.read(chainLinkEntity.chainKey.id)
+                            val chainKeyEntity = chainLinkEntity.chainKey
+
+                            ChainRepository.read(chainKeyEntity.id)
                                 .mapCatching { chainEntity ->
-                                    val key = ChainRepository.key(chainEntity.id).map { key ->
-                                        PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
+                                    Chain().apply {
+                                        id = chainEntity.id
+                                        name = Chain.Name(chainEntity.name)
+                                        key = Chain.Key(chainEntity.key)
+                                    }
+                                }.mapCatching { chain ->
+                                    chain.key = ChainRepository.key(chain.id).map { chainKeyEntity ->
+                                        chain.saltKey(chain.key, chainKeyEntity.key)
                                     }.getOrThrow()
 
-                                    Chain.Key(key).matches(chainLinkEntity.chainKey.key).getOrThrow()
+                                    chain.validateKey(Chain.Key(chainKeyEntity.key))
                                 }
                                 .mapCatching { ChainLinkRepository.update(chainLinkEntity).getOrThrow() }
                                 .mapCatching { Payload.Empty }
                         }
                         WebSocket.Route.CHAIN_LINK_DELETE -> payload.decode<ChainLinkEntity>().let { chainLinkEntity ->
-                            ChainRepository.read(chainLinkEntity.chainKey.id)
+                            val chainKeyEntity = chainLinkEntity.chainKey
+
+                            ChainRepository.read(chainKeyEntity.id)
                                 .mapCatching { chainEntity ->
-                                    val key = ChainRepository.key(chainEntity.id).map { key ->
-                                        PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
+                                    Chain().apply {
+                                        id = chainEntity.id
+                                        name = Chain.Name(chainEntity.name)
+                                        key = Chain.Key(chainEntity.key)
+                                    }
+                                }.mapCatching { chain ->
+                                    chain.key = ChainRepository.key(chain.id).map { chainKeyEntity ->
+                                        chain.saltKey(chain.key, chainKeyEntity.key)
                                     }.getOrThrow()
 
-                                    Chain.Key(key).matches(chainLinkEntity.chainKey.key).getOrThrow()
+                                    chain.validateKey(Chain.Key(chainKeyEntity.key))
                                 }
                                 .mapCatching { ChainLinkRepository.delete(chainLinkEntity).getOrThrow() }
                                 .mapCatching { Payload.Empty }
                         }
-                        else -> error("No payload route found")
+                        else -> throw IllegalStateException("No payload route found")
                     }.getOrThrow()
                 }
             }

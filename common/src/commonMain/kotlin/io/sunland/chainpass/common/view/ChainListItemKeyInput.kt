@@ -30,7 +30,6 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.Chain
-import io.sunland.chainpass.common.StorageOptions
 import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.common.component.Dialog
 
@@ -49,12 +48,14 @@ class FilePath(value: String? = null) {
     val fileName = value?.substringAfterLast("/")?.substringBeforeLast(".") ?: ""
 }
 
+data class StoreOptions(val isPrivate: Boolean = true, val type: StorageType = StorageType.JSON)
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListItemKeyInput(
     inputActionType: InputActionType,
     onDismiss: () -> Unit,
-    onConfirm: (Chain.Key, StorageOptions?, FilePath?) -> Unit
+    onConfirm: (Chain.Key, StoreOptions?, FilePath?) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
 
@@ -99,7 +100,7 @@ fun ChainListItemKeyInput(
 
     val onDone = {
         val chainKey = Chain.Key(keyState.value)
-        val storageOptions = StorageOptions(storageIsPrivateState.value, storageTypeState.value)
+        val storeOptions = StoreOptions(storageIsPrivateState.value, storageTypeState.value)
         val filePath = FilePath(filePathState.value)
 
         keyErrorState.value = chainKey.validation.isFailure
@@ -110,10 +111,10 @@ fun ChainListItemKeyInput(
                 onConfirm(chainKey, null, null)
             }
             InputActionType.STORE -> if (!keyErrorState.value) {
-                onConfirm(chainKey, storageOptions, null)
+                onConfirm(chainKey, storeOptions, null)
             }
             InputActionType.UNSTORE -> if (!keyErrorState.value && !filePathErrorState.value) {
-                onConfirm(chainKey, storageOptions, filePath)
+                onConfirm(chainKey, storeOptions, filePath)
             }
         }
     }

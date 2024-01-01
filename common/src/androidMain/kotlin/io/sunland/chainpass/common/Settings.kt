@@ -22,7 +22,7 @@ actual class SettingsManager actual constructor(actual val dirPath: String) {
         file.writeText(Json.encodeToString(settings))
     }
 
-    actual fun load(settings: Settings): Settings? {
+    actual fun load(): Settings? {
         val file = File(filePath)
 
         return if (file.exists()) {
@@ -30,7 +30,7 @@ actual class SettingsManager actual constructor(actual val dirPath: String) {
         } else null
     }
 
-    actual fun delete(settings: Settings) {
+    actual fun delete() {
         val file = File(filePath)
 
         if (file.exists()) {

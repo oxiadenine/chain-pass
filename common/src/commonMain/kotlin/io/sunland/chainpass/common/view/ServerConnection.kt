@@ -123,7 +123,10 @@ fun ServerConnection(
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        ServerConnectionTopBar(serverConnectionState = serverConnectionState, onConnect = onDone)
+        ServerConnectionTopBar(
+            connectEnabled = serverConnectionState.discoveringState.value?.isActive != true,
+            onConnect = onDone
+        )
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier

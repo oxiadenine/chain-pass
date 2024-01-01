@@ -23,41 +23,39 @@ import io.sunland.chainpass.common.network.discover
 import io.sunland.chainpass.common.view.*
 import kotlinx.coroutines.launch
 
-enum class Screen { SERVER_CONNECTION, CHAIN_LIST, CHAIN_LINK_LIST }
-
-enum class ThemeColor(val color: Color) {
-    ANTHRACITE(Color(0.22f, 0.24f, 0.26f)),
-    QUARTZ(Color(0.91f, 0.87f, 0.88f)),
-    COPPER(Color(0.72f, 0.46f, 0.28f))
+object Theme {
+    enum class Palette(val color: Color) {
+        ANTHRACITE(Color(0.22f, 0.24f, 0.26f)),
+        QUARTZ(Color(0.91f, 0.87f, 0.88f)),
+        COPPER(Color(0.72f, 0.46f, 0.28f))
+    }
 }
 
-class AppState(
-    val settingsState: MutableState<Settings>,
-    val screenState: MutableState<Screen>,
-    val isServerConnected: MutableState<Boolean>
-)
+enum class Screen { SERVER_CONNECTION, CHAIN_LIST, CHAIN_LINK_LIST }
+
+class NavigationState(val screenState: MutableState<Screen>)
 
 @Composable
-fun rememberAppState(settings: Settings, screen: Screen) = remember {
-    AppState(mutableStateOf(settings), mutableStateOf(screen), mutableStateOf(false))
+fun rememberNavigationState(): NavigationState = remember {
+    NavigationState(mutableStateOf(Screen.SERVER_CONNECTION))
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppState) = MaterialTheme(
+fun App(httpClient: HttpClient, settingsManager: SettingsManager) = MaterialTheme(
     colors = darkColors(
-        primary = ThemeColor.QUARTZ.color,
-        primaryVariant = ThemeColor.QUARTZ.color,
-        secondary = ThemeColor.QUARTZ.color,
-        secondaryVariant = ThemeColor.QUARTZ.color,
-        background = ThemeColor.ANTHRACITE.color,
-        surface = ThemeColor.ANTHRACITE.color,
-        error = ThemeColor.COPPER.color,
-        onPrimary = ThemeColor.ANTHRACITE.color,
-        onSecondary = ThemeColor.ANTHRACITE.color,
-        onBackground = ThemeColor.QUARTZ.color,
-        onSurface = ThemeColor.QUARTZ.color,
-        onError = ThemeColor.COPPER.color
+        primary = Theme.Palette.QUARTZ.color,
+        primaryVariant = Theme.Palette.QUARTZ.color,
+        secondary = Theme.Palette.QUARTZ.color,
+        secondaryVariant = Theme.Palette.QUARTZ.color,
+        background = Theme.Palette.ANTHRACITE.color,
+        surface = Theme.Palette.ANTHRACITE.color,
+        error = Theme.Palette.COPPER.color,
+        onPrimary = Theme.Palette.ANTHRACITE.color,
+        onSecondary = Theme.Palette.ANTHRACITE.color,
+        onBackground = Theme.Palette.QUARTZ.color,
+        onSurface = Theme.Palette.QUARTZ.color,
+        onError = Theme.Palette.COPPER.color
     ),
     typography = Typography(defaultFontFamily = FontFamily.Monospace),
     shapes = Shapes(
@@ -66,25 +64,29 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
         large = RoundedCornerShape(percent = 0)
     )
 ) {
-    if (!appState.isServerConnected.value) {
-        settingsManager.load(appState.settingsState.value)?.let { settings ->
-            appState.settingsState.value = settings
-            appState.screenState.value = Screen.CHAIN_LIST
-            appState.isServerConnected.value = true
-        }
-    }
-
-    val scaffoldState = rememberScaffoldState()
-
     val coroutineScope = rememberCoroutineScope()
 
+    val settingsState = remember { mutableStateOf(Settings()) }
+    val navigationState = rememberNavigationState()
+    val scaffoldState = rememberScaffoldState()
+
+    settingsManager.load()?.let { settings ->
+        settingsState.value = settings
+
+        navigationState.screenState.value = if (settings.isServerConnected) {
+            Screen.CHAIN_LIST
+        } else Screen.SERVER_CONNECTION
+    }
+
     val chainListViewModel = ChainListViewModel(
-        ChainApi(httpClient, appState.settingsState.value),
-        ChainLinkApi(httpClient, appState.settingsState.value)
+        Storage(settingsManager.dirPath),
+        ChainApi(httpClient, settingsState.value),
+        ChainLinkApi(httpClient,settingsState.value)
     )
+
     val chainLinkListViewModel = ChainLinkListViewModel(
-        ChainApi(httpClient, appState.settingsState.value),
-        ChainLinkApi(httpClient, appState.settingsState.value)
+        ChainApi(httpClient, settingsState.value),
+        ChainLinkApi(httpClient,settingsState.value)
     )
 
     Scaffold(
@@ -113,7 +115,7 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
         }
     ) {
         Box {
-            when (appState.screenState.value) {
+            when (navigationState.screenState.value) {
                 Screen.SERVER_CONNECTION -> {
                     val serverConnectionState = ServerConnectionState(ServerAddress())
 
@@ -144,14 +146,14 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                             serverConnectionState.discoveringState.value = null
                         },
                         onConnect = { serverAddress ->
-                            appState.settingsState.value = Settings(
+                            settingsState.value = Settings(
                                 serverAddress.host.value,
-                                serverAddress.port.value.toInt()
+                                serverAddress.port.value.toInt(),
+                                true
                             )
-                            appState.screenState.value = Screen.CHAIN_LIST
-                            appState.isServerConnected.value = true
+                            navigationState.screenState.value = Screen.CHAIN_LIST
 
-                            settingsManager.save(appState.settingsState.value)
+                            settingsManager.save(settingsState.value)
                         }
                     )
                 }
@@ -160,14 +162,12 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                         chainListViewModel.getAll().onFailure { exception ->
                             scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                         }
-
-                        chainLinkListViewModel.chain = null
                     }
 
                     ChainList(
                         serverAddress = ServerAddress().apply {
-                            host = ServerAddress.Host(appState.settingsState.value.serverHost)
-                            port = ServerAddress.Port(appState.settingsState.value.serverPort.toString())
+                            host = ServerAddress.Host(settingsState.value.serverHost)
+                            port = ServerAddress.Port(settingsState.value.serverPort.toString())
                         },
                         viewModel = chainListViewModel,
                         onSync = {
@@ -193,10 +193,9 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                                 chainLinkListViewModel.chain = chain
 
                                 chainLinkListViewModel.getAll()
-                                    .onSuccess { appState.screenState.value = Screen.CHAIN_LINK_LIST }
-                                    .onFailure { exception ->
-                                        chainLinkListViewModel.chain = null
-
+                                    .onSuccess {
+                                        navigationState.screenState.value = Screen.CHAIN_LINK_LIST
+                                    }.onFailure { exception ->
                                         scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
                                     }
                             }
@@ -221,15 +220,11 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                                 }
                             }
                         },
-                        onStore = { chain, storageOptions ->
+                        onStore = { chain, storeOptions ->
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                                val storage = Storage(settingsManager.dirPath, storageOptions)
-
-                                chainLinkListViewModel.chain = chain
-
-                                chainListViewModel.store(chain, storage)
+                                chainListViewModel.store(chain, storeOptions)
                                     .onSuccess { fileName ->
                                         scaffoldState.snackbarHostState.showSnackbar("Stored to $fileName")
                                     }.onFailure { exception ->
@@ -255,11 +250,10 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                         onDisconnect = {
                             scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                            appState.settingsState.value = Settings()
-                            appState.screenState.value = Screen.SERVER_CONNECTION
-                            appState.isServerConnected.value = false
+                            settingsState.value = Settings()
+                            navigationState.screenState.value = Screen.SERVER_CONNECTION
 
-                            settingsManager.delete(appState.settingsState.value)
+                            settingsManager.delete()
                         }
                     )
                 }
@@ -269,11 +263,16 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                         onBack = {
                             scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                            appState.screenState.value = Screen.CHAIN_LIST
+                            chainLinkListViewModel.chain = null
+                            chainLinkListViewModel.chainLinks = emptyList()
+
+                            navigationState.screenState.value = Screen.CHAIN_LIST
                         },
                         onSync = {
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+
+                                chainLinkListViewModel.chainLinks = emptyList()
 
                                 chainLinkListViewModel.getAll().onFailure { exception ->
                                     scaffoldState.snackbarHostState.showSnackbar(exception.message ?: "Error")
