@@ -270,20 +270,10 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                     actionLabel = "Dismiss",
                                     duration = SnackbarDuration.Short
                                 )) {
-                                    SnackbarResult.ActionPerformed -> {
-                                        chainLinkListViewModel.undoRemove(chainLink)
-
-                                        if (chainLinkListViewModel.isSearchState.value) {
-                                            chainLinkListViewModel.search("")
-                                        }
-                                    }
+                                    SnackbarResult.ActionPerformed -> chainLinkListViewModel.undoRemove(chainLink)
                                     SnackbarResult.Dismissed -> {
                                         chainLinkListViewModel.remove(chainLink).onFailure { exception ->
                                             chainLinkListViewModel.undoRemove(chainLink)
-
-                                            if (chainLinkListViewModel.isSearchState.value) {
-                                                chainLinkListViewModel.search("")
-                                            }
 
                                             scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                                         }

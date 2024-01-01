@@ -7,6 +7,7 @@ class ChainLink constructor() {
         description = chainLink.description
         password = chainLink.password
         status = chainLink.status
+        isLatest = chainLink.isLatest
     }
 
     class Name(value: String? = null) {
@@ -46,11 +47,12 @@ class ChainLink constructor() {
         } ?: Result.success(this.value)
     }
 
-    enum class Status { ACTUAL, DRAFT, EDIT, SELECT }
+    enum class Status { ACTUAL, DRAFT, EDIT }
 
     var id = 0
     var name = Name()
     var description = Description()
     var password = Password()
     var status = Status.DRAFT
+    var isLatest = false
 }

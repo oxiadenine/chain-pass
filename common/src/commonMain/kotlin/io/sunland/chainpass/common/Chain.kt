@@ -6,6 +6,7 @@ class Chain constructor() {
         name = chain.name
         key = chain.key
         status = chain.status
+        isLatest = chain.isLatest
     }
 
     class Name(value: String? = null) {
@@ -44,4 +45,5 @@ class Chain constructor() {
     var name = Name()
     var key = Key()
     var status = Status.DRAFT
+    var isLatest = false
 }

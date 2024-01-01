@@ -15,18 +15,33 @@ class ChainListViewModel(private val repository: ChainRepository) {
     val chainRemoveState = mutableStateOf<Chain?>(null)
     val chainSelectState = mutableStateOf<Chain?>(null)
 
+    val chainLatestIndex: Int
+        get() {
+            return chainListState.indexOfFirst { chain -> chain.isLatest }
+        }
+
     private var chains = emptyList<Chain>()
 
     fun draft() {
-        val chains = chains.plus(chainListState.filter { chain -> chain.status == Chain.Status.DRAFT })
+        val chainIds = chains.plus(chainListState.filter { chain ->
+            chain.status == Chain.Status.DRAFT
+        }).map { chain -> chain.id }
 
-        val chain = Chain().apply {
-            id = if (chains.isNotEmpty()) {
-                chains.maxOf { chain -> chain.id } + 1
-            } else 1
+        val chainDraft = Chain().apply {
+            id = chainIds.maxOrNull()?.let { it + 1 } ?: 1
+            isLatest = true
         }
 
-        chainListState.add(chain)
+        chainListState.add(chainDraft)
+
+        val chains = chainListState.map { chain ->
+            if (chain.id != chainDraft.id) {
+                chain.apply { isLatest = false }
+            } else chain
+        }
+
+        chainListState.clear()
+        chainListState.addAll(chains)
     }
 
     fun rejectDraft(chain: Chain) {

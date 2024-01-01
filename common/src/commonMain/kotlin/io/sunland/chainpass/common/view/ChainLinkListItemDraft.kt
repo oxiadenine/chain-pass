@@ -35,6 +35,8 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: () -> Unit) {
+    val focusRequester = remember { FocusRequester() }
+
     val nameState = remember { mutableStateOf(chainLink.name.value) }
     val nameValidationState = remember { mutableStateOf(chainLink.name.validation) }
 
@@ -115,8 +117,6 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
             ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
         }
         Column(modifier = Modifier.padding(horizontal = 4.dp)) {
-            val focusRequester = remember { FocusRequester() }
-
             val passwordGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
 
             ValidationTextField(
@@ -193,8 +193,10 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: ()
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 keyboardActions = KeyboardActions(onDone = { onDone() })
             )
-
-            LaunchedEffect(Unit) { focusRequester.requestFocus() }
         }
+    }
+
+    if (chainLink.isLatest) {
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
     }
 }
