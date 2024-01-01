@@ -158,17 +158,15 @@ fun ChainList(
         } else {
             LazyColumn(state = lazyListState, modifier = Modifier.fillMaxWidth()) {
                 items(items = viewModel.chainListState.toTypedArray(), key = { chain -> chain.id }) { chain ->
-                    if (!chain.isDraft) {
-                        ChainListItem(
-                            onMenuItemClick = { menuItem ->
-                                viewModel.selectForKey(chain)
+                    ChainListItem(
+                        onMenuItemClick = { menuItem ->
+                            viewModel.selectForKey(chain)
 
-                                listItemMenuItem = menuItem
-                                listItemKeyDialogVisible = true
-                            },
-                            name = chain.name.value
-                        )
-                    } else ChainListItemDraft(name = chain.name.value)
+                            listItemMenuItem = menuItem
+                            listItemKeyDialogVisible = true
+                        },
+                        name = chain.name.value
+                    )
                 }
             }
 
@@ -240,7 +238,11 @@ fun ChainList(
                 listItemNewDialogVisible = false
 
                 coroutineScope.launch(Dispatchers.IO) {
+                    loadingDialogVisible = true
+
                     viewModel.new(chainName, chainKey)
+
+                    loadingDialogVisible = false
                 }
             },
             onCancel = { listItemNewDialogVisible = false },

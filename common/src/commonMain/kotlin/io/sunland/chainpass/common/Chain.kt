@@ -11,7 +11,6 @@ class Chain constructor() {
         id = chain.id
         name = chain.name
         key = chain.key
-        isDraft = chain.isDraft
     }
 
     class Name(value: String? = null) {
@@ -49,7 +48,6 @@ class Chain constructor() {
     var id = Random.uuid()
     var name = Name()
     var key = Key()
-    var isDraft = false
 
     fun secretKey() = Key(PasswordEncoder.hash(EncoderSpec.Passphrase(
         PasswordEncoder.Base64.encode(key.value.encodeToByteArray()),

@@ -166,64 +166,57 @@ fun ChainLinkList(
                 items(items = chainLinks, key = { chainLink -> chainLink.id }) { chainLink ->
                     val clipboardManager = LocalClipboardManager.current
 
-                    if (!chainLink.isDraft) {
-                        ChainLinkListItem(
-                            onMenuItemClick = { menuItem ->
-                                when (menuItem) {
-                                    ChainLinkListItemMenuItem.COPY -> {
-                                        scaffoldListState.popupHostState.currentPopupData?.dismiss()
+                    ChainLinkListItem(
+                        onMenuItemClick = { menuItem ->
+                            when (menuItem) {
+                                ChainLinkListItemMenuItem.COPY -> {
+                                    scaffoldListState.popupHostState.currentPopupData?.dismiss()
 
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            val password = viewModel.copyPassword(chainLink).value
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        val password = viewModel.copyPassword(chainLink).value
 
-                                            clipboardManager.setText(AnnotatedString(password))
+                                        clipboardManager.setText(AnnotatedString(password))
 
-                                            scaffoldListState.popupHostState.showPopup(
-                                                message = intl.translate("popup.chainLink.password.message")
-                                            )
-                                        }
+                                        scaffoldListState.popupHostState.showPopup(
+                                            message = intl.translate("popup.chainLink.password.message")
+                                        )
                                     }
-                                    ChainLinkListItemMenuItem.EDIT -> {
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            loadingDialogVisible = true
+                                }
+                                ChainLinkListItemMenuItem.EDIT -> {
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        loadingDialogVisible = true
 
-                                            viewModel.startEdit(chainLink)
+                                        viewModel.startEdit(chainLink)
 
-                                            loadingDialogVisible = false
+                                        loadingDialogVisible = false
 
-                                            listItemEditDialogVisible = true
-                                        }
+                                        listItemEditDialogVisible = true
                                     }
-                                    ChainLinkListItemMenuItem.DELETE -> {
-                                        scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
+                                }
+                                ChainLinkListItemMenuItem.DELETE -> {
+                                    scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            viewModel.removeLater(chainLink)
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        viewModel.removeLater(chainLink)
 
-                                            when (scaffoldListState.snackbarHostState.showSnackbar(
-                                                message = intl.translate(
-                                                    id = "snackbar.label.delete.text",
-                                                    value = "name" to chainLink.name.value
-                                                ),
-                                                actionLabel = intl.translate("snackbar.button.undo.text"),
-                                                duration = SnackbarDuration.Short
-                                            )) {
-                                                SnackbarResult.ActionPerformed -> viewModel.undoRemove()
-                                                SnackbarResult.Dismissed -> viewModel.remove()
-                                            }
+                                        when (scaffoldListState.snackbarHostState.showSnackbar(
+                                            message = intl.translate(
+                                                id = "snackbar.label.delete.text",
+                                                value = "name" to chainLink.name.value
+                                            ),
+                                            actionLabel = intl.translate("snackbar.button.undo.text"),
+                                            duration = SnackbarDuration.Short
+                                        )) {
+                                            SnackbarResult.ActionPerformed -> viewModel.undoRemove()
+                                            SnackbarResult.Dismissed -> viewModel.remove()
                                         }
                                     }
                                 }
-                            },
-                            name = chainLink.name.value,
-                            description = chainLink.description.value
-                        )
-                    } else {
-                        ChainLinkListItemDraft(
-                            name = chainLink.name.value,
-                            description = chainLink.description.value
-                        )
-                    }
+                            }
+                        },
+                        name = chainLink.name.value,
+                        description = chainLink.description.value
+                    )
                 }
             }
 
@@ -241,7 +234,11 @@ fun ChainLinkList(
                 listItemNewDialogVisible = false
 
                 coroutineScope.launch(Dispatchers.IO) {
+                    loadingDialogVisible = true
+
                     viewModel.new(chainLinkName, chainLinkDescription, chainLinkPassword)
+
+                    loadingDialogVisible = false
                 }
             },
             onCancel = { listItemNewDialogVisible = false },

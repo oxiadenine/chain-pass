@@ -10,7 +10,6 @@ class ChainLink(val chain: Chain) {
         name = chainLink.name
         description = chainLink.description
         password = chainLink.password
-        isDraft = chainLink.isDraft
     }
 
     class Name(value: String? = null) {
@@ -62,7 +61,6 @@ class ChainLink(val chain: Chain) {
     var name = Name()
     var description = Description()
     var password = Password()
-    var isDraft = false
 
     fun privatePassword(secretKey: Chain.Key) = Password(PasswordEncoder.encrypt(
         PasswordEncoder.Base64.encode(password.value.encodeToByteArray()),

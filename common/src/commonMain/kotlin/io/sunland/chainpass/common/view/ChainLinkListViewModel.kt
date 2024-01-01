@@ -7,7 +7,6 @@ import io.sunland.chainpass.common.network.WebSocket
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.security.PasswordGenerator
-import kotlinx.coroutines.coroutineScope
 import kotlin.IllegalStateException
 
 class ChainLinkListViewModel(
@@ -79,16 +78,15 @@ class ChainLinkListViewModel(
         chainLinkListState.addAll(chainLinks)
     }
 
-    suspend fun new(
+    fun new(
         chainLinkName: ChainLink.Name,
         chainLinkDescription: ChainLink.Description,
         chainLinkPassword : ChainLink.Password
-    ) = coroutineScope {
+    ) {
         val chainLinkDraft = ChainLink(chain).apply {
             name = chainLinkName
             description = chainLinkDescription
             password = chainLinkPassword
-            isDraft = true
         }
 
         val secretKey = chainLinkDraft.chain.secretKey()
@@ -103,22 +101,11 @@ class ChainLinkListViewModel(
             chainLinkDraft.chain.id
         )
 
-        chainLinkSelected = ChainLink(chainLinkDraft)
-
-        var chainLinks = chainLinkListState.plus(chainLinkSelected!!).sortedBy { chainLink -> chainLink.name.value }
-
-        chainLinkListState.clear()
-        chainLinkListState.addAll(chainLinks)
-
         chainLinkRepository.create(chainLinkEntity)
 
-        chainLinks = chainLinkListState.map { chainLink ->
-            if (chainLink.id == chainLinkDraft.id) {
-                chainLink.isDraft = false
-            }
+        chainLinkSelected = chainLinkDraft
 
-            chainLink
-        }.sortedBy { chainLink -> chainLink.name.value }
+        val chainLinks = chainLinkListState.plus(chainLinkDraft).sortedBy { chainLink -> chainLink.name.value }
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)

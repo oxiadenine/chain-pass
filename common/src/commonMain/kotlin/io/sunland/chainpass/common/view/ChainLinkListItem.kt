@@ -112,35 +112,3 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
         }
     }
 }
-
-@Composable
-fun ChainLinkListItemDraft(name: String, description: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (description.isNotEmpty()) {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp, horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(space = 4.dp)) {
-                    Text(text = name)
-                    Text(text = description, fontSize = 14.sp)
-                }
-                CircularProgressIndicator(modifier = Modifier.size(size = 16.dp), strokeWidth = 2.dp)
-            }
-        } else {
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 18.dp, horizontal = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = name)
-                CircularProgressIndicator(modifier = Modifier.size(size = 16.dp), strokeWidth = 2.dp)
-            }
-        }
-    }
-}

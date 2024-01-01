@@ -9,7 +9,6 @@ import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.common.security.PasswordGenerator
-import kotlinx.coroutines.coroutineScope
 
 class ChainListViewModel(
     val passwordGenerator: PasswordGenerator,
@@ -63,11 +62,10 @@ class ChainListViewModel(
         chainListState.addAll(chains)
     }
 
-    suspend fun new(chainName: Chain.Name, chainKey: Chain.Key) = coroutineScope {
+    fun new(chainName: Chain.Name, chainKey: Chain.Key) {
         val chainDraft = Chain().apply {
             name = chainName
             key = chainKey
-            isDraft = true
         }
 
         val secretKey = chainDraft.secretKey()
@@ -75,24 +73,13 @@ class ChainListViewModel(
 
         val chainEntity = ChainEntity(chainDraft.id, chainDraft.name.value, privateKey.value)
 
-        chainDraft.key = Chain.Key()
-
-        chainSelected = Chain(chainDraft)
-
-        var chains = chainListState.plus(chainDraft).sortedBy { chain -> chain.name.value }
-
-        chainListState.clear()
-        chainListState.addAll(chains)
-
         chainRepository.create(chainEntity)
 
-        chains = chainListState.map { chain ->
-            if (chain.id == chainDraft.id) {
-                chain.isDraft = false
-            }
+        chainDraft.key = Chain.Key()
 
-            chain
-        }.sortedBy { chain -> chain.name.value }
+        chainSelected = chainDraft
+
+        val chains = chainListState.plus(chainDraft).sortedBy { chain -> chain.name.value }
 
         chainListState.clear()
         chainListState.addAll(chains)
