@@ -7,6 +7,9 @@ plugins {
 dependencies {
     implementation(project(":common"))
 
+    implementation(exposedDependency("jdbc"))
+    implementation(h2databaseDependency())
+
     testImplementation(kotlin("test"))
 }
 

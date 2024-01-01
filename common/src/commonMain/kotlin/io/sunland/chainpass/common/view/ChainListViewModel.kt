@@ -50,7 +50,7 @@ class ChainListViewModel(
         chainListState.addAll(chains)
     }
 
-    fun getAll() {
+    suspend fun getAll() {
         val chains = chainRepository.getAll().map { chainEntity ->
             Chain().apply {
                 id = chainEntity.id
@@ -62,7 +62,7 @@ class ChainListViewModel(
         chainListState.addAll(chains)
     }
 
-    fun new(chainName: Chain.Name, chainKey: Chain.Key) {
+    suspend fun new(chainName: Chain.Name, chainKey: Chain.Key) {
         val chainDraft = Chain().apply {
             name = chainName
             key = chainKey
@@ -85,7 +85,7 @@ class ChainListViewModel(
         chainListState.addAll(chains)
     }
 
-    fun select(chainKey: Chain.Key) = runCatching {
+    suspend fun select(chainKey: Chain.Key) = runCatching {
         val chain = chainSelected!!.apply { key = chainKey }
 
         val chainEntity = chainRepository.getOne(chain.id).getOrThrow()
@@ -100,7 +100,7 @@ class ChainListViewModel(
         }.validateKey(privateKey)
     }
 
-    fun remove() = runCatching {
+    suspend fun remove() = runCatching {
         val chain = chainRemovedListState.first()
 
         val chainEntity = chainRepository.getOne(chain.id).getOrThrow()
@@ -119,7 +119,7 @@ class ChainListViewModel(
         chainRemovedListState.remove(chain)
     }
 
-    fun store(storageType: StorageType, storeIsPrivate: Boolean): String {
+    suspend fun store(storageType: StorageType, storeIsPrivate: Boolean): String {
         val storableOptions = StorableOptions(storeIsPrivate)
         val storableChains = chainRepository.getAll().map { chainEntity ->
             val storableChainLinks = chainLinkRepository.getBy(chainEntity.id).map { chainLink ->
@@ -134,7 +134,7 @@ class ChainListViewModel(
         return chainRepository.store(storageType, storable)
     }
 
-    fun unstore(filePath: FilePath) = runCatching {
+    suspend fun unstore(filePath: FilePath) = runCatching {
         val storable = try {
             chainRepository.unstore(filePath.value)
         } catch (e: IllegalStateException) {

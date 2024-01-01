@@ -20,7 +20,7 @@ import java.awt.Dimension
 
 fun main() {
     val settingsManager = SettingsManager("${System.getProperty("user.home")}/.chain-pass")
-    val database = DatabaseFactory.createDatabase(DriverFactory(settingsManager.dirPath))
+    val database = Database.create("${System.getProperty("user.home")}/.chain-pass")
     val storage = Storage("${System.getProperty("user.home")}/Downloads")
 
     val chainRepository = ChainRepository(database, storage)

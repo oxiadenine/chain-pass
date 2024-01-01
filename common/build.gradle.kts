@@ -3,7 +3,6 @@ plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
     kotlin("plugin.serialization")
-    id("com.squareup.sqldelight")
 }
 
 java {
@@ -38,6 +37,8 @@ kotlin {
 
                 implementation(rsocketDependency("transport-ktor-websocket-client"))
                 implementation(rsocketDependency("transport-ktor-websocket-server"))
+
+                implementation(exposedDependency("core"))
             }
         }
 
@@ -51,8 +52,6 @@ kotlin {
         named("desktopMain") {
             dependencies {
                 api(compose.desktop.common)
-
-                implementation(sqldelightDependency("sqlite-driver"))
             }
         }
         named("desktopTest") {
@@ -66,8 +65,6 @@ kotlin {
                 api(androidxDependency("core-ktx"))
                 api(androidxDependency("appcompat"))
                 api(androidxDependency("activity-compose"))
-
-                implementation(sqldelightDependency("android-driver"))
             }
         }
         named("androidTest") {
@@ -97,11 +94,5 @@ android {
             res.srcDirs("src/androidMain/res")
             resources.setSrcDirs(listOf("src/androidMain/resources", "src/commonMain/resources"))
         }
-    }
-}
-
-sqldelight {
-    database("Database") {
-        packageName = "${rootProject.group}.chainpass.sqldelight"
     }
 }

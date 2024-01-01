@@ -1,10 +1,10 @@
 package io.sunland.chainpass.common.repository
 
-import io.sunland.chainpass.common.Storable
-import io.sunland.chainpass.common.Storage
-import io.sunland.chainpass.common.StorageType
-import io.sunland.chainpass.sqldelight.Database
+import io.sunland.chainpass.common.*
+import io.sunland.chainpass.common.Database
 import kotlinx.serialization.Serializable
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 @Serializable
 data class ChainLinkEntity(
@@ -16,36 +16,57 @@ data class ChainLinkEntity(
 )
 
 class ChainLinkRepository(private val database: Database, private val storage: Storage) {
-    fun create(chainLinkEntity: ChainLinkEntity) = database.chainLinkQueries.transaction {
-        database.chainLinkQueries.insert(
-            chainLinkEntity.id,
-            chainLinkEntity.name,
-            chainLinkEntity.description,
-            chainLinkEntity.password,
-            chainLinkEntity.chainId
-        )
+    suspend fun create(chainLinkEntity: ChainLinkEntity) = database.transaction {
+        ChainLinkTable.insert { statement ->
+            statement[id] = chainLinkEntity.id
+            statement[name] = chainLinkEntity.name
+            statement[description] = chainLinkEntity.description
+            statement[password] = chainLinkEntity.password
+            statement[chainId] = chainLinkEntity.chainId
+        }
+
+         Unit
     }
 
-    fun getBy(chainId: String) = database.chainLinkQueries.transactionWithResult {
-        database.chainLinkQueries.selectBy(chainId).executeAsList().map { record ->
-            ChainLinkEntity(record.id, record.name, record.description, record.password, record.chainId)
+    suspend fun getBy(chainId: String) = database.transaction {
+        ChainLinkTable.select { ChainLinkTable.chainId eq chainId }.map { record ->
+            ChainLinkEntity(
+                record[ChainLinkTable.id],
+                record[ChainLinkTable.name],
+                record[ChainLinkTable.description],
+                record[ChainLinkTable.password],
+                record[ChainLinkTable.chainId]
+            )
         }
     }
 
-    fun getOne(id: String) = runCatching {
-        database.chainLinkQueries.transactionWithResult {
-            val record = database.chainLinkQueries.selectOne(id).executeAsOne()
+    suspend fun getOne(id: String) = runCatching {
+        database.transaction {
+            val record = ChainLinkTable.select { ChainLinkTable.id eq id }.first()
 
-            ChainLinkEntity(record.id, record.name, record.description, record.password, record.chainId)
+            ChainLinkEntity(
+                record[ChainLinkTable.id],
+                record[ChainLinkTable.name],
+                record[ChainLinkTable.description],
+                record[ChainLinkTable.password],
+                record[ChainLinkTable.chainId]
+            )
         }
     }
 
-    fun update(chainLinkEntity: ChainLinkEntity) = database.chainLinkQueries.transaction {
-        database.chainLinkQueries.update(chainLinkEntity.description, chainLinkEntity.password, chainLinkEntity.id)
+    suspend fun update(chainLinkEntity: ChainLinkEntity) = database.transaction {
+        ChainLinkTable.update({ ChainLinkTable.id eq chainLinkEntity.id }) { statement ->
+            statement[description] = chainLinkEntity.description
+            statement[password] = chainLinkEntity.password
+        }
+
+         Unit
     }
 
-    fun delete(chainLinkEntity: ChainLinkEntity) = database.chainLinkQueries.transaction {
-        database.chainLinkQueries.delete(chainLinkEntity.id, chainLinkEntity.chainId)
+    suspend fun delete(chainLinkEntity: ChainLinkEntity) = database.transaction {
+        ChainLinkTable.deleteWhere { (id eq chainLinkEntity.id) and (chainId eq chainLinkEntity.chainId) }
+
+        Unit
     }
 
     fun store(storageType: StorageType, storable: Storable) = storage.store(storageType, storable)

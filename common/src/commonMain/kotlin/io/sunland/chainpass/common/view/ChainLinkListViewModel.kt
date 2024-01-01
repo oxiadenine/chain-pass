@@ -64,7 +64,7 @@ class ChainLinkListViewModel(
         return chainLink.plainPassword(secretKey)
     }
 
-    fun getAll() {
+    suspend fun getAll() {
         val chainLinks = chainLinkRepository.getBy(chain.id).map { chainLinkEntity ->
             ChainLink(chain).apply {
                 id = chainLinkEntity.id
@@ -78,7 +78,7 @@ class ChainLinkListViewModel(
         chainLinkListState.addAll(chainLinks)
     }
 
-    fun new(
+    suspend fun new(
         chainLinkName: ChainLink.Name,
         chainLinkDescription: ChainLink.Description,
         chainLinkPassword : ChainLink.Password
@@ -111,7 +111,7 @@ class ChainLinkListViewModel(
         chainLinkListState.addAll(chainLinks)
     }
 
-    fun edit(chainLinkDescription: ChainLink.Description, chainLinkPassword: ChainLink.Password) {
+    suspend fun edit(chainLinkDescription: ChainLink.Description, chainLinkPassword: ChainLink.Password) {
         val chainLinkEdit = ChainLink(chain).apply {
             id = chainLinkEdit!!.id
             name = chainLinkEdit!!.name
@@ -145,7 +145,7 @@ class ChainLinkListViewModel(
         chainLinkListState.addAll(chainLinks)
     }
 
-    fun remove() {
+    suspend fun remove() {
         val chainLink = chainLinkRemovedListState.first()
 
         val chainLinkEntity = ChainLinkEntity(
@@ -161,7 +161,7 @@ class ChainLinkListViewModel(
         chainLinkRemovedListState.remove(chainLink)
     }
 
-    fun store(storageType: StorageType, storeIsPrivate: Boolean): String {
+    suspend fun store(storageType: StorageType, storeIsPrivate: Boolean): String {
         val storableOptions = StorableOptions(storeIsPrivate)
         val storableChainLinks = chainLinkRepository.getBy(chain.id).map { chainLinkEntity ->
             val chainLink = ChainLink(chain).apply {
@@ -189,7 +189,7 @@ class ChainLinkListViewModel(
         return chainLinkRepository.store(storageType, storable)
     }
 
-    fun unstore(filePath: FilePath) = runCatching {
+    suspend fun unstore(filePath: FilePath) = runCatching {
         val storable = try {
             chainLinkRepository.unstore(filePath.value)
         } catch (e: IllegalStateException) {
