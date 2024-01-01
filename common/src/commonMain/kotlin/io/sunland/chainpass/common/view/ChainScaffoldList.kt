@@ -159,9 +159,12 @@ fun ChainScaffoldList(
             ) { isSnackbarVisible ->
                 val density = LocalDensity.current
 
+                val (lazyListScrollDirection, lazyListScrollPosition) = scaffoldListState.lazyListState.scrollInfo()
+
                 AnimatedVisibility(
                     visible = isSnackbarVisible ||
-                            scaffoldListState.lazyListState.scrollDirection() == LazyListScrollDirection.BACKWARD,
+                            lazyListScrollDirection == LazyListScrollDirection.BACKWARD ||
+                            lazyListScrollPosition == LazyListScrollPosition.END,
                     enter = slideInVertically {
                         with(density) { -16.dp.roundToPx() }
                     } + expandVertically(expandFrom = Alignment.Top),
