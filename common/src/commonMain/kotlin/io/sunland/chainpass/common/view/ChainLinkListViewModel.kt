@@ -32,8 +32,8 @@ class ChainLinkListViewModel(
                 if (chainLink.id == editChainLink.id) {
                     editChainLink
                 } else chainLink
-            }.plus(draftChainLinks)
-        } else _chainLinks.plus(draftChainLinks))
+            }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks)
+        } else _chainLinks.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
 
         Unit
     }
@@ -96,7 +96,7 @@ class ChainLinkListViewModel(
             }
 
             chainLink
-        }.plus(draftChainLinks))
+        }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
     }
 
     fun endEdit(chainLink: ChainLink) {
@@ -208,6 +208,6 @@ class ChainLinkListViewModel(
         _chainLinks = chainLinks.filter { chainLink -> chainLink.status != ChainLinkStatus.DRAFT }
 
         chainLinks.clear()
-        chainLinks.addAll(_chainLinks.plus(draftChainLinks))
+        chainLinks.addAll(_chainLinks.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
     }
 }

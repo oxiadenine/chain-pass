@@ -19,7 +19,7 @@ class ChainListViewModel(private val repository: ChainRepository) {
         val draftChains = chains.filter { chain -> chain.status == ChainStatus.DRAFT }
 
         chains.clear()
-        chains.addAll(_chains.plus(draftChains))
+        chains.addAll(_chains.sortedBy { chain -> chain.name.value }.plus(draftChains))
 
         Unit
     }
@@ -125,6 +125,6 @@ class ChainListViewModel(private val repository: ChainRepository) {
         _chains = chains.filter { chain -> chain.status != ChainStatus.DRAFT }
 
         chains.clear()
-        chains.addAll(_chains.plus(draftChains))
+        chains.addAll(_chains.sortedBy { chain -> chain.name.value }.plus(draftChains))
     }
 }
