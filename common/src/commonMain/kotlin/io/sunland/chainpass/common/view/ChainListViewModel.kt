@@ -83,10 +83,10 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     suspend fun remove(chain: Chain): Result<Unit> {
-        return repository.seed().mapCatching { seed ->
+        return repository.key(chain.id).mapCatching { key ->
             var passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
 
-            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain.key.value), seed)
+            passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain.key.value), key.key)
 
             val chainKeyEntity = ChainKeyEntity(chain.id, PasswordEncoder.hash(passphrase))
 

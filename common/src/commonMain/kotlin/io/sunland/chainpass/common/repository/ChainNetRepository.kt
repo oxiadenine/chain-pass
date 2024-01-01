@@ -74,25 +74,25 @@ class ChainNetRepository(private val httpClient: HttpClient) : ChainRepository {
         }
     }
 
-    override suspend fun seed(saved: Boolean) = runCatching {
-        var seed = ""
+    override suspend fun key(id: Int) = runCatching {
+        var key: ChainKeyEntity? = null
 
         httpClient.webSocket {
-            send(SocketMessage.success(SocketMessageType.CHAIN_SEED).toFrame())
+            send(SocketMessage.success(SocketMessageType.CHAIN_KEY, id.toString()).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue
 
                 val message = SocketMessage.from(frame)
 
-                if (message.type == SocketMessageType.CHAIN_SEED) {
-                    seed = message.data.getOrThrow()
+                if (message.type == SocketMessageType.CHAIN_KEY) {
+                    key = Json.decodeFromString(message.data.getOrThrow())
                 }
 
                 break
             }
         }
 
-        seed
+        key!!
     }
 }

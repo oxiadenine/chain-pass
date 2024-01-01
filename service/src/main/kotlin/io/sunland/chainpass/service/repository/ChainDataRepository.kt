@@ -13,7 +13,7 @@ import java.security.SecureRandom
 import java.util.*
 
 object ChainDataRepository : ChainRepository {
-    private val seeds = Collections.synchronizedList<String>(mutableListOf())
+    private val keys = Collections.synchronizedList<ChainKeyEntity>(mutableListOf())
 
     override suspend fun create(chainEntity: ChainEntity) = runCatching {
         Database.execute {
@@ -46,19 +46,19 @@ object ChainDataRepository : ChainRepository {
         }
     }
 
-    override suspend fun seed(saved: Boolean) = runCatching {
-        if (saved) {
-            seeds.removeAt(0)
-        } else {
+    override suspend fun key(id: Int) = runCatching {
+        var key = keys.firstOrNull { key -> key.id == id }
+
+        if (key == null) {
             val seedBytes = ByteArray(16)
 
             SecureRandom().nextBytes(seedBytes)
 
-            val seed = Base64.getEncoder().encodeToString(seedBytes)
+            key = ChainKeyEntity(id, Base64.getEncoder().encodeToString(seedBytes))
 
-            seeds.add(seed)
+            keys.add(key)
+        } else keys.remove(key)
 
-            seed
-        }
+        key
     }
 }

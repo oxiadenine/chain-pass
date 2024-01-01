@@ -8,7 +8,7 @@ enum class SocketMessageType {
     CHAIN_CREATE,
     CHAIN_READ,
     CHAIN_DELETE,
-    CHAIN_SEED,
+    CHAIN_KEY,
     CHAIN_LINK_CREATE,
     CHAIN_LINK_READ,
     CHAIN_LINK_UPDATE,

@@ -13,5 +13,5 @@ interface ChainRepository {
     suspend fun read(): Result<List<ChainEntity>>
     suspend fun read(id: Int): Result<ChainEntity>
     suspend fun delete(chainKeyEntity: ChainKeyEntity): Result<Unit>
-    suspend fun seed(saved: Boolean = false): Result<String>
+    suspend fun key(id: Int): Result<ChainKeyEntity>
 }
