@@ -37,7 +37,12 @@ fun main(args: Array<String>) = application {
         }
     }
 
-    Window(title = "Chain Pass", onCloseRequest = ::exitApplication) {
-        App(httpClient)
-    }
+    Window(
+        title = "Chain Pass",
+        onCloseRequest = {
+            httpClient.close()
+
+            exitApplication()
+        }
+    ) { App(httpClient) }
 }

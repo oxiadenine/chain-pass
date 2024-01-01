@@ -148,10 +148,10 @@ fun main() {
                         },
                         onFailure = { exception -> logger.info(exception.message) }
                     )
-
-
                 }
             }
+
+            httpClient.close()
         }
     }
 }
