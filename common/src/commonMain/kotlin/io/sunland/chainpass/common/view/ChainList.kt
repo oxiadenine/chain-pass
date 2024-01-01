@@ -1,9 +1,8 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -13,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
-import kotlinx.coroutines.launch
+import io.sunland.chainpass.common.component.VerticalScrollbar
 
 @Composable
 fun ChainList(
@@ -25,21 +24,11 @@ fun ChainList(
     onSync: () -> Unit,
     onDisconnect: () -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
-
-    val lazyListState = rememberLazyListState()
-
     Column(modifier = Modifier.fillMaxSize()) {
         ChainListTopBar(
             serverAddress = serverAddress,
             onSync = onSync,
-            onAdd = {
-                viewModel.draft()
-
-                coroutineScope.launch {
-                    lazyListState.scrollToItem(viewModel.chainListState.size - 1)
-                }
-            },
+            onAdd = { viewModel.draft() },
             onDisconnect = onDisconnect
         )
         Box(modifier = Modifier.fillMaxSize()) {
@@ -53,8 +42,10 @@ fun ChainList(
                     Icon(imageVector = Icons.Default.Add, contentDescription = null)
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize(), state = lazyListState) {
-                    items(viewModel.chainListState.toTypedArray(), key = { chain -> chain.id }) { chain ->
+                val scrollState = rememberScrollState()
+
+                Column(modifier = Modifier.fillMaxSize().verticalScroll(state = scrollState)) {
+                    viewModel.chainListState.forEach { chain ->
                         when (chain.status) {
                             Chain.Status.ACTUAL -> {
                                 val keyInputDialogVisible = remember { mutableStateOf(false) }
@@ -93,14 +84,20 @@ fun ChainList(
                                     }
                                 )
                             }
-                            Chain.Status.DRAFT -> ChainListItemDraft(
-                                chain = chain,
-                                onNew = { onNew(chain) },
-                                onCancel = { viewModel.rejectDraft(chain) }
-                            )
+                            Chain.Status.DRAFT -> key(chain.id) {
+                                ChainListItemDraft(
+                                    chain = chain,
+                                    onNew = { onNew(chain) },
+                                    onCancel = { viewModel.rejectDraft(chain) }
+                                )
+                            }
                         }
                     }
                 }
+                VerticalScrollbar(
+                    modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
+                    scrollState = scrollState
+                )
             }
         }
     }
