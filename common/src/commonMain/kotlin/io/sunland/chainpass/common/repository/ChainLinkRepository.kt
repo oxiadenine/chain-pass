@@ -15,7 +15,7 @@ data class ChainLinkEntity(
     val chainId: String
 )
 
-class ChainLinkRepository(private val database: Database, private val storage: Storage) {
+class ChainLinkRepository(private val database: Database, val storage: Storage) {
     suspend fun create(chainLinkEntity: ChainLinkEntity) = database.transaction {
         ChainLinkTable.insert { statement ->
             statement[id] = chainLinkEntity.id
@@ -68,8 +68,4 @@ class ChainLinkRepository(private val database: Database, private val storage: S
 
         Unit
     }
-
-    fun store(storageType: StorageType, storable: Storable) = storage.store(storageType, storable)
-
-    fun unstore(filePath: String, fileBytes: ByteArray) = storage.unstore(filePath, fileBytes)
 }

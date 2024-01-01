@@ -60,8 +60,7 @@ fun main() {
                         settingsState = settingsState,
                         networkState = networkState,
                         themeState = themeState,
-                        navigationState = navigationState,
-                        storePath = storage.storePath
+                        navigationState = navigationState
                     )
                 }
             }

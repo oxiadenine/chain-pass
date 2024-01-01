@@ -91,6 +91,9 @@ fun ChainLinkListItemNewDialog(
                         is ChainLink.Name.LengthError -> {
                             intl.translate("dialog.chainLink.textField.name.length.error")
                         }
+                        is ChainLink.Name.InvalidError -> {
+                            intl.translate("dialog.chainLink.textField.name.invalid.error")
+                        }
                         else -> null
                     }
                 },

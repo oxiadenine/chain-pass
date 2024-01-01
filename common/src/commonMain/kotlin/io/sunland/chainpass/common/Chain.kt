@@ -16,6 +16,7 @@ class Chain() {
     class Name(value: String? = null) {
         object EmptyError : Error()
         object LengthError : Error()
+        object InvalidError : Error()
 
         var value = value ?: ""
             private set
@@ -25,6 +26,8 @@ class Chain() {
                 Result.failure(EmptyError)
             } else if (value.length > 16) {
                 Result.failure(LengthError)
+            } else if (!value.matches("^(\\w+\\.?)*\\w+\$".toRegex())) {
+                Result.failure(InvalidError)
             } else Result.success(value)
         } ?: Result.success(this.value)
     }

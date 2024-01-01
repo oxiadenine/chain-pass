@@ -13,34 +13,60 @@ import kotlin.reflect.full.primaryConstructor
 enum class StorageType { JSON, CSV, TXT }
 
 class Storage(dirPath: String) {
-    val storePath = "$dirPath/Chain Pass/Store"
+    val storeDirPath = "$dirPath/Chain Pass/Store"
 
     init {
-        if (!File(storePath).exists()) {
-            File(storePath).mkdirs()
+        if (!File(storeDirPath).exists()) {
+            File(storeDirPath).mkdirs()
         }
     }
 
     fun store(storageType: StorageType, storable: Storable): String {
-        val date = (DateFormat.getDateTimeInstance() as SimpleDateFormat).apply {
+        val currentDateTime = (DateFormat.getDateTimeInstance() as SimpleDateFormat).apply {
             applyPattern("yyyy.MM.dd-HH.mm.ss")
         }.format(Date())
 
-        val fileName = "chains-$date"
+        if (storable.chains.size == 1) {
+            val storableChain = storable.chains[0]
 
-        val filePath = when (storageType) {
-            StorageType.JSON -> "$storePath/$fileName.json"
-            StorageType.CSV -> "$storePath/$fileName.csv"
-            StorageType.TXT -> "$storePath/$fileName.txt"
+            val storableDir = File("$storeDirPath/${storableChain.name}")
+
+            if (!storableDir.exists()) {
+                storableDir.mkdir()
+            }
+
+            val fileName = "${storableChain.name}-$currentDateTime"
+
+            val filePath = when (storageType) {
+                StorageType.JSON -> "${storableDir.absolutePath}/$fileName.json"
+                StorageType.CSV -> "${storableDir.absolutePath}/$fileName.csv"
+                StorageType.TXT -> "${storableDir.absolutePath}/$fileName.txt"
+            }
+
+            if (!File(filePath).exists()) {
+                File(filePath).createNewFile()
+            }
+
+            File(filePath).writeText(Storable(storable.options, listOf(storableChain)).toString(storageType))
+
+            return fileName
+        } else {
+            val fileName = "chain-pass-$currentDateTime"
+
+            val filePath = when (storageType) {
+                StorageType.JSON -> "$storeDirPath/$fileName.json"
+                StorageType.CSV -> "$storeDirPath/$fileName.csv"
+                StorageType.TXT -> "$storeDirPath/$fileName.txt"
+            }
+
+            if (!File(filePath).exists()) {
+                File(filePath).createNewFile()
+            }
+
+            File(filePath).writeText(storable.toString(storageType))
+
+            return fileName
         }
-
-        if (!File(filePath).exists()) {
-            File(filePath).createNewFile()
-        }
-
-        File(filePath).writeText(storable.toString(storageType))
-
-        return fileName
     }
 
     fun unstore(filePath: String, fileBytes: ByteArray): Storable {

@@ -45,7 +45,7 @@ data class Language(val name: String, val locale: String)
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath: String) {
+fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPath: String) {
     val intl = LocalIntl.current
 
     var deviceAddress by remember { mutableStateOf(DeviceAddress(settingsState.deviceAddressState.value)) }
@@ -241,7 +241,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
                     text = buildAnnotatedString {
                         append(intl.translate("dialog.settings.item.storage.text"))
                         withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                            append(storePath)
+                            append(storeDirPath)
                         }
                     }
                 )

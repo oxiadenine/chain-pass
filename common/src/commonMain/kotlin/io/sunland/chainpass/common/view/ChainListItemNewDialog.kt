@@ -85,6 +85,9 @@ fun ChainListItemNewDialog(
                         is Chain.Name.LengthError -> {
                             intl.translate("dialog.chain.textField.name.length.error")
                         }
+                        is Chain.Name.InvalidError -> {
+                            intl.translate("dialog.chain.textField.name.invalid.error")
+                        }
                         else -> null
                     }
                 },
