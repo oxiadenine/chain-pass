@@ -9,18 +9,18 @@ to save and manage passwords.
 
 ## Security
 
-The cryptographic system consists of the `ChainKey(SecretKey)` with which the `ChainLink(Password)` are encrypted, and the 
-authentication system that consists of the `ChainKey(PrivateKey)` validation.
+The cryptographic system consists of the `ChainKey(SecretKey)` with which the `ChainLink(Password)` are encrypted, and 
+the authentication system that consists of the `ChainKey(PrivateKey)` validation.
 
-The application asks the User to type the `Key` from which it is derived the `SecretKey` with which the `Key` is encrypted, 
-obtaining the `PrivateKey` that is saved to the Database.
+The application asks the User to type the `Key` together with a randomly generated `Salt`, from which the`SecretKey` is 
+derived, then the `Key` together with the `SecretKey` derives the `PrivateKey` that is saved to the Database.
 
-`Chain(Name,Key) -> Hash(Key,Name)=SecretKey -> Encrypt(Key,(SecretKey,Name))=PrivateKey -> Chain(Name,PrivateKey)`
+`Chain(Key) -> Hash(Key,Salt)=SecretKey -> Hash(Key,SecretKey)=PrivateKey -> Chain(PrivateKey)`
 
-The application asks the User to type the `Password` that is encrypted with the `SecretKey` obtained before, obtaining 
-the`PrivatePassword` that is saved to the Database.
+The application asks the User to type the `Password` that is encrypted with the `SecretKey` together with a randomly 
+generated `IV`, obtaining the`PrivatePassword` that is saved to the Database.
 
-`ChainLink(Name,Password) -> Encrypt(Password,(SecretKey,Name))=PrivatePassword -> ChainLink(Name,PrivatePassword)`
+`ChainLink(Password) -> Encrypt(Password,(SecretKey,IV))=PrivatePassword -> ChainLink(PrivatePassword)`
 
 ### Known vulnerabilities
 
