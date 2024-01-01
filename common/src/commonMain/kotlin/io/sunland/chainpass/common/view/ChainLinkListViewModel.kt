@@ -43,10 +43,8 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
                     chainLinkListItem.id = Json.decodeFromString<ChainLink>(message.text).id
                 }
 
-                break
+                return@webSocket
             }
-
-            close()
         }
     }
 
@@ -74,10 +72,8 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
                     })
                 }
 
-                break
+                return@webSocket
             }
-
-            close()
         }
     }
 
@@ -91,7 +87,6 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
             )
 
             send(SocketMessage(SocketMessageType.CHAIN_LINK_UPDATE, Json.encodeToString(chainLink)).toFrame())
-            close()
         }
     }
 
@@ -105,7 +100,6 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
             )
 
             send(SocketMessage(SocketMessageType.CHAIN_LINK_DELETE, Json.encodeToString(chainLink)).toFrame())
-            close()
         }
     }
 }
