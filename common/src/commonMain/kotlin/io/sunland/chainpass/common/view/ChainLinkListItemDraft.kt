@@ -23,6 +23,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalFocusManager
@@ -85,6 +86,24 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
         }
     }
 
+    val onClear = { onIconClearClick() }
+
+    val onKeyEvent = { keyEvent: KeyEvent ->
+        when (keyEvent.key) {
+            Key.Escape -> {
+                onClear()
+
+                true
+            }
+            Key.Enter -> {
+                onDone()
+
+                true
+            }
+            else -> false
+        }
+    }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(all = 4.dp),
@@ -97,7 +116,7 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
             ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onIconClearClick
+                onClick = onClear
             ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
         }
         Column(modifier = Modifier.padding(horizontal = 4.dp)) {
@@ -107,7 +126,7 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
             val passwordGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
 
             ValidationTextField(
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
                 placeholder = { Text(text = "Name") },
                 value = nameState.value,
                 onValueChange = onNameChange,
@@ -127,7 +146,7 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
             )
             ValidationTextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent),
                 placeholder = { Text(text = "Description", fontSize = 14.sp) },
                 value = descriptionState.value,
                 onValueChange = onDescriptionChange,
@@ -148,14 +167,22 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
             )
             ValidationTextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent),
                 placeholder = { Text(text = "Password") },
                 value = passwordState.value,
                 onValueChange = onPasswordChange,
                 leadingIcon = {
                     IconButton(
-                        modifier = Modifier.padding(horizontal = 2.dp)
-                            .pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        modifier = Modifier
+                            .padding(horizontal = 2.dp)
+                            .pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                            .onPreviewKeyEvent { keyEvent ->
+                                if (keyEvent.key == Key.Enter) {
+                                    onPasswordChange(passwordGenerator.generate())
+
+                                    true
+                                } else false
+                            },
                         onClick = { onPasswordChange(passwordGenerator.generate()) }
                     ) { Icon(imageVector = Icons.Default.Build, contentDescription = null) }
                 },

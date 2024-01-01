@@ -15,6 +15,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.input.VisualTransformation
@@ -36,12 +39,32 @@ actual fun InputDialog(
     title ?: Text(text = "")
 
     Column(
-        modifier = Modifier.size(width = 300.dp, height = 170.dp).padding(horizontal = 16.dp).padding(top = 32.dp),
+        modifier = Modifier
+            .size(width = 300.dp, height = 170.dp)
+            .padding(horizontal = 16.dp).padding(top = 32.dp),
         verticalArrangement = Arrangement.spacedBy(space = 16.dp)
     ) {
         val focusRequester = remember { FocusRequester() }
 
-        TextField(modifier = Modifier.padding(horizontal = 16.dp).focusRequester(focusRequester),
+        TextField(
+            modifier = Modifier
+                .padding(horizontal = 16.dp)
+                .focusRequester(focusRequester)
+                .onKeyEvent { keyEvent ->
+                    when (keyEvent.key) {
+                        Key.Escape -> {
+                            onDismissRequest()
+
+                            true
+                        }
+                        Key.Enter -> {
+                            onConfirmRequest()
+
+                            true
+                        }
+                        else -> false
+                    }
+                },
             placeholder = placeholder,
             value = value,
             onValueChange = onValueChange,
@@ -65,10 +88,12 @@ actual fun InputDialog(
             horizontalArrangement = Arrangement.End
         ) {
             TextButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand), onClick = onDismissRequest
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onDismissRequest
             ) { Text(text = "Cancel") }
             TextButton(
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand), onClick = onConfirmRequest
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onConfirmRequest
             ) { Text(text = "Ok") }
         }
 

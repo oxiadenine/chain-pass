@@ -23,6 +23,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalFocusManager
@@ -38,6 +39,8 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
+    val isEdited = remember { mutableStateOf(false) }
+
     val descriptionState = remember { mutableStateOf(chainLink.description.value) }
     val descriptionValidationState = remember { mutableStateOf(chainLink.description.validation) }
 
@@ -45,6 +48,8 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
     val passwordValidationState = remember { mutableStateOf(chainLink.password.validation) }
 
     val onDescriptionChange = { value: String ->
+        isEdited.value = value != chainLink.description.value || passwordState.value != chainLink.password.value
+
         val chainLinkDescription = ChainLink.Description(value)
 
         descriptionState.value = chainLinkDescription.value
@@ -52,6 +57,8 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
     }
 
     val onPasswordChange = { value: String ->
+        isEdited.value = value != chainLink.password.value || descriptionState.value != chainLink.description.value
+
         val chainLinkPassword = ChainLink.Password(value)
 
         passwordState.value = chainLinkPassword.value
@@ -83,6 +90,24 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
         onIconClearClick()
     }
 
+    val onKeyEvent = { keyEvent: KeyEvent ->
+        when (keyEvent.key) {
+            Key.Escape -> {
+                onClear()
+
+                true
+            }
+            Key.Enter -> {
+                if (isEdited.value) {
+                    onDone()
+                }
+
+                true
+            }
+            else -> false
+        }
+    }
+
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -95,8 +120,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                if (descriptionState.value != chainLink.description.value ||
-                    passwordState.value != chainLink.password.value) {
+                if (isEdited.value) {
                     IconButton(
                         modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = onDone
@@ -115,7 +139,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
             val passwordGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
 
             ValidationTextField(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent),
                 placeholder = { Text(text = "Description", fontSize = 14.sp) },
                 value = descriptionState.value,
                 onValueChange = onDescriptionChange,
@@ -136,7 +160,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
             )
 
             ValidationTextField(
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
                 placeholder = { Text(text = "Password") },
                 value = passwordState.value,
                 onValueChange = onPasswordChange,
@@ -144,7 +168,14 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
                     IconButton(
                         modifier = Modifier
                             .padding(horizontal = 2.dp)
-                            .pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            .pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                            .onPreviewKeyEvent { keyEvent ->
+                                if (keyEvent.key == Key.Enter) {
+                                    onPasswordChange(passwordGenerator.generate())
+
+                                    true
+                                } else false
+                            },
                         onClick = { onPasswordChange(passwordGenerator.generate()) }
                     ) { Icon(imageVector = Icons.Default.Build, contentDescription = null) }
                 },
@@ -161,7 +192,7 @@ fun ChainLinkListItemEdit(chainLink: ChainLink, onIconDoneClick: () -> Unit, onI
                     errorIndicatorColor = Color.Transparent
                 ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                keyboardActions = KeyboardActions(onDone = { onDone() })
+                keyboardActions = KeyboardActions(onDone = { if (isEdited.value) onDone() })
             )
 
             LaunchedEffect(Unit) { focusRequester.requestFocus() }
