@@ -29,7 +29,7 @@ import io.sunland.chainpass.common.Chain
 @Composable
 fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
     val focusManager = LocalFocusManager.current
-    val focusRequester = FocusRequester()
+    val focusRequester = remember { FocusRequester() }
 
     val nameState = mutableStateOf(chain.name.value)
     val nameErrorState = mutableStateOf(!chain.name.isValid)
@@ -111,13 +111,10 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
                 unfocusedIndicatorColor = Color.Transparent,
                 errorIndicatorColor = Color.Transparent
             ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             keyboardActions = KeyboardActions(onDone = { onDone() })
         )
     }
 
-    DisposableEffect(Unit) {
-        focusRequester.requestFocus()
-        onDispose {}
-    }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }
