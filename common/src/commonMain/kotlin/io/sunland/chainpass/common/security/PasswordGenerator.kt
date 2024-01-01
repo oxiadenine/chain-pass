@@ -1,12 +1,17 @@
 package io.sunland.chainpass.common.security
 
-import kotlin.random.Random
+expect object RandomInt {
+    fun next(): Int
+    fun next(range: Pair<Int, Int>): Int
+
+    fun nextArray(size: Int, range: Pair<Int, Int>): Array<Int>
+}
 
 object GeneratorSpec {
-    enum class CharacterCodes(val ranges: Array<IntRange>) {
-        ALPHABET(arrayOf(65..90, 97..122)),
-        NUMERIC(arrayOf(48..57)),
-        SPECIAL(arrayOf(33..47, 58..64, 91..96, 123..126))
+    enum class CharCodeRanges(val ranges: Array<Pair<Int, Int>>) {
+        ALPHABET(arrayOf(65 to 90, 97 to 122)),
+        NUMERIC(arrayOf(48 to 57)),
+        SYMBOL(arrayOf(33 to 47, 58 to 64, 91 to 96, 123 to 126))
     }
 
     data class Strength(val length: Int, val alphanumeric: Boolean = false)
@@ -25,34 +30,34 @@ class PasswordGenerator(private val strength: GeneratorSpec.Strength) {
         while (charCount > 0) {
             charCount /= 2
 
-            val characterCodes = if (charCount > (length / 2) - (charCount * 2)) {
+            val charCodeRanges = if (charCount > (length / 2) - (charCount * 2)) {
                 if (charCount > (length / 2) - (charCount / 2) || alphanumeric) {
-                    GeneratorSpec.CharacterCodes.ALPHABET // Appears more times
+                    GeneratorSpec.CharCodeRanges.ALPHABET
                 } else {
-                    GeneratorSpec.CharacterCodes.SPECIAL // Appears sometimes
+                    GeneratorSpec.CharCodeRanges.SYMBOL
                 }
             } else {
                 if (charCount < 2 || alphanumeric) {
-                    GeneratorSpec.CharacterCodes.NUMERIC // Appears fewer times
+                    GeneratorSpec.CharCodeRanges.NUMERIC
                 } else {
-                    GeneratorSpec.CharacterCodes.SPECIAL // Appears sometimes
+                    GeneratorSpec.CharCodeRanges.SYMBOL
                 }
             }
 
             repeat(if (charCount % 2 == 0) charCount else charCount + 1) { count ->
-                val charRange = when (characterCodes) {
-                    GeneratorSpec.CharacterCodes.ALPHABET -> characterCodes.ranges[count % 2]
-                    GeneratorSpec.CharacterCodes.NUMERIC -> characterCodes.ranges[0]
-                    GeneratorSpec.CharacterCodes.SPECIAL -> characterCodes.ranges[count % 2]
+                val charCodeRange = when (charCodeRanges) {
+                    GeneratorSpec.CharCodeRanges.ALPHABET -> charCodeRanges.ranges[count % 2]
+                    GeneratorSpec.CharCodeRanges.NUMERIC -> charCodeRanges.ranges[0]
+                    GeneratorSpec.CharCodeRanges.SYMBOL -> charCodeRanges.ranges[count % 2]
                 }
 
-                charNumbers.add(Random.nextInt(charRange.first, charRange.last))
+                charNumbers.add(RandomInt.next(charCodeRange))
             }
 
             if (length % 2 != 0 && charCount == 0) {
-                val charRange = characterCodes.ranges[0]
+                val charCodeRange = charCodeRanges.ranges[0]
 
-                charNumbers.add(Random.nextInt(charRange.first, charRange.last))
+                charNumbers.add(RandomInt.next(charCodeRange))
             }
         }
 
