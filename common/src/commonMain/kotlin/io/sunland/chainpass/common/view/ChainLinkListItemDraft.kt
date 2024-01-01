@@ -32,6 +32,9 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
     val nameState = mutableStateOf(chainLink.name.value)
     val nameErrorState = mutableStateOf(!chainLink.name.isValid)
 
+    val descriptionState = mutableStateOf(chainLink.description.value)
+    val descriptionErrorState = mutableStateOf(!chainLink.description.isValid)
+
     val passwordState = mutableStateOf(chainLink.password.value)
     val passwordErrorState = mutableStateOf(!chainLink.password.isValid)
 
@@ -40,6 +43,13 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
 
         nameState.value = chainLink.name.value
         nameErrorState.value = !chainLink.name.isValid
+    }
+
+    val onDescriptionChange = { value: String ->
+        chainLink.description = ChainLink.Description(value)
+
+        descriptionState.value = chainLink.description.value
+        descriptionErrorState.value = !chainLink.description.isValid
     }
 
     val onPasswordChange = { value: String ->
@@ -51,12 +61,14 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
 
     val onDone = {
         chainLink.name = ChainLink.Name(nameState.value)
+        chainLink.description = ChainLink.Description(descriptionState.value)
         chainLink.password = ChainLink.Password(passwordState.value)
 
         nameErrorState.value = !chainLink.name.isValid
+        descriptionErrorState.value = !chainLink.description.isValid
         passwordErrorState.value = !chainLink.password.isValid
 
-        if (!nameErrorState.value && !passwordErrorState.value) {
+        if (!nameErrorState.value && !descriptionErrorState.value && !passwordErrorState.value) {
             onIconDoneClick()
         }
     }
@@ -81,6 +93,27 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
             } else null,
             isError = nameErrorState.value,
+            singleLine = true,
+            colors = TextFieldDefaults.textFieldColors(
+                backgroundColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                errorIndicatorColor = Color.Transparent
+            ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = {
+                focusManager.moveFocus(FocusDirection.Down)
+            })
+        )
+        TextField(
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text(text = "Description") },
+            value = descriptionState.value,
+            onValueChange = onDescriptionChange,
+            trailingIcon = if (descriptionErrorState.value) {
+                { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
+            } else null,
+            isError = descriptionErrorState.value,
             singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.Transparent,

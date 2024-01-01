@@ -36,6 +36,7 @@ class ChainLinkListViewModel(
                 ChainLink().apply {
                     id = chainLinkEntity.id
                     name = ChainLink.Name(chainLinkEntity.name)
+                    description = ChainLink.Description(chainLinkEntity.description)
                     password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLinkEntity.password))
                     status = ChainLinkStatus.ACTUAL
                 }
@@ -70,7 +71,7 @@ class ChainLinkListViewModel(
 
             chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(passphrase, chainLink.password.value))
 
-            val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.password.value, chainKeyEntity)
+            val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.description.value, chainLink.password.value, chainKeyEntity)
 
             chainLinkRepository.create(chainLinkEntity).getOrThrow()
         }.map { chainLinkId ->
@@ -125,7 +126,7 @@ class ChainLinkListViewModel(
 
             chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(passphrase, chainLink.password.value))
 
-            val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.password.value, chainKeyEntity)
+            val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.description.value, chainLink.password.value, chainKeyEntity)
 
             chainLinkRepository.update(chainLinkEntity).getOrThrow()
         }.map {
@@ -166,7 +167,7 @@ class ChainLinkListViewModel(
 
             chainLink.password = ChainLink.Password(PasswordEncoder.encrypt(passphrase, chainLink.password.value))
 
-            val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.password.value, chainKeyEntity)
+            val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name.value, chainLink.description.value, chainLink.password.value, chainKeyEntity)
 
             chainLinkRepository.delete(chainLinkEntity).getOrThrow()
 

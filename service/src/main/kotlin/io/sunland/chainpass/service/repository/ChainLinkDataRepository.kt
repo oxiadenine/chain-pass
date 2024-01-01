@@ -12,6 +12,7 @@ object ChainLinkDataRepository : ChainLinkRepository {
         Database.execute {
             ChainLinkTable.insertAndGetId { statement ->
                 statement[name] = chainLinkEntity.name
+                statement[description] = chainLinkEntity.description
                 statement[password] = chainLinkEntity.password
                 statement[chainId] = chainLinkEntity.chainKey.id
             }.value
@@ -24,6 +25,7 @@ object ChainLinkDataRepository : ChainLinkRepository {
                 ChainLinkEntity(
                     record[ChainLinkTable.id].value,
                     record[ChainLinkTable.name],
+                    record[ChainLinkTable.description],
                     record[ChainLinkTable.password],
                     chainKeyEntity
                 )
