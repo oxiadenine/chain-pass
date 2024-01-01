@@ -18,29 +18,27 @@ enum class InputActionType { SELECT, REMOVE, STORE, UNSTORE }
 
 @Composable
 fun ChainList(
-    serverAddress: ServerAddress,
     viewModel: ChainListViewModel,
+    onSettings: () -> Unit,
     onSync: () -> Unit,
     onNew: (Chain) -> Unit,
     onSelect: (Chain) -> Unit,
     onRemove: (Chain) -> Unit,
     onStore: (Chain, StoreOptions) -> Unit,
-    onUnstore: (Chain.Key, FilePath) -> Unit,
-    onDisconnect: () -> Unit
+    onUnstore: (Chain.Key, FilePath) -> Unit
 ) {
     val inputActionTypeState = remember { mutableStateOf(InputActionType.SELECT) }
     val inputActionDialogVisibleState = remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         ChainListTopBar(
-            serverAddress = serverAddress,
+            onSettings = onSettings,
             onSync = onSync,
             onAdd = { viewModel.draft() },
             onUnstore = {
                 inputActionTypeState.value = InputActionType.UNSTORE
                 inputActionDialogVisibleState.value = true
-            },
-            onDisconnect = onDisconnect
+            }
         )
         Box(modifier = Modifier.fillMaxSize()) {
             if (viewModel.chainListState.isEmpty()) {
@@ -62,19 +60,19 @@ fun ChainList(
                                 ChainListItem(
                                     chain = chain,
                                     onSelect = {
-                                        viewModel.select(chain)
+                                        viewModel.setSelected(chain)
 
                                         inputActionTypeState.value = InputActionType.SELECT
                                         inputActionDialogVisibleState.value = true
                                     },
                                     onRemove = {
-                                        viewModel.select(chain)
+                                        viewModel.setSelected(chain)
 
                                         inputActionTypeState.value = InputActionType.REMOVE
                                         inputActionDialogVisibleState.value = true
                                     },
                                     onStore = {
-                                        viewModel.select(chain)
+                                        viewModel.setSelected(chain)
 
                                         inputActionTypeState.value = InputActionType.STORE
                                         inputActionDialogVisibleState.value = true
@@ -115,7 +113,7 @@ fun ChainList(
                             InputActionType.UNSTORE -> onUnstore(chainKey, filePath!!)
                         }
 
-                        viewModel.select()
+                        viewModel.setSelected()
 
                         inputActionDialogVisibleState.value = false
                     }

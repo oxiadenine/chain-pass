@@ -31,7 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.StorageType
-import io.sunland.chainpass.common.component.Dialog
+import io.sunland.chainpass.common.component.InputDialog
 
 class FilePath(value: String? = null) {
     var value = value ?: ""
@@ -137,7 +137,7 @@ fun ChainListItemKeyInput(
         }
     }
 
-    Dialog(
+    InputDialog(
         onDismissRequest = onDismiss,
         onConfirmRequest = onDone
     ) {

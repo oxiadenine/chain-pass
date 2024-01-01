@@ -15,13 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
 
 @Composable
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
     onBack: () -> Unit,
-    onSync: () -> Unit,
+    onSync: (Chain) -> Unit,
     onNew: (ChainLink) -> Unit,
     onEdit: (ChainLink) -> Unit,
     onRemove: (ChainLink) -> Unit,
@@ -37,11 +38,11 @@ fun ChainLinkList(
         } else {
             ChainLinkListTopBar(
                 onBack = {
-                    viewModel.cancelEdits()
+                    viewModel.back()
 
                     onBack()
                 },
-                onSync = onSync,
+                onSync = { onSync(viewModel.chain!!) },
                 onAdd = { viewModel.draft() },
                 onSearch = {
                     viewModel.rejectDrafts()

@@ -1,44 +1,25 @@
 package io.sunland.chainpass.common.network
 
-import io.ktor.client.*
-import io.rsocket.kotlin.ktor.client.rSocket
+import io.rsocket.kotlin.RSocket
 import io.rsocket.kotlin.payload.Payload
-import io.sunland.chainpass.common.Settings
-import io.sunland.chainpass.common.network.WebSocket.decode
-import io.sunland.chainpass.common.network.WebSocket.encode
-import kotlinx.serialization.Serializable
+import io.sunland.chainpass.common.repository.ChainLinkEntity
+import io.sunland.chainpass.common.repository.ChainLinkRepository
 
-@Serializable
-data class ChainLinkEntity(
-    var id: Int,
-    val name: String,
-    val description: String,
-    val password: String,
-    val chainKey: ChainKeyEntity
-)
-
-class ChainLinkApi(private val httpClient: HttpClient, private val settings: Settings) {
-    suspend fun create(chainLinkEntities: List<ChainLinkEntity>) = runCatching {
-        httpClient.rSocket(settings.serverHost, settings.serverPort).requestResponse(
-            Payload.encode(WebSocket.Route.CHAIN_LINK_CREATE, chainLinkEntities)
-        ).close()
-    }
-
-    suspend fun read(chainKeyEntity: ChainKeyEntity) = runCatching {
-        httpClient.rSocket(settings.serverHost, settings.serverPort).requestResponse(
-            Payload.encode(WebSocket.Route.CHAIN_LINK_READ, chainKeyEntity)
+class ChainLinkApi(private val chainLinkRepository: ChainLinkRepository, private val tcpSocket: RSocket) {
+    suspend fun sync(chainId: String) = runCatching {
+        val chainLinkEntities = tcpSocket.requestResponse(
+            Payload.encode(WebSocket.Route.CHAIN_LINK_SYNC, chainId)
         ).decode<List<ChainLinkEntity>>()
-    }
 
-    suspend fun update(chainLinkEntity: ChainLinkEntity) = runCatching {
-        httpClient.rSocket(settings.serverHost, settings.serverPort).requestResponse(
-            Payload.encode(WebSocket.Route.CHAIN_LINK_UPDATE, chainLinkEntity)
-        ).close()
-    }
-
-    suspend fun delete(chainLinkEntity: ChainLinkEntity) = runCatching {
-        httpClient.rSocket(settings.serverHost, settings.serverPort).requestResponse(
-            Payload.encode(WebSocket.Route.CHAIN_LINK_DELETE, chainLinkEntity)
-        ).close()
+        chainLinkEntities.forEach { chainLinkEntity ->
+            chainLinkRepository.getOne(chainLinkEntity.id).onSuccess { chainLinkEntityFound ->
+                if (chainLinkEntity.password != chainLinkEntityFound.password
+                    || chainLinkEntity.description != chainLinkEntityFound.description) {
+                    chainLinkRepository.update(chainLinkEntity).getOrThrow()
+                }
+            }.onFailure {
+                chainLinkRepository.create(chainLinkEntity).getOrThrow()
+            }
+        }
     }
 }

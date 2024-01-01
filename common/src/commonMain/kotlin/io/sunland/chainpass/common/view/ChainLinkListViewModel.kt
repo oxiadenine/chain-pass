@@ -4,12 +4,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
-import io.sunland.chainpass.common.network.ChainApi
-import io.sunland.chainpass.common.network.ChainKeyEntity
-import io.sunland.chainpass.common.network.ChainLinkApi
-import io.sunland.chainpass.common.network.ChainLinkEntity
+import io.sunland.chainpass.common.repository.ChainLinkEntity
+import io.sunland.chainpass.common.repository.ChainLinkRepository
 
-class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLinkApi: ChainLinkApi) {
+class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepository) {
     val chainLinkListState = mutableStateListOf<ChainLink>()
     val chainLinkSearchListState = mutableStateListOf<ChainLink>()
 
@@ -22,13 +20,18 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
         }
 
     var chain: Chain? = null
-    var chainLinks = emptyList<ChainLink>()
+
+    private var chainLinks = emptyList<ChainLink>()
+
+    fun back() {
+        chainLinks = emptyList()
+
+        chainLinkListState.clear()
+        chainLinkListState.addAll(chainLinks)
+    }
 
     fun draft() {
         val chainLinkDraft = ChainLink(chain!!).apply {
-            id = chainLinks.plus(chainLinkListState.filter { chainLink ->
-                chainLink.status == ChainLink.Status.DRAFT
-            }).maxOfOrNull { chainLink -> chainLink.id }?.let { it + 1 } ?: 1
             isLatest = true
         }
 
@@ -189,14 +192,7 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
         chainLinkSearchListState.clear()
     }
 
-    suspend fun getAll() = chainApi.key(chain!!.id).mapCatching { chainKeyEntity ->
-        val secretKey = chain!!.secretKey()
-        val privateKey = chain!!.privateKey(secretKey)
-
-        val saltKey = chain!!.saltKey(privateKey, chainKeyEntity.key)
-
-        chainLinkApi.read(ChainKeyEntity(chain!!.id, saltKey.value)).getOrThrow()
-    }.map { chainLinkEntities ->
+    fun getAll() = chainLinkRepository.getBy(chain!!.id).mapCatching { chainLinkEntities ->
         chainLinks = chainLinkEntities.map { chainLinkEntity ->
             ChainLink(chain!!).apply {
                 id = chainLinkEntity.id
@@ -228,11 +224,8 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
         Unit
     }
 
-    suspend fun new(chainLink: ChainLink) = chainApi.key(chainLink.chain.id).mapCatching { chainKeyEntity ->
+    fun new(chainLink: ChainLink) = runCatching {
         val secretKey = chainLink.chain.secretKey()
-        val privateKey = chainLink.chain.privateKey(secretKey)
-
-        val saltKey = chainLink.chain.saltKey(privateKey, chainKeyEntity.key)
 
         chainLink.password = chainLink.privatePassword(secretKey)
 
@@ -241,21 +234,18 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
             chainLink.name.value,
             chainLink.description.value,
             chainLink.password.value,
-            ChainKeyEntity(chainLink.chain.id, saltKey.value)
+            chainLink.chain.id
         )
 
-        chainLinkApi.create(listOf(chainLinkEntity)).getOrThrow()
+        chainLinkRepository.create(chainLinkEntity).getOrThrow()
 
         chainLink.status = ChainLink.Status.ACTUAL
 
         update()
     }
 
-    suspend fun edit(chainLink: ChainLink) = chainApi.key(chainLink.chain.id).mapCatching { chainKeyEntity ->
+    fun edit(chainLink: ChainLink) = runCatching {
         val secretKey = chainLink.chain.secretKey()
-        val privateKey = chainLink.chain.privateKey(secretKey)
-
-        val saltKey = chainLink.chain.saltKey(privateKey, chainKeyEntity.key)
 
         chainLink.password = chainLink.privatePassword(secretKey)
 
@@ -264,31 +254,26 @@ class ChainLinkListViewModel(private val chainApi: ChainApi, private val chainLi
             chainLink.name.value,
             chainLink.description.value,
             chainLink.password.value,
-            ChainKeyEntity(chainLink.chain.id, saltKey.value)
+            chainLink.chain.id
         )
 
-        chainLinkApi.update(chainLinkEntity).getOrThrow()
+        chainLinkRepository.update(chainLinkEntity).getOrThrow()
 
         chainLink.status = ChainLink.Status.ACTUAL
 
         update()
     }
 
-    suspend fun remove(chainLink: ChainLink) = chainApi.key(chainLink.chain.id).mapCatching { chainKeyEntity ->
-        val secretKey = chainLink.chain.secretKey()
-        val privateKey = chainLink.chain.privateKey(secretKey)
-
-        val saltKey = chainLink.chain.saltKey(privateKey, chainKeyEntity.key)
-
+    fun remove(chainLink: ChainLink) = runCatching {
         val chainLinkEntity = ChainLinkEntity(
             chainLink.id,
             chainLink.name.value,
             chainLink.description.value,
             chainLink.password.value,
-            ChainKeyEntity(chainLink.chain.id, saltKey.value)
+            chainLink.chain.id
         )
 
-        chainLinkApi.delete(chainLinkEntity).getOrThrow()
+        chainLinkRepository.delete(chainLinkEntity).getOrThrow()
 
         update()
     }

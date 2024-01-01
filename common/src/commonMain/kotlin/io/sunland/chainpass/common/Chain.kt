@@ -2,6 +2,7 @@ package io.sunland.chainpass.common
 
 import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
+import io.sunland.chainpass.common.security.Random
 
 class Chain constructor() {
     constructor(chain: Chain) : this() {
@@ -40,7 +41,7 @@ class Chain constructor() {
 
     enum class Status { ACTUAL, DRAFT }
 
-    var id = 0
+    var id = Random.uuid()
     var name = Name()
     var key = Key()
     var status = Status.DRAFT
@@ -56,10 +57,6 @@ class Chain constructor() {
         PasswordEncoder.Base64.encode(key.value.encodeToByteArray()),
         EncoderSpec.Passphrase(secretKey.value, PasswordEncoder.Base64.encode(name.value.encodeToByteArray()))
     ))
-
-    fun saltKey(privateKey: Key, salt: String) = Key(PasswordEncoder.hash(EncoderSpec.Passphrase(
-        PasswordEncoder.Base64.encode(privateKey.value.encodeToByteArray()), salt
-    )))
 
     fun validateKey(key: Key) = if (key.value != this.key.value) {
         throw IllegalArgumentException("Key is not valid")

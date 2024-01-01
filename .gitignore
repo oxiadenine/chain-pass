@@ -3,7 +3,4 @@ build/
 .gradle/
 *.db
 *.jks
-*.env
 local.properties
-application.*.conf
-docker-compose.*.yml

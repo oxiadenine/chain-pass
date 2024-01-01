@@ -23,13 +23,7 @@ import io.sunland.chainpass.common.component.DropdownMenuItem
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListTopBar(
-    serverAddress: ServerAddress,
-    onSync: () -> Unit,
-    onAdd: () -> Unit,
-    onUnstore: () -> Unit,
-    onDisconnect: () -> Unit
-) {
+fun ChainListTopBar(onSettings: () -> Unit, onSync: () -> Unit, onAdd: () -> Unit, onUnstore: () -> Unit) {
     val actionMenuExpandedState = remember { mutableStateOf(false) }
 
     TopAppBar(
@@ -38,10 +32,13 @@ fun ChainListTopBar(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(text = "Chains")
-                Text(text = "(${serverAddress.host.value}:${serverAddress.port.value})", fontSize = 12.sp)
-            }
+            ) { Text(text = "Chains") }
+        },
+        navigationIcon = {
+            IconButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onSettings
+            ) { Icon(imageVector = Icons.Default.Settings, contentDescription = null) }
         },
         actions = {
             IconButton(
@@ -103,23 +100,6 @@ fun ChainListTopBar(
                     ) {
                         Icon(imageVector = Icons.Default.Unarchive, contentDescription = null)
                         Text(text = "Unstore", fontSize = 12.sp)
-                    }
-                }
-                DropdownMenuItem(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = {
-                        actionMenuExpandedState.value = false
-
-                        onDisconnect()
-                    },
-                    contentPadding = PaddingValues(horizontal = 16.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(imageVector = Icons.Default.Logout, contentDescription = null)
-                        Text(text = "Disconnect", fontSize = 12.sp)
                     }
                 }
             }
