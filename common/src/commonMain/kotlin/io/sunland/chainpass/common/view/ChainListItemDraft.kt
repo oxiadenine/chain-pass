@@ -40,20 +40,6 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
     val keyState = mutableStateOf(chain.key.value)
     val keyErrorState = mutableStateOf(!chain.key.isValid)
 
-    val onNameChange = { value: String ->
-        chain.name = Chain.Name(value)
-
-        nameState.value = chain.name.value
-        nameErrorState.value = !chain.name.isValid
-    }
-
-    val onKeyChange = { value: String ->
-        chain.key = Chain.Key(value)
-
-        keyState.value = chain.key.value
-        keyErrorState.value = !chain.key.isValid
-    }
-
     val onDone = {
         chain.name = Chain.Name(nameState.value)
         chain.key = Chain.Key(keyState.value)
@@ -61,9 +47,7 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
         nameErrorState.value = !chain.name.isValid
         keyErrorState.value = !chain.key.isValid
 
-        if (!nameErrorState.value && !keyErrorState.value) {
-            onIconDoneClick()
-        }
+        onIconDoneClick()
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -81,7 +65,12 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             placeholder = { Text(text = "Name") },
             value = nameState.value,
-            onValueChange = onNameChange,
+            onValueChange = { value: String ->
+                chain.name = Chain.Name(value)
+
+                nameState.value = chain.name.value
+                nameErrorState.value = !chain.name.isValid
+            },
             trailingIcon = if (nameErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
             } else null,
@@ -100,7 +89,12 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(text = "Key") },
             value = keyState.value,
-            onValueChange = onKeyChange,
+            onValueChange = { value: String ->
+                chain.key = Chain.Key(value)
+
+                keyState.value = chain.key.value
+                keyErrorState.value = !chain.key.isValid
+            },
             trailingIcon = if (keyErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
             } else null,
