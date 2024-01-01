@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.ktor.server.cio.*
+import io.ktor.server.engine.*
 import io.rsocket.kotlin.RSocketRequestHandler
 import io.rsocket.kotlin.payload.Payload
 import io.sunland.chainpass.common.component.rememberScaffoldListState
@@ -33,6 +35,10 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 import io.sunland.chainpass.common.view.*
 import io.sunland.chainpass.sqldelight.Database
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 object Theme {
     enum class Palette(val color: Color) {
@@ -82,6 +88,29 @@ fun rememberSettingsState(settingsManager: SettingsManager) = remember {
     )
 }
 
+class NetworkState(var hostAddressState: State<String>) {
+    val hostAddressFlow = flow {
+        while (true) {
+            delay(1000)
+
+            emit(WebSocket.getLocalHost().getOrElse { "" })
+        }
+    }
+}
+
+@Composable
+fun rememberNetworkState(): NetworkState {
+    val networkState = NetworkState(mutableStateOf(""))
+
+    networkState.hostAddressState = networkState.hostAddressFlow
+        .flowOn(Dispatchers.IO)
+        .distinctUntilChanged()
+        .conflate()
+        .collectAsState("")
+
+    return remember { networkState }
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun App(settingsManager: SettingsManager, database: Database, storage: Storage) = MaterialTheme(
@@ -113,32 +142,44 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
 
     val navigationState = rememberNavigationState(Screen.CHAIN_LIST)
     val settingsState = rememberSettingsState(settingsManager)
+    val networkState = rememberNetworkState()
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-
-    coroutineScope.launch(Dispatchers.IO) {
-        WebSocket.start(WebSocket.getLocalHost()) {
-            RSocketRequestHandler {
-                requestResponse { payload ->
-                    when (payload.getRoute()) {
-                        WebSocket.Route.CHAIN_SYNC -> Payload.encode(chainRepository.getAll())
-                        WebSocket.Route.CHAIN_LINK_SYNC -> Payload.encode(chainLinkRepository.getBy(payload.decode()))
-                    }
-                }
-            }
-        }
-    }
-
-    val hostAddressState = remember { mutableStateOf("") }
 
     ModalDrawer(
         drawerState = drawerState,
         drawerContent = {
+            val socketServerState = mutableStateOf<CIOApplicationEngine?>(null)
+
+            if (networkState.hostAddressState.value.isNotEmpty()) {
+                coroutineScope.launch(Dispatchers.IO) {
+                    try {
+                        socketServerState.value = WebSocket.start(networkState.hostAddressState.value) {
+                            RSocketRequestHandler {
+                                requestResponse { payload ->
+                                    when (payload.getRoute()) {
+                                        WebSocket.Route.CHAIN_SYNC -> Payload.encode(chainRepository.getAll())
+                                        WebSocket.Route.CHAIN_LINK_SYNC -> Payload.encode(
+                                            chainLinkRepository.getBy(
+                                                payload.decode()
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    } catch (_: Throwable) {}
+                }
+            } else {
+                socketServerState.value?.application?.cancel()
+                socketServerState.value?.application?.dispose()
+            }
+
             Column(
                 modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(space = 4.dp)
             ) {
                 Text(text = platform)
-                Text(text = hostAddressState.value.ifEmpty { "No internet access" }, fontSize = 14.sp)
+                Text(text = networkState.hostAddressState.value.ifEmpty { "Not connected" }, fontSize = 14.sp)
             }
             Column(modifier = Modifier.fillMaxWidth()) {
                 Row(
@@ -171,16 +212,12 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
         drawerBackgroundColor = MaterialTheme.colors.surface,
         scrimColor = Color.Black.copy(alpha = 0.5f)
     ) {
-        LaunchedEffect(hostAddressState.value) {
-            hostAddressState.value = WebSocket.getLocalHost()
-        }
-
         Surface(modifier = Modifier.fillMaxSize()) {
             Crossfade(targetState = navigationState.screenState.value) { screen ->
                 when (screen) {
                     Screen.SETTINGS -> {
                         Settings(
-                            hostAddress = hostAddressState.value,
+                            hostAddress = networkState.hostAddressState.value,
                             storePath = storage.storePath,
                             settingsState = settingsState,
                             navigationState = navigationState,
