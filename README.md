@@ -3,6 +3,8 @@
 A project built with [JetBrains Compose Multiplatform](https://www.jetbrains.com/lp/compose-mpp/)
 to save and manage passwords.
 
+![](artwork/chain-pass.png)
+
 ## Deployment
 
 This project uses [Docker](https://www.docker.com/) for deployment.
