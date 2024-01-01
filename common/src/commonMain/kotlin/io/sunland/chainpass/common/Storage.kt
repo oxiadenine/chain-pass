@@ -9,7 +9,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-class Storage(private val dirPath: String) {
+class Storage(dirPath: String) {
     val storePath = "$dirPath/Chain Pass/Store"
     init {
         if (!File(storePath).exists()) {
@@ -138,26 +138,24 @@ fun String.toStorable(storageType: StorageType) = when (storageType) {
 
         val chainLinkHeader = data[4].split(",")
 
-        if (chainLinkHeader.size != 3) {
-            isFormatValid = false
-        }
-
         val chainLinks = mutableListOf<Map<String, String>>()
 
-        for (i in 5 until data.size - 1) {
-            val chainLink = mutableMapOf<String, String>()
+        if (chainLinkHeader.size == 3) {
+            for (i in 5 until data.size - 1) {
+                val chainLink = mutableMapOf<String, String>()
 
-            val chainLinkRecord = data[i].split(",")
+                val chainLinkRecord = data[i].split(",")
 
-            if (chainLinkRecord.size != 3) {
-                isFormatValid = false
+                if (chainLinkRecord.size != 3) {
+                    isFormatValid = false
+                }
+
+                for (j in chainLinkHeader.indices) {
+                    chainLink[chainLinkHeader[j]] = chainLinkRecord[j].substringAfter("\"").substringBeforeLast("\"")
+                }
+
+                chainLinks.add(chainLink)
             }
-
-            for (j in chainLinkHeader.indices) {
-                chainLink[chainLinkHeader[j]] = chainLinkRecord[j].substringAfter("\"").substringBeforeLast("\"")
-            }
-
-            chainLinks.add(chainLink)
         }
 
         if (!isFormatValid) {
