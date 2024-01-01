@@ -31,7 +31,7 @@ import io.sunland.chainpass.common.component.ValidationTextField
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListItemNewInput(chain: Chain, onNew: (Chain) -> Unit, onCancel: () -> Unit) {
+fun ChainListItemNewDialog(chain: Chain, onNew: (Chain) -> Unit, onCancel: () -> Unit) {
     val nameState = remember { mutableStateOf(chain.name.value) }
     val nameValidationState = remember { mutableStateOf(chain.name.validation) }
 
@@ -92,7 +92,7 @@ fun ChainListItemNewInput(chain: Chain, onNew: (Chain) -> Unit, onCancel: () -> 
 
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

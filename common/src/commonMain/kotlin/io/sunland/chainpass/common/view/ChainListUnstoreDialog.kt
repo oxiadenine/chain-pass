@@ -10,4 +10,4 @@ class FilePath(value: String? = null) {
 }
 
 @Composable
-expect fun ChainListUnstoreInput(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onCancel: () -> Unit)
+expect fun ChainListUnstoreDialog(isSingle: Boolean, onUnstore: (FilePath) -> Unit, onCancel: () -> Unit)

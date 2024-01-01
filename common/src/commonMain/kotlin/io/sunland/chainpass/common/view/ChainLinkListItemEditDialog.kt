@@ -31,22 +31,12 @@ import io.sunland.chainpass.common.component.ValidationTextField
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: (ChainLink) -> Unit, onCancel: () -> Unit) {
-    val nameState = remember { mutableStateOf(chainLink.name.value) }
-    val nameValidationState = remember { mutableStateOf(chainLink.name.validation) }
-
+fun ChainLinkListItemEditDialog(chainLink: ChainLink, onEdit: () -> Unit, onCancel: () -> Unit) {
     val descriptionState = remember { mutableStateOf(chainLink.description.value) }
     val descriptionValidationState = remember { mutableStateOf(chainLink.description.validation) }
 
     val passwordState = remember { mutableStateOf(chainLink.password.value) }
-    val passwordValidationState = remember { mutableStateOf(chainLink.password.validation)}
-
-    val onNameChange = { name: String ->
-        chainLink.name = ChainLink.Name(name)
-
-        nameState.value = chainLink.name.value
-        nameValidationState.value = chainLink.name.validation
-    }
+    val passwordValidationState = remember { mutableStateOf(chainLink.password.validation) }
 
     val onDescriptionChange = { description: String ->
         chainLink.description = ChainLink.Description(description)
@@ -63,18 +53,14 @@ fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: (ChainLink) -> Unit, 
     }
 
     val onDone = {
-        chainLink.name = ChainLink.Name(nameState.value)
         chainLink.description = ChainLink.Description(descriptionState.value)
         chainLink.password = ChainLink.Password(passwordState.value)
 
-        nameValidationState.value = chainLink.name.validation
         descriptionValidationState.value = chainLink.description.validation
         passwordValidationState.value = chainLink.password.validation
 
-        if (nameValidationState.value.isSuccess && descriptionValidationState.value.isSuccess &&
-            passwordValidationState.value.isSuccess
-        ) {
-            onNew(chainLink)
+        if (descriptionValidationState.value.isSuccess && passwordValidationState.value.isSuccess) {
+            onEdit()
         }
     }
 
@@ -106,7 +92,7 @@ fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: (ChainLink) -> Unit, 
 
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onDone) {
         Column(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -116,28 +102,6 @@ fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: (ChainLink) -> Unit, 
                 focusRequester.requestFocus()
             }
 
-            ValidationTextField(
-                value = nameState.value,
-                onValueChange = onNameChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester = focusRequester)
-                    .onKeyEvent(onKeyEvent = onKeyEvent),
-                placeholder = { Text(text = "Name") },
-                trailingIcon = if (nameValidationState.value.isFailure) {
-                    { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
-                } else null,
-                isError = nameValidationState.value.isFailure,
-                errorMessage = nameValidationState.value.exceptionOrNull()?.message,
-                singleLine = true,
-                colors = TextFieldDefaults.textFieldColors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent
-                ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
-            )
             ValidationTextField(
                 value = descriptionState.value,
                 onValueChange = onDescriptionChange,
@@ -160,7 +124,10 @@ fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: (ChainLink) -> Unit, 
             ValidationTextField(
                 value = passwordState.value,
                 onValueChange = onPasswordChange,
-                modifier = Modifier.fillMaxWidth().onKeyEvent(onKeyEvent = onKeyEvent),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(focusRequester = focusRequester)
+                    .onKeyEvent(onKeyEvent = onKeyEvent),
                 placeholder = { Text(text = "Password") },
                 leadingIcon = {
                     IconButton(
