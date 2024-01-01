@@ -1,6 +1,8 @@
 package io.sunland.chainpass.common
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.DefaultContextMenuRepresentation
+import androidx.compose.foundation.LocalContextMenuRepresentation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
@@ -80,85 +82,93 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
         }
     }
 
-    Surface(modifier = Modifier.fillMaxSize()) {
-        val settingsState = remember {
-            settingsManager.load()?.let { settings ->
-                mutableStateOf(settings)
-            } ?: run {
-                val settings = Settings(
-                    hostAddress = "",
-                    deviceAddress = "",
-                    passwordLength = 16,
-                    passwordIsAlphanumeric =  false,
-                    storePath = ""
-                )
+    CompositionLocalProvider(
+        LocalContextMenuRepresentation provides DefaultContextMenuRepresentation(
+            backgroundColor = MaterialTheme.colors.primarySurface,
+            textColor = contentColorFor(MaterialTheme.colors.primarySurface),
+            itemHoverColor = MaterialTheme.colors.primarySurface
+        )
+    ) {
+        Surface(modifier = Modifier.fillMaxSize()) {
+            val settingsState = remember {
+                settingsManager.load()?.let { settings ->
+                    mutableStateOf(settings)
+                } ?: run {
+                    val settings = Settings(
+                        hostAddress = "",
+                        deviceAddress = "",
+                        passwordLength = 16,
+                        passwordIsAlphanumeric =  false,
+                        storePath = ""
+                    )
 
-                settingsManager.save(settings)
+                    settingsManager.save(settings)
 
-                mutableStateOf(settings)
+                    mutableStateOf(settings)
+                }
             }
-        }
 
-        LaunchedEffect(settingsState.value.hostAddress) {
-            settingsState.value = Settings(
-                hostAddress = WebSocket.getLocalHost(),
-                deviceAddress = settingsState.value.deviceAddress,
-                passwordLength = settingsState.value.passwordLength,
-                passwordIsAlphanumeric = settingsState.value.passwordIsAlphanumeric,
-                storePath = storage.storePath
-            )
-        }
+            LaunchedEffect(settingsState.value.hostAddress) {
+                settingsState.value = Settings(
+                    hostAddress = WebSocket.getLocalHost(),
+                    deviceAddress = settingsState.value.deviceAddress,
+                    passwordLength = settingsState.value.passwordLength,
+                    passwordIsAlphanumeric = settingsState.value.passwordIsAlphanumeric,
+                    storePath = storage.storePath
+                )
+            }
 
-        Crossfade(targetState = navigationState.screenState.value) { screen ->
-            when (screen) {
-                Screen.SETTINGS -> {
-                    Settings(
-                        settings = settingsState.value,
-                        onBack = { navigationState.screenState.value = Screen.CHAIN_LIST },
-                        onSave = { settings ->
-                            settingsManager.save(settings)
+            Crossfade(targetState = navigationState.screenState.value) { screen ->
+                when (screen) {
+                    Screen.SETTINGS -> {
+                        Settings(
+                            settings = settingsState.value,
+                            onBack = { navigationState.screenState.value = Screen.CHAIN_LIST },
+                            onSave = { settings ->
+                                settingsManager.save(settings)
 
-                            settingsState.value = settings
-                            navigationState.screenState.value = Screen.CHAIN_LIST
-                        },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-                Screen.CHAIN_LIST -> {
-                    val chainListViewModel = ChainListViewModel(
-                        chainRepository,
-                        chainLinkRepository,
-                        PasswordGenerator(PasswordGenerator.Strength(
-                            settingsState.value.passwordLength,
-                            settingsState.value.passwordIsAlphanumeric
-                        )),
-                        storage
-                    )
-
-                    val scaffoldListState = rememberScaffoldListState()
-
-                    ChainScaffoldList(
-                        viewModel = chainListViewModel,
-                        settingsState = settingsState,
-                        navigationState = navigationState,
-                        scaffoldListState = scaffoldListState,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                }
-                Screen.CHAIN_LINK_LIST -> {
-                    val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository, storage).apply {
-                        chain = navigationState.chainState.value
+                                settingsState.value = settings
+                                navigationState.screenState.value = Screen.CHAIN_LIST
+                            },
+                            modifier = Modifier.fillMaxSize()
+                        )
                     }
+                    Screen.CHAIN_LIST -> {
+                        val chainListViewModel = ChainListViewModel(
+                            chainRepository,
+                            chainLinkRepository,
+                            PasswordGenerator(PasswordGenerator.Strength(
+                                settingsState.value.passwordLength,
+                                settingsState.value.passwordIsAlphanumeric
+                            )),
+                            storage
+                        )
 
-                    val scaffoldListState = rememberScaffoldListState()
+                        val scaffoldListState = rememberScaffoldListState()
 
-                    ChainLinkScaffoldList(
-                        viewModel = chainLinkListViewModel,
-                        settingsState = settingsState,
-                        navigationState = navigationState,
-                        scaffoldListState = scaffoldListState,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                        ChainScaffoldList(
+                            viewModel = chainListViewModel,
+                            settingsState = settingsState,
+                            navigationState = navigationState,
+                            scaffoldListState = scaffoldListState,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                    Screen.CHAIN_LINK_LIST -> {
+                        val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository, storage).apply {
+                            chain = navigationState.chainState.value
+                        }
+
+                        val scaffoldListState = rememberScaffoldListState()
+
+                        ChainLinkScaffoldList(
+                            viewModel = chainLinkListViewModel,
+                            settingsState = settingsState,
+                            navigationState = navigationState,
+                            scaffoldListState = scaffoldListState,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
                 }
             }
         }
