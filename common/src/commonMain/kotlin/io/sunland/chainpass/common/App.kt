@@ -144,7 +144,7 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                             }
                         }
                     },
-                    onItemRemove = { chainLink ->
+                    onItemRemove = { chain, chainLink ->
                         coroutineScope.launch {
                             scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
@@ -155,7 +155,7 @@ fun App(httpClient: HttpClient) = MaterialTheme(
                             )) {
                                 SnackbarResult.ActionPerformed -> chainLinkListViewModel.undoRemove(chainLink)
                                 SnackbarResult.Dismissed -> {
-                                    chainLinkListViewModel.remove(chainLink).onFailure { exception ->
+                                    chainLinkListViewModel.remove(chain, chainLink).onFailure { exception ->
                                         chainLinkListViewModel.undoRemove(chainLink)
 
                                         scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
