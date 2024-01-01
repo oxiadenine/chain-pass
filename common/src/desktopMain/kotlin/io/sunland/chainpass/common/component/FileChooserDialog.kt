@@ -5,7 +5,11 @@ import javax.swing.JFileChooser
 import javax.swing.filechooser.FileNameExtensionFilter
 
 @Composable
-actual fun FileChooserDialog(isOpened: Boolean, fileExtensions: List<String>, onClose: (String) -> Unit) {
+actual fun FileChooserDialog(
+    isOpened: Boolean,
+    fileExtensions: List<String>,
+    onClose: (FileChooserResult) -> Unit
+) {
     val fileExtensionFilters = fileExtensions.map { fileExtension ->
         FileNameExtensionFilter(fileExtension, fileExtension)
     }
@@ -21,10 +25,10 @@ actual fun FileChooserDialog(isOpened: Boolean, fileExtensions: List<String>, on
             }
         }
 
-        val filePath = if (fileDialog.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-            fileDialog.selectedFile.absolutePath
-        } else ""
+        val result = if (fileDialog.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+            FileChooserResult.File(fileDialog.selectedFile.absolutePath, fileDialog.selectedFile.readBytes())
+        } else FileChooserResult.None
 
-        onClose(filePath)
+        onClose(result)
     }
 }

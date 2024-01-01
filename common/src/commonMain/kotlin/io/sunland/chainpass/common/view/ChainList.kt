@@ -280,7 +280,7 @@ fun ChainList(
 
     if (unstoreDialogVisible) {
         UnstoreDialog(
-            onConfirm = { filePath ->
+            onConfirm = { fileSelected ->
                 unstoreDialogVisible = false
 
                 scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
@@ -288,7 +288,7 @@ fun ChainList(
                 coroutineScope.launch(Dispatchers.IO) {
                     loadingDialogVisible = true
 
-                    viewModel.unstore(filePath).onSuccess {
+                    viewModel.unstore(fileSelected).onSuccess {
                         viewModel.getAll()
 
                         loadingDialogVisible = false
@@ -296,7 +296,7 @@ fun ChainList(
                         scaffoldListState.popupHostState.currentPopupData?.dismiss()
                         scaffoldListState.popupHostState.showPopup(message = intl.translate(
                             id = "popup.unstore.message",
-                            value = "fileName" to filePath.fileName
+                            value = "fileName" to fileSelected.fileName
                         ))
                     }.onFailure { error ->
                         loadingDialogVisible = false

@@ -71,5 +71,5 @@ class ChainLinkRepository(private val database: Database, private val storage: S
 
     fun store(storageType: StorageType, storable: Storable) = storage.store(storageType, storable)
 
-    fun unstore(filePath: String) = storage.unstore(filePath)
+    fun unstore(filePath: String, fileBytes: ByteArray) = storage.unstore(filePath, fileBytes)
 }

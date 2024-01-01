@@ -184,9 +184,9 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         return chainLinkRepository.store(storageType, storable)
     }
 
-    suspend fun unstore(filePath: FilePath) = runCatching {
+    suspend fun unstore(fileSelected: FileSelected) = runCatching {
         val storable = try {
-            chainLinkRepository.unstore(filePath.value)
+            chainLinkRepository.unstore(fileSelected.path, fileSelected.bytes)
         } catch (e: IllegalStateException) {
             throw StorableFormatError
         }

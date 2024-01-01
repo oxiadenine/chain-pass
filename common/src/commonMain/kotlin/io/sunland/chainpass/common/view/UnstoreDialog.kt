@@ -15,42 +15,39 @@ import io.sunland.chainpass.common.LocalIntl
 import io.sunland.chainpass.common.Platform
 import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.common.component.FileChooserDialog
+import io.sunland.chainpass.common.component.FileChooserResult
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.platform
 
-class FilePath(value: String? = null) {
-    var value = value ?: ""
-        private set
-
-    val fileName = value?.substringAfterLast("/")?.substringBeforeLast(".") ?: ""
+class FileSelected(val path: String, val bytes: ByteArray) {
+    val fileName = path.substringAfterLast("/").substringBeforeLast(".")
 }
 
 @Composable
-fun UnstoreDialog(onConfirm: (FilePath) -> Unit, onCancel: () -> Unit) {
+fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
     val intl = LocalIntl.current
 
     var fileChooserDialogOpened by remember { mutableStateOf(false) }
-
-    var filePath by remember { mutableStateOf(FilePath()) }
-    var filePathError by remember { mutableStateOf(false) }
+    var fileChooserDialogResult by remember { mutableStateOf<FileChooserResult?>(null) }
 
     val onSelectFileButtonClick = {
         fileChooserDialogOpened = true
     }
 
-    val onCloseFileChooserDialog = { path: String ->
+    val onCloseFileChooserDialog = { result: FileChooserResult ->
         fileChooserDialogOpened = false
-
-        filePath = FilePath(path)
-        filePathError = filePath.value.isEmpty()
+        fileChooserDialogResult = result
     }
 
     val onInputDialogConfirmRequest = {
-        filePath = FilePath(filePath.value)
-        filePathError = filePath.value.isEmpty()
+        if (fileChooserDialogResult == null) {
+            fileChooserDialogResult = FileChooserResult.None
+        }
 
-        if (!filePathError) {
-            onConfirm(filePath)
+        if (fileChooserDialogResult is FileChooserResult.File) {
+            val file = fileChooserDialogResult as FileChooserResult.File
+
+            onConfirm(FileSelected(file.path, file.bytes))
         }
     }
 
@@ -77,13 +74,19 @@ fun UnstoreDialog(onConfirm: (FilePath) -> Unit, onCancel: () -> Unit) {
                 }
             }
 
-            if (filePathError) {
-                Text(
-                    text = intl.translate("dialog.unstore.item.file.error"),
-                    color = MaterialTheme.colorScheme.error,
-                    fontSize = 14.sp
-                )
-            } else Text(text = filePath.fileName, fontSize = 14.sp)
+            if (fileChooserDialogResult != null) {
+                if (fileChooserDialogResult is FileChooserResult.None) {
+                    Text(
+                        text = intl.translate("dialog.unstore.item.file.error"),
+                        color = MaterialTheme.colorScheme.error,
+                        fontSize = 14.sp
+                    )
+                } else {
+                    val file = fileChooserDialogResult as FileChooserResult.File
+
+                    Text(text = FileSelected(file.path, file.bytes).fileName, fontSize = 14.sp)
+                }
+            }
         }
     }
 

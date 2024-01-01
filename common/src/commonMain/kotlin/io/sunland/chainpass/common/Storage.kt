@@ -43,14 +43,14 @@ class Storage(dirPath: String) {
         return fileName
     }
 
-    fun unstore(filePath: String): Storable {
+    fun unstore(filePath: String, fileBytes: ByteArray): Storable {
         if (!File(filePath).exists()) {
             error("File $filePath does not exists")
         }
 
         val storageType = StorageType.valueOf(File(filePath).extension.uppercase())
 
-        return File(filePath).readText().toStorable(storageType)
+        return fileBytes.decodeToString().toStorable(storageType)
     }
 }
 
