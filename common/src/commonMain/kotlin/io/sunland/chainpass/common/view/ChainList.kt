@@ -36,62 +36,64 @@ fun ChainList(viewModel: ChainListViewModel, onItemNew: (Chain) -> Unit, onItemS
 
             Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
                 viewModel.chains.forEach { chain ->
-                    val keyInputDialogVisible = remember { mutableStateOf(false) }
+                    when (chain.status) {
+                        ChainStatus.ACTUAL, ChainStatus.REMOVE, ChainStatus.SELECT -> {
+                            val keyInputDialogVisible = remember { mutableStateOf(false) }
 
-                    if (keyInputDialogVisible.value) {
-                        val keyInputState = remember { mutableStateOf("") }
-                        val keyInputErrorState = remember { mutableStateOf(false) }
+                            if (keyInputDialogVisible.value) {
+                                val keyState = mutableStateOf(chain.key.value)
+                                val keyErrorState = mutableStateOf(!chain.key.isValid)
 
-                        InputDialog(
-                            title = null,
-                            placeholder = "Key",
-                            value = keyInputState.value,
-                            ontValueChange = { key ->
-                                keyInputState.value = key
-                                keyInputErrorState.value = false
-                            },
-                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                            visualTransformation = PasswordVisualTransformation(),
-                            isError = keyInputErrorState.value,
-                            onDismissRequest = { keyInputDialogVisible.value = false },
-                            onConfirmRequest = {
-                                runCatching {
-                                    when (chain.status) {
-                                        ChainStatus.REMOVE -> viewModel.remove(chain, Chain.Key(keyInputState.value))
-                                        ChainStatus.SELECT -> viewModel.select(chain, Chain.Key(keyInputState.value))
-                                        else -> throw IllegalStateException()
-                                    }
-                                }.fold(
-                                    onSuccess = { chain ->
-                                        keyInputErrorState.value = false
-                                        keyInputDialogVisible.value = false
+                                InputDialog(
+                                    title = null,
+                                    placeholder = "Key",
+                                    value = keyState.value,
+                                    ontValueChange = { key ->
+                                        chain.key = Chain.Key(key)
 
-                                        when (chain.status) {
-                                            ChainStatus.REMOVE -> onItemRemove(chain)
-                                            ChainStatus.SELECT -> onItemSelect(chain)
-                                            else -> Unit
-                                        }
+                                        keyState.value = chain.key.value
+                                        keyErrorState.value = !chain.key.isValid
                                     },
-                                    onFailure = { keyInputErrorState.value = true }
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                                    visualTransformation = PasswordVisualTransformation(),
+                                    isError = keyErrorState.value,
+                                    onDismissRequest = {
+                                        chain.key = Chain.Key()
+
+                                        keyInputDialogVisible.value = false
+                                    },
+                                    onConfirmRequest = {
+                                        chain.key = Chain.Key(keyState.value)
+
+                                        keyErrorState.value = !chain.key.isValid
+
+                                        if (!keyErrorState.value) {
+                                            when (chain.status) {
+                                                ChainStatus.REMOVE -> viewModel.remove(chain, onItemRemove)
+                                                ChainStatus.SELECT -> viewModel.select(chain, onItemSelect)
+                                                else -> keyInputDialogVisible.value = false
+                                            }
+
+                                            keyInputDialogVisible.value = false
+                                        }
+                                    }
                                 )
                             }
-                        )
-                    }
 
-                    when (chain.status) {
-                        ChainStatus.ACTUAL, ChainStatus.REMOVE, ChainStatus.SELECT -> ChainListItem(
-                            chain = chain,
-                            onClick = {
-                                chain.status = ChainStatus.SELECT
+                            ChainListItem(
+                                chain = chain,
+                                onClick = {
+                                    chain.status = ChainStatus.SELECT
 
-                                keyInputDialogVisible.value = true
-                            },
-                            onIconDeleteClick = {
-                                chain.status = ChainStatus.REMOVE
+                                    keyInputDialogVisible.value = true
+                                },
+                                onIconDeleteClick = {
+                                    chain.status = ChainStatus.REMOVE
 
-                                keyInputDialogVisible.value = true
-                            }
-                        )
+                                    keyInputDialogVisible.value = true
+                                }
+                            )
+                        }
                         ChainStatus.DRAFT -> ChainListItemDraft(
                             chain = chain,
                             onIconDoneClick = { onItemNew(chain) },
