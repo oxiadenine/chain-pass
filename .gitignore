@@ -3,9 +3,7 @@
 *.properties
 
 # Gradle
-gradle/
-!gradle.properties
-gradlew*
+!gradle*.properties
 
 # Environment
 *.env
