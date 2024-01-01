@@ -13,3 +13,5 @@ fun Project.h2Dependency() = "com.h2database:h2:${version("h2")}"
 
 fun Project.androidxDependency(name: String) =
     "androidx.${name.substringBefore("-")}:$name:${androidxVersion(name)}"
+
+fun Project.junitDependency(name: String) = "org.junit.jupiter:junit-$name:${version("junit")}"
