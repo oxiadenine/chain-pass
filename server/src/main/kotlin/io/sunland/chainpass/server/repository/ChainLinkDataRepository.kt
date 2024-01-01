@@ -24,7 +24,7 @@ object ChainLinkDataRepository : ChainLinkRepository {
         Database.execute {
             ChainLinkTable.select { ChainLinkTable.chainId eq chainKeyEntity.id }.map { record ->
                 ChainLinkEntity(
-                    record[ChainLinkTable.id].value,
+                    record[ChainLinkTable.id],
                     record[ChainLinkTable.name],
                     record[ChainLinkTable.description],
                     record[ChainLinkTable.password],
