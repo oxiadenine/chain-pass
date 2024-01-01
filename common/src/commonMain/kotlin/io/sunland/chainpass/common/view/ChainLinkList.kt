@@ -117,13 +117,11 @@ fun ChainLinkList(
                                     onNew = { onNew(chainLink) },
                                     onCancel = { viewModel.rejectDraft(chainLink) }
                                 )
-                                ChainLink.Status.EDIT -> key(chainLink.id) {
-                                    ChainLinkListItemEdit(
-                                        chainLink = chainLink,
-                                        onEdit = { onEdit(chainLink) },
-                                        onCancel = { viewModel.cancelEdit(chainLink) }
-                                    )
-                                }
+                                ChainLink.Status.EDIT -> ChainLinkListItemEdit(
+                                    chainLink = chainLink,
+                                    onEdit = { onEdit(chainLink) },
+                                    onCancel = { viewModel.cancelEdit(chainLink) }
+                                )
                             }
                         }
                     }

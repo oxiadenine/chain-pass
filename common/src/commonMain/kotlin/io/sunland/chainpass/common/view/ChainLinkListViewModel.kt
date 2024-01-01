@@ -80,9 +80,11 @@ class ChainLinkListViewModel(
             .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
             .map { chainLink ->
                 if (chainLink.id == chainLinkEdit.id && chainLink.status == ChainLink.Status.EDIT) {
-                    lockPassword(chainLink)
+                    val chainLinkNoEdit = chainLinks.first { chainLink.id == it.id }
 
-                    chainLink.status = ChainLink.Status.ACTUAL
+                    chainLink.description = chainLinkNoEdit.description
+                    chainLink.password = chainLinkNoEdit.password
+                    chainLink.status = chainLinkNoEdit.status
                 }
 
                 chainLink
@@ -101,9 +103,11 @@ class ChainLinkListViewModel(
             .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
             .map { chainLink ->
                 if (chainLink.status == ChainLink.Status.EDIT) {
-                    lockPassword(chainLink)
+                    val chainLinkNoEdit = chainLinks.first { chainLink.id == it.id }
 
-                    chainLink.status = ChainLink.Status.ACTUAL
+                    chainLink.description = chainLinkNoEdit.description
+                    chainLink.password = chainLinkNoEdit.password
+                    chainLink.status = chainLinkNoEdit.status
                 }
 
                 chainLink
