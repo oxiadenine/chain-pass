@@ -1,10 +1,11 @@
 package io.sunland.chainpass.service
 
 import com.typesafe.config.ConfigFactory
-import io.ktor.config.*
-import io.ktor.http.cio.websocket.*
+import io.ktor.client.plugins.websocket.*
+import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.testing.*
+import io.ktor.websocket.*
 import io.sunland.chainpass.common.network.SocketMessage
 import io.sunland.chainpass.common.network.SocketRoute
 import io.sunland.chainpass.common.repository.ChainEntity
@@ -22,18 +23,6 @@ import kotlin.test.assertTrue
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class ChainLinkWebSocketTest {
-    private val appEngineEnv: ApplicationEngineEnvironment
-        get() = createTestEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.load())
-
-            module { main() }
-
-            connector {
-                host = config.property("server.host").getString()
-                port = config.property("server.port").getString().toInt()
-            }
-        }
-
     private val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(
         PasswordEncoder.Base64.encode("test".encodeToByteArray()),
         PasswordEncoder.Base64.encode("test".encodeToByteArray())
@@ -46,57 +35,114 @@ class ChainLinkWebSocketTest {
     private enum class Operation { CREATE, READ, UPDATE, DELETE }
 
     @BeforeAll
-    fun createChain() {
-        withApplication(appEngineEnv) {
-            handleWebSocketConversation(SocketRoute.CHAIN_CREATE.path) { incoming, outgoing ->
-                chainEntity = ChainEntity(
-                    chainEntity.id,
-                    chainEntity.name,
-                    PasswordEncoder.encrypt(
-                        PasswordEncoder.Base64.encode(chainEntity.key.encodeToByteArray()),
-                        EncoderSpec.Passphrase(
-                            secretKey,
-                            PasswordEncoder.Base64.encode(chainEntity.name.encodeToByteArray())
-                        )
+    fun createChain() = testApplication {
+        environment {
+            config = HoconApplicationConfig(ConfigFactory.load())
+
+            module { main() }
+
+            connector {
+                host = config.property("server.host").getString()
+                port = config.property("server.port").getString().toInt()
+            }
+        }
+
+        val client = createClient {
+            install(WebSockets)
+        }
+
+        client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_CREATE.path) {
+            chainEntity = ChainEntity(
+                chainEntity.id,
+                chainEntity.name,
+                PasswordEncoder.encrypt(
+                    PasswordEncoder.Base64.encode(chainEntity.key.encodeToByteArray()),
+                    EncoderSpec.Passphrase(
+                        secretKey,
+                        PasswordEncoder.Base64.encode(chainEntity.name.encodeToByteArray())
                     )
                 )
+            )
 
-                outgoing.send(SocketMessage.success(Json.encodeToString(chainEntity)).toFrame())
+            outgoing.send(SocketMessage.success(Json.encodeToString(chainEntity)).toFrame())
 
-                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+            val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-                chainEntity.id = Json.decodeFromString<ChainEntity>(message.data.getOrThrow()).id
-            }
+            chainEntity.id = Json.decodeFromString<ChainEntity>(message.data.getOrThrow()).id
         }
     }
 
     @AfterAll
-    fun deleteChain() {
-        getChainKey()
+    fun deleteChain() = testApplication {
+        environment {
+            config = HoconApplicationConfig(ConfigFactory.load())
 
-        withApplication(appEngineEnv) {
-            handleWebSocketConversation(SocketRoute.CHAIN_DELETE.path) { incoming, outgoing ->
-                chainKeyEntity = ChainKeyEntity(
-                    chainKeyEntity.id,
-                    PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, chainKeyEntity.key))
-                )
+            module { main() }
 
-                outgoing.send(SocketMessage.success(Json.encodeToString(chainKeyEntity)).toFrame())
-
-                val message = SocketMessage.from(incoming.receive() as Frame.Text)
-
-                message.data.getOrThrow()
+            connector {
+                host = config.property("server.host").getString()
+                port = config.property("server.port").getString().toInt()
             }
+        }
+
+        val client = createClient {
+            install(WebSockets)
+        }
+
+        client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_KEY.path) {
+            outgoing.send(SocketMessage.success(chainEntity.id.toString()).toFrame())
+
+            val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+            chainKeyEntity = Json.decodeFromString(message.data.getOrThrow())
+
+            assertTrue { chainKeyEntity.key != "" }
+        }
+
+        client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_DELETE.path) {
+            chainKeyEntity = ChainKeyEntity(
+                chainKeyEntity.id,
+                PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, chainKeyEntity.key))
+            )
+
+            outgoing.send(SocketMessage.success(Json.encodeToString(chainKeyEntity)).toFrame())
+
+            val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+            message.data.getOrThrow()
         }
     }
 
     @Test
     @Order(1)
     fun testCreate() {
-        getChainKey()
+        testApplication {
+            environment {
+                config = HoconApplicationConfig(ConfigFactory.load())
 
-        withApplication(appEngineEnv) {
-            handleWebSocketConversation(SocketRoute.CHAIN_LINK_CREATE.path) { incoming, outgoing ->
+                module { main() }
+
+                connector {
+                    host = config.property("server.host").getString()
+                    port = config.property("server.port").getString().toInt()
+                }
+            }
+
+            val client = createClient {
+                install(WebSockets)
+            }
+
+            client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_KEY.path) {
+                outgoing.send(SocketMessage.success(chainEntity.id.toString()).toFrame())
+
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+                chainKeyEntity = Json.decodeFromString(message.data.getOrThrow())
+
+                assertTrue { chainKeyEntity.key != "" }
+            }
+
+            client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_LINK_CREATE.path) {
                 chainLinkEntity = ChainLinkEntity(
                     chainLinkEntity.id,
                     chainLinkEntity.name,
@@ -134,10 +180,33 @@ class ChainLinkWebSocketTest {
     @Test
     @Order(3)
     fun testUpdate() {
-        getChainKey()
+        testApplication {
+            environment {
+                config = HoconApplicationConfig(ConfigFactory.load())
 
-        withApplication(appEngineEnv) {
-            handleWebSocketConversation(SocketRoute.CHAIN_LINK_UPDATE.path) { incoming, outgoing ->
+                module { main() }
+
+                connector {
+                    host = config.property("server.host").getString()
+                    port = config.property("server.port").getString().toInt()
+                }
+            }
+
+            val client = createClient {
+                install(WebSockets)
+            }
+
+            client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_KEY.path) {
+                outgoing.send(SocketMessage.success(chainEntity.id.toString()).toFrame())
+
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+                chainKeyEntity = Json.decodeFromString(message.data.getOrThrow())
+
+                assertTrue { chainKeyEntity.key != "" }
+            }
+
+            client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_LINK_UPDATE.path) {
                 chainLinkEntity = ChainLinkEntity(
                     chainLinkEntity.id,
                     chainLinkEntity.name,
@@ -169,10 +238,33 @@ class ChainLinkWebSocketTest {
     @Test
     @Order(4)
     fun testDelete() {
-        getChainKey()
+        testApplication {
+            environment {
+                config = HoconApplicationConfig(ConfigFactory.load())
 
-        withApplication(appEngineEnv) {
-            handleWebSocketConversation(SocketRoute.CHAIN_LINK_DELETE.path) { incoming, outgoing ->
+                module { main() }
+
+                connector {
+                    host = config.property("server.host").getString()
+                    port = config.property("server.port").getString().toInt()
+                }
+            }
+
+            val client = createClient {
+                install(WebSockets)
+            }
+
+            client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_KEY.path) {
+                outgoing.send(SocketMessage.success(chainEntity.id.toString()).toFrame())
+
+                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+                chainKeyEntity = Json.decodeFromString(message.data.getOrThrow())
+
+                assertTrue { chainKeyEntity.key != "" }
+            }
+
+            client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_LINK_DELETE.path) {
                 chainLinkEntity = ChainLinkEntity(
                     chainLinkEntity.id,
                     chainLinkEntity.name,
@@ -195,44 +287,49 @@ class ChainLinkWebSocketTest {
         checkTest(Operation.DELETE)
     }
 
-    private fun getChainKey() {
-        withApplication(appEngineEnv) {
-            handleWebSocketConversation(SocketRoute.CHAIN_KEY.path) { incoming, outgoing ->
-                outgoing.send(SocketMessage.success(chainEntity.id.toString()).toFrame())
+    private fun checkTest(operation: Operation) = testApplication {
+        environment {
+            config = HoconApplicationConfig(ConfigFactory.load())
 
-                val message = SocketMessage.from(incoming.receive() as Frame.Text)
+            module { main() }
 
-                chainKeyEntity = Json.decodeFromString(message.data.getOrThrow())
-
-                assertTrue { chainKeyEntity.key != "" }
+            connector {
+                host = config.property("server.host").getString()
+                port = config.property("server.port").getString().toInt()
             }
         }
-    }
 
-    private fun checkTest(operation: Operation) {
-        getChainKey()
+        val client = createClient {
+            install(WebSockets)
+        }
 
-        withApplication(appEngineEnv) {
-            withApplication(appEngineEnv) {
-                handleWebSocketConversation(SocketRoute.CHAIN_LINK_READ.path) { incoming, outgoing ->
-                    chainKeyEntity = ChainKeyEntity(
-                        chainKeyEntity.id,
-                        PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, chainKeyEntity.key))
-                    )
+        client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_KEY.path) {
+            outgoing.send(SocketMessage.success(chainEntity.id.toString()).toFrame())
 
-                    outgoing.send(SocketMessage.success(Json.encodeToString(chainKeyEntity)).toFrame())
+            val message = SocketMessage.from(incoming.receive() as Frame.Text)
 
-                    val message = SocketMessage.from(incoming.receive() as Frame.Text)
+            chainKeyEntity = Json.decodeFromString(message.data.getOrThrow())
 
-                    val chainLinkEntities = Json.decodeFromString<List<ChainLinkEntity>>(message.data.getOrThrow())
+            assertTrue { chainKeyEntity.key != "" }
+        }
 
-                    when (operation) {
-                        Operation.CREATE -> assertTrue { chainLinkEntities.first().id == chainLinkEntity.id }
-                        Operation.READ -> assertTrue { chainLinkEntities.size == 1 }
-                        Operation.UPDATE -> assertTrue { chainLinkEntities.first().password == chainLinkEntity.password }
-                        Operation.DELETE -> assertTrue { chainLinkEntities.isEmpty() }
-                    }
-                }
+        client.webSocket(host = "127.0.0.1", port = 8800, path = SocketRoute.CHAIN_LINK_READ.path) {
+            chainKeyEntity = ChainKeyEntity(
+                chainKeyEntity.id,
+                PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, chainKeyEntity.key))
+            )
+
+            outgoing.send(SocketMessage.success(Json.encodeToString(chainKeyEntity)).toFrame())
+
+            val message = SocketMessage.from(incoming.receive() as Frame.Text)
+
+            val chainLinkEntities = Json.decodeFromString<List<ChainLinkEntity>>(message.data.getOrThrow())
+
+            when (operation) {
+                Operation.CREATE -> assertTrue { chainLinkEntities.last().id == chainLinkEntity.id }
+                Operation.READ -> assertTrue { chainLinkEntities.size == 1 }
+                Operation.UPDATE -> assertTrue { chainLinkEntities.last().password == chainLinkEntity.password }
+                Operation.DELETE -> assertTrue { chainLinkEntities.isEmpty() }
             }
         }
     }

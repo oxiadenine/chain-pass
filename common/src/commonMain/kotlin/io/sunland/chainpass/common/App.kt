@@ -14,8 +14,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.ktor.client.*
-import io.ktor.client.features.*
-import io.ktor.client.request.*
+import io.ktor.client.plugins.*
 import io.ktor.http.*
 import io.sunland.chainpass.common.repository.ChainLinkNetRepository
 import io.sunland.chainpass.common.repository.ChainNetRepository
