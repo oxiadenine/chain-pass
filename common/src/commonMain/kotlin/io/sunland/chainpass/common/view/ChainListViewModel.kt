@@ -33,6 +33,8 @@ class ChainListViewModel(private val repository: ChainRepository) {
     }
 
     suspend fun new(chain: Chain): Result<Unit> {
+        chain.hashKey(chain.key.value)
+
         val chainEntity = ChainEntity(chain.id, chain.name, chain.key.value)
 
         return repository.create(chainEntity).map { chainId ->
@@ -61,5 +63,13 @@ class ChainListViewModel(private val repository: ChainRepository) {
         val chainEntity = ChainEntity(chain.id, chain.name, chain.key.value)
 
         return repository.delete(chainEntity)
+    }
+
+    fun select(chain: Chain, key: String) = Chain().apply {
+        id = chain.id
+        name = chain.name
+
+        setKey(key)
+        hashKey(key)
     }
 }

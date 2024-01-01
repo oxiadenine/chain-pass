@@ -1,5 +1,7 @@
 package io.sunland.chainpass.common
 
+import io.sunland.chainpass.common.security.PasswordEncoder
+
 enum class ChainStatus { ACTUAL, DRAFT }
 
 class Chain {
@@ -34,4 +36,6 @@ class Chain {
             throw IllegalArgumentException("Key can't be empty or greater than 32 characters")
         }
     }
+
+    fun hashKey(value: String) = apply { key = Key(PasswordEncoder.encode(value, name)) }
 }

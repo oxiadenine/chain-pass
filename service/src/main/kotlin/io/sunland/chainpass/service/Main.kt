@@ -76,7 +76,16 @@ fun main() {
                             SocketMessageType.CHAIN_CREATE -> {
                                 val chainEntity = Json.decodeFromString<ChainEntity>(fromMessage.data.getOrThrow())
 
-                                ChainDataRepository.create(chainEntity).fold(
+                                val chain = Chain().apply {
+                                    id = chainEntity.id
+                                    name = chainEntity.name
+
+                                    hashKey(chainEntity.key)
+                                }
+
+                                val chainEntityHashKey = ChainEntity(chain.id, chain.name, chain.key.value)
+
+                                ChainDataRepository.create(chainEntityHashKey).fold(
                                     onSuccess = { chainEntityId ->
                                         chainEntity.id = chainEntityId
 
@@ -120,7 +129,16 @@ fun main() {
                                 val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.data.getOrThrow())
 
                                  ChainDataRepository.read(chainLinkEntity.chainKey.id)
-                                     .mapCatching { chainEntity -> Chain.Key(chainEntity.key).validate(chainLinkEntity.chainKey.key) }
+                                     .mapCatching { chainEntity ->
+                                         val chainKey = Chain().apply {
+                                             id = chainEntity.id
+                                             name = chainEntity.name
+
+                                             hashKey(chainLinkEntity.chainKey.key)
+                                         }.key
+
+                                         Chain.Key(chainEntity.key).validate(chainKey.value)
+                                     }
                                      .mapCatching { ChainLinkDataRepository.create(chainLinkEntity).getOrThrow() }
                                      .fold(
                                          onSuccess = { chainLinkId ->
@@ -137,7 +155,16 @@ fun main() {
                                 val chainKeyEntity = Json.decodeFromString<ChainKeyEntity>(fromMessage.data.getOrThrow())
 
                                 ChainDataRepository.read(chainKeyEntity.id)
-                                    .mapCatching { chainEntity -> Chain.Key(chainEntity.key).validate(chainKeyEntity.key) }
+                                    .mapCatching { chainEntity ->
+                                        val chainKey = Chain().apply {
+                                            id = chainEntity.id
+                                            name = chainEntity.name
+
+                                            hashKey(chainKeyEntity.key)
+                                        }.key
+
+                                        Chain.Key(chainEntity.key).validate(chainKey.value)
+                                    }
                                     .mapCatching { ChainLinkDataRepository.read(chainKeyEntity).getOrThrow() }
                                     .fold(
                                         onSuccess = { chainLinkEntities ->
@@ -152,7 +179,16 @@ fun main() {
                                 val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.data.getOrThrow())
 
                                 ChainDataRepository.read(chainLinkEntity.chainKey.id)
-                                    .mapCatching { chainEntity -> Chain.Key(chainEntity.key).validate(chainLinkEntity.chainKey.key) }
+                                    .mapCatching { chainEntity ->
+                                        val chainKey = Chain().apply {
+                                            id = chainEntity.id
+                                            name = chainEntity.name
+
+                                            hashKey(chainLinkEntity.chainKey.key)
+                                        }.key
+
+                                        Chain.Key(chainEntity.key).validate(chainKey.value)
+                                    }
                                     .mapCatching { ChainLinkDataRepository.update(chainLinkEntity).getOrThrow() }
                                     .fold(
                                         onSuccess = {
@@ -167,7 +203,16 @@ fun main() {
                                 val chainLinkEntity = Json.decodeFromString<ChainLinkEntity>(fromMessage.data.getOrThrow())
 
                                 ChainDataRepository.read(chainLinkEntity.chainKey.id)
-                                    .mapCatching { chainEntity -> Chain.Key(chainEntity.key).validate(chainLinkEntity.chainKey.key) }
+                                    .mapCatching { chainEntity ->
+                                        val chainKey = Chain().apply {
+                                            id = chainEntity.id
+                                            name = chainEntity.name
+
+                                            hashKey(chainLinkEntity.chainKey.key)
+                                        }.key
+
+                                        Chain.Key(chainEntity.key).validate(chainKey.value)
+                                    }
                                     .mapCatching { ChainLinkDataRepository.delete(chainLinkEntity) }
                                     .fold(
                                         onSuccess = {

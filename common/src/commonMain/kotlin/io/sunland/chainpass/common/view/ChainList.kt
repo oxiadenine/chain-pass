@@ -60,20 +60,15 @@ fun ChainList(
                             isError = keyInputErrorState.value,
                             onDismissRequest = { keyInputDialogVisible.value = false },
                             onConfirmRequest = {
-                                val selectedChain = Chain().apply {
-                                    id = chain.id
-                                    name = chain.name
-                                }
+                                runCatching { viewModel.select(chain, keyInputState.value) }.fold(
+                                    onSuccess = { chain ->
+                                        keyInputErrorState.value = false
+                                        keyInputDialogVisible.value = false
 
-                                runCatching { selectedChain.setKey(keyInputState.value) }
-                                    .onSuccess { keyInputErrorState.value = false }
-                                    .onFailure { keyInputErrorState.value = true }
-
-                                if (!keyInputErrorState.value) {
-                                    keyInputDialogVisible.value = false
-
-                                    onItemSelect(selectedChain)
-                                }
+                                        onItemSelect(chain)
+                                    },
+                                    onFailure = { keyInputErrorState.value = true }
+                                )
                             }
                         )
                     }
