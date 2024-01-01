@@ -15,19 +15,22 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        val settingsManager = SettingsManager(applicationContext.getExternalFilesDir("")!!.absolutePath)
+
+        appState = rememberAppState(
+            Settings(),
+            Storage(settingsManager.dirPath),
+            HttpClient(CIO) {
+                install(WebSockets)
+                install(Logging)
+            },
+            Screen.SERVER_CONNECTION
+        )
+
         setContent {
             title = "Chain Pass"
 
-            appState = rememberAppState(
-                Settings(),
-                HttpClient(CIO) {
-                    install(WebSockets)
-                    install(Logging)
-                },
-                Screen.SERVER_CONNECTION
-            )
-
-            App(SettingsManager(applicationContext.getExternalFilesDir("")!!.absolutePath), appState)
+            App(settingsManager, appState)
         }
     }
 

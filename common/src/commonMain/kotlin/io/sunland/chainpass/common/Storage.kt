@@ -5,7 +5,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
-expect class Storage(dirPath: String, options: StorageOptions) {
+expect class Storage(dirPath: String, options: StorageOptions = StorageOptions()) {
     val dirPath: String
     val options: StorageOptions
 
