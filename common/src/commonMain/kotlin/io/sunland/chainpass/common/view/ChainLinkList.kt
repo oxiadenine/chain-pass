@@ -28,7 +28,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-enum class ChainLinkListAction { NONE, NEW, STORE, UNSTORE }
+enum class ChainLinkListAction { NONE, NEW, EDIT, STORE, UNSTORE }
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -73,6 +73,29 @@ fun ChainLinkList(
                         }
                     },
                     onCancel = { isInputDialogVisibleState.value = false }
+                )
+            }
+            ChainLinkListAction.EDIT -> {
+                val chainLink = viewModel.chainLinkSelected!!
+
+                ChainLinkListItemEditInput(
+                    chainLink = chainLink,
+                    onEdit = {
+                        isInputDialogVisibleState.value = false
+
+                        coroutineScope.launch(Dispatchers.IO) {
+                            isWorkInProgressState.value = true
+
+                            viewModel.edit(chainLink)
+
+                            isWorkInProgressState.value = false
+                        }
+                    },
+                    onCancel = {
+                        isInputDialogVisibleState.value = false
+
+                        viewModel.cancelEdit(chainLink)
+                    }
                 )
             }
             ChainLinkListAction.STORE -> ChainListStoreInput(
@@ -176,7 +199,6 @@ fun ChainLinkList(
                 onSearch = {
                     snackbarHostState.currentSnackbarData?.dismiss()
 
-                    viewModel.cancelEdits()
                     viewModel.startSearch()
                 },
                 onStore = {
@@ -222,66 +244,50 @@ fun ChainLinkList(
                         } else {
                             val clipboardManager = LocalClipboardManager.current
 
-                            when (chainLink.status) {
-                                ChainLink.Status.ACTUAL -> {
-                                    ChainLinkListItem(
-                                        chainLink = chainLink,
-                                        onEdit = {
-                                            coroutineScope.launch(Dispatchers.IO) {
-                                                isWorkInProgressState.value = true
+                            ChainLinkListItem(
+                                chainLink = chainLink,
+                                onEdit = {
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        isWorkInProgressState.value = true
 
-                                                viewModel.startEdit(chainLink)
+                                        viewModel.startEdit(chainLink)
 
-                                                isWorkInProgressState.value = false
-                                            }
-                                        },
-                                        onDelete = {
-                                            snackbarHostState.currentSnackbarData?.dismiss()
+                                        isWorkInProgressState.value = false
 
-                                            coroutineScope.launch(Dispatchers.IO) {
-                                                viewModel.removeLater(chainLink)
+                                        chainLinkListActionState.value = ChainLinkListAction.EDIT
+                                        isInputDialogVisibleState.value = true
+                                    }
+                                },
+                                onDelete = {
+                                    snackbarHostState.currentSnackbarData?.dismiss()
 
-                                                when (snackbarHostState.showSnackbar(
-                                                    message = "${chainLink.name.value} removed",
-                                                    actionLabel = "Dismiss",
-                                                    duration = SnackbarDuration.Short
-                                                )) {
-                                                    SnackbarResult.ActionPerformed -> viewModel.undoRemove(chainLink)
-                                                    SnackbarResult.Dismissed -> viewModel.remove(chainLink)
-                                                }
-                                            }
-                                        },
-                                        onPasswordCopy = {
-                                            val password = viewModel.copyPassword(chainLink).value
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        viewModel.removeLater(chainLink)
 
-                                            clipboardManager.setText(AnnotatedString(password))
-
-                                            coroutineScope.launch(Dispatchers.IO) {
-                                                isPopupVisibleState.targetState = true
-
-                                                delay(1000L)
-
-                                                isPopupVisibleState.targetState = false
-                                            }
+                                        when (snackbarHostState.showSnackbar(
+                                            message = "${chainLink.name.value} removed",
+                                            actionLabel = "Dismiss",
+                                            duration = SnackbarDuration.Short
+                                        )) {
+                                            SnackbarResult.ActionPerformed -> viewModel.undoRemove(chainLink)
+                                            SnackbarResult.Dismissed -> viewModel.remove(chainLink)
                                         }
-                                    )
-                                }
-                                ChainLink.Status.EDIT -> key(chainLink.id) {
-                                    ChainLinkListItemEdit(
-                                        chainLink = chainLink,
-                                        onEdit = {
-                                            coroutineScope.launch(Dispatchers.IO) {
-                                                isWorkInProgressState.value = true
+                                    }
+                                },
+                                onPasswordCopy = {
+                                    val password = viewModel.copyPassword(chainLink).value
 
-                                                viewModel.edit(chainLink)
+                                    clipboardManager.setText(AnnotatedString(password))
 
-                                                isWorkInProgressState.value = false
-                                            }
-                                        },
-                                        onCancel = { viewModel.cancelEdit(chainLink) }
-                                    )
+                                    coroutineScope.launch(Dispatchers.IO) {
+                                        isPopupVisibleState.targetState = true
+
+                                        delay(1000L)
+
+                                        isPopupVisibleState.targetState = false
+                                    }
                                 }
-                            }
+                            )
                         }
                     }
                 }
