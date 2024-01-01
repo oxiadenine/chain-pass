@@ -33,4 +33,10 @@ class SettingsManager(val dirPath: String) {
 }
 
 @Serializable
-data class Settings(val hostAddress: String, val deviceAddress: String, val passwordLength: Int, val passwordIsAlphanumeric: Boolean)
+data class Settings(
+    val hostAddress: String,
+    val deviceAddress: String,
+    val passwordLength: Int,
+    val passwordIsAlphanumeric: Boolean,
+    val storePath: String
+)

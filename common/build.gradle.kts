@@ -65,6 +65,7 @@ kotlin {
             dependencies {
                 api(androidxDependency("core-ktx"))
                 api(androidxDependency("appcompat"))
+                api(androidxDependency("activity-compose"))
 
                 implementation(sqldelightDependency("android-driver"))
             }

@@ -8,7 +8,7 @@ import io.sunland.chainpass.common.*
 fun main() {
     val settingsManager = SettingsManager("${System.getProperty("user.home")}/.chain-pass")
     val database = DatabaseFactory.createDatabase(DriverFactory(settingsManager.dirPath))
-    val storage = Storage(settingsManager.dirPath)
+    val storage = Storage("${System.getProperty("user.home")}/Downloads")
 
     application {
         Window(

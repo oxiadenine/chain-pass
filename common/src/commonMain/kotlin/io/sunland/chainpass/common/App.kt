@@ -109,7 +109,13 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
             settingsManager.load()?.let { settings ->
                 mutableStateOf(settings)
             } ?: run {
-                val settings = Settings("", "", 16, false)
+                val settings = Settings(
+                    hostAddress = "",
+                    deviceAddress = "",
+                    passwordLength = 16,
+                    passwordIsAlphanumeric =  false,
+                    storePath = ""
+                )
 
                 settingsManager.save(settings)
 
@@ -133,7 +139,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                 hostAddress = WebSocket.getLocalHost(),
                 deviceAddress = settingsState.value.deviceAddress,
                 passwordLength = settingsState.value.passwordLength,
-                passwordIsAlphanumeric = settingsState.value.passwordIsAlphanumeric
+                passwordIsAlphanumeric = settingsState.value.passwordIsAlphanumeric,
+                storePath = storage.storePath
             )
         }
 
