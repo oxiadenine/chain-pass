@@ -9,10 +9,14 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconDeleteClick: () -> Unit) {
     val passwordVisibleState = remember { mutableStateOf(false) }
@@ -21,12 +25,14 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name.value)
             Row {
-                IconButton(onClick = onIconEditClick) {
-                    Icon(imageVector = Icons.Default.Edit, contentDescription = null)
-                }
-                IconButton(onClick = onIconDeleteClick) {
-                    Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-                }
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    onClick = onIconEditClick
+                ) { Icon(imageVector = Icons.Default.Edit, contentDescription = null) }
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    onClick = onIconDeleteClick
+                ) { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
             }
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -37,9 +43,10 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
                     Text(text = chainLink.password.value.toList().joinToString(separator = "") { "*" })
                 }
             }
-            IconButton(onClick = { passwordVisibleState.value = !passwordVisibleState.value }) {
-                Icon(imageVector = Icons.Default.Lock, contentDescription = null)
-            }
+            IconButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = { passwordVisibleState.value = !passwordVisibleState.value }
+            ) { Icon(imageVector = Icons.Default.Lock, contentDescription = null) }
         }
     }
 }

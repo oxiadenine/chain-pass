@@ -12,16 +12,20 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.*
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import io.sunland.chainpass.common.Chain
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
     val focusManager = LocalFocusManager.current
@@ -61,10 +65,14 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            IconButton(onClick = onDone) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
-            IconButton(onClick = onIconClearClick) {
-                Icon(imageVector = Icons.Default.Clear, contentDescription = null)
-            }
+            IconButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onDone
+            ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
+            IconButton(
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                onClick = onIconClearClick
+            ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
         }
         TextField(
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
