@@ -1,7 +1,6 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -135,46 +134,29 @@ fun ChainLinkList(
                         ChainLinkListTopAppBarMenuItem.UNSTORE -> unstoreDialogVisible = true
                     }
                 },
-                title = viewModel.chain!!.name.value,
+                title = viewModel.chain.name.value,
             )
         },
         floatingActionButton = {
-            AnimatedContent(
-                targetState = scaffoldListState.snackbarHostState.isSnackbarVisible(),
-                transitionSpec = {
-                    if (targetState && !initialState) {
-                        slideInVertically(
-                            initialOffsetY = { 0 },
-                            animationSpec = tween(easing = LinearEasing, durationMillis = 150)
-                        ) with ExitTransition.None
-                    } else slideInVertically(
-                        initialOffsetY = { 0 },
-                        animationSpec = tween(easing = LinearEasing, durationMillis = 75)
-                    ) with ExitTransition.None
-                }
-            ) { isSnackbarVisible ->
-                val density = LocalDensity.current
+            val density = LocalDensity.current
 
-                val (lazyListScrollDirection, lazyListScrollPosition) = scaffoldListState.lazyListState.scrollInfo()
+            val (lazyListScrollDirection, lazyListScrollPosition) = scaffoldListState.lazyListState.scrollInfo()
 
-                AnimatedVisibility(
-                    visible = isSnackbarVisible ||
-                            lazyListScrollDirection == LazyListScrollDirection.BACKWARD ||
-                            lazyListScrollPosition == LazyListScrollPosition.END,
-                    enter = slideInVertically(animationSpec = tween(durationMillis = 250)) {
-                        with(density) { 80.dp.roundToPx() }
-                    },
-                    exit = slideOutVertically(animationSpec = tween(durationMillis = 250)) {
-                        with(density) { 80.dp.roundToPx() }
-                    }
-                ) {
-                    FloatingActionButton(
-                        onClick = { listItemNewDialogVisible = true },
-                        modifier = Modifier
-                            .padding(end = 16.dp, bottom = if (isSnackbarVisible) 80.dp else 16.dp)
-                            .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                    ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
+            AnimatedVisibility(
+                visible = scaffoldListState.snackbarHostState.isSnackbarVisible() ||
+                        lazyListScrollDirection == LazyListScrollDirection.BACKWARD ||
+                        lazyListScrollPosition == LazyListScrollPosition.END,
+                enter = slideInVertically(animationSpec = tween(durationMillis = 250)) {
+                    with(density) { 80.dp.roundToPx() }
+                },
+                exit = slideOutVertically(animationSpec = tween(durationMillis = 250)) {
+                    with(density) { 80.dp.roundToPx() }
                 }
+            ) {
+                FloatingActionButton(
+                    onClick = { listItemNewDialogVisible = true },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
             }
         }
     ) { lazyListState ->

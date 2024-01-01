@@ -18,10 +18,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import io.sunland.chainpass.common.*
 import io.sunland.chainpass.common.component.*
 import kotlinx.coroutines.Dispatchers
@@ -95,7 +95,6 @@ fun ChainList(
             ChainListTopAppBar(
                 onMenuClick = {
                     scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
-
                     onTopAppBarMenuClick()
                 },
                 onMenuItemClick = { menuItem ->
@@ -133,42 +132,26 @@ fun ChainList(
             )
         },
         floatingActionButton = {
-            AnimatedContent(
-                targetState = scaffoldListState.snackbarHostState.isSnackbarVisible(),
-                transitionSpec = {
-                    if (targetState && !initialState) {
-                        slideInVertically(
-                            initialOffsetY = { 0 },
-                            animationSpec = tween(easing = LinearEasing, durationMillis = 150)
-                        ) with ExitTransition.None
-                    } else slideInVertically(
-                        initialOffsetY = { 0 },
-                        animationSpec = tween(easing = LinearEasing, durationMillis = 75)
-                    ) with ExitTransition.None
-                }
-            ) { isSnackbarVisible ->
-                val density = LocalDensity.current
+            val density = LocalDensity.current
 
-                val (lazyListScrollDirection, lazyListScrollPosition) = scaffoldListState.lazyListState.scrollInfo()
+            val isSnackbarVisible = scaffoldListState.snackbarHostState.isSnackbarVisible()
+            val (lazyListScrollDirection, lazyListScrollPosition) = scaffoldListState.lazyListState.scrollInfo()
 
-                AnimatedVisibility(
-                    visible = isSnackbarVisible ||
-                            lazyListScrollDirection == LazyListScrollDirection.BACKWARD ||
-                            lazyListScrollPosition == LazyListScrollPosition.END,
-                    enter = slideInVertically(animationSpec = tween(durationMillis = 250)) {
-                        with(density) { 80.dp.roundToPx() }
-                    },
-                    exit = slideOutVertically(animationSpec = tween(durationMillis = 250)) {
-                        with(density) { 80.dp.roundToPx() }
-                    }
-                ) {
-                    FloatingActionButton(
-                        onClick = { listItemNewDialogVisible = true },
-                        modifier = Modifier
-                            .padding(end = 16.dp, bottom = if (isSnackbarVisible) 80.dp else 16.dp)
-                            .pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                    ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
+            AnimatedVisibility(
+                visible = isSnackbarVisible ||
+                        lazyListScrollDirection == LazyListScrollDirection.BACKWARD ||
+                        lazyListScrollPosition == LazyListScrollPosition.END,
+                enter = slideInVertically(animationSpec = tween(durationMillis = 250)) {
+                    with(density) { 80.dp.roundToPx() }
+                },
+                exit = slideOutVertically(animationSpec = tween(durationMillis = 250)) {
+                    with(density) { 80.dp.roundToPx() }
                 }
+            ) {
+                FloatingActionButton(
+                    onClick = { listItemNewDialogVisible = true },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
             }
         }
     ) { lazyListState ->
