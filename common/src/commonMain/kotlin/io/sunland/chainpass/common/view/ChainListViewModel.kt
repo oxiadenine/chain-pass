@@ -3,13 +3,13 @@ package io.sunland.chainpass.common.view
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import io.sunland.chainpass.common.Chain
-import io.sunland.chainpass.common.repository.ChainEntity
-import io.sunland.chainpass.common.repository.ChainKeyEntity
-import io.sunland.chainpass.common.repository.ChainRepository
+import io.sunland.chainpass.common.network.ChainApi
+import io.sunland.chainpass.common.network.ChainEntity
+import io.sunland.chainpass.common.network.ChainKeyEntity
 import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
 
-class ChainListViewModel(private val repository: ChainRepository) {
+class ChainListViewModel(private val chainApi: ChainApi) {
     val chainListState = mutableStateListOf<Chain>()
 
     val chainSelectState = mutableStateOf<Chain?>(null)
@@ -81,7 +81,7 @@ class ChainListViewModel(private val repository: ChainRepository) {
         chainListState.addAll(chains)
     }
 
-    suspend fun getAll() = repository.read().map { chainEntities ->
+    suspend fun getAll() = chainApi.read().map { chainEntities ->
         chains = chainEntities.map { chainEntity ->
             Chain().apply {
                 id = chainEntity.id
@@ -116,7 +116,7 @@ class ChainListViewModel(private val repository: ChainRepository) {
 
         val chainEntity = ChainEntity(chain.id, chain.name.value, privateKey)
 
-        return repository.create(chainEntity).map {
+        return chainApi.create(chainEntity).map {
             chain.key = Chain.Key()
             chain.status = Chain.Status.ACTUAL
 
@@ -124,7 +124,7 @@ class ChainListViewModel(private val repository: ChainRepository) {
         }
     }
 
-    suspend fun remove(chain: Chain) = repository.key(chain.id).mapCatching { chainKeyEntity ->
+    suspend fun remove(chain: Chain) = chainApi.key(chain.id).mapCatching { chainKeyEntity ->
         val secretKey = PasswordEncoder.hash(EncoderSpec.Passphrase(
             PasswordEncoder.Base64.encode(chain.key.value.encodeToByteArray()),
             PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
@@ -137,7 +137,7 @@ class ChainListViewModel(private val repository: ChainRepository) {
 
         val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
-        repository.delete(ChainKeyEntity(chain.id, saltKey)).getOrThrow()
+        chainApi.delete(ChainKeyEntity(chain.id, saltKey)).getOrThrow()
 
         update()
     }

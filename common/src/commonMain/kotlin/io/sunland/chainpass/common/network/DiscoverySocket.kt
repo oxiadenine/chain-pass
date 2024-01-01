@@ -1,6 +1,6 @@
 package io.sunland.chainpass.common.network
 
-object SocketConfig {
+object DiscoverySocket {
     const val DNS = "8.8.8.8"
     const val HOST = "0.0.0.0"
     const val PORT = 8888
@@ -8,7 +8,5 @@ object SocketConfig {
     const val TIMEOUT = 250
 }
 
-expect object DiscoverySocket {
-    fun getLocalHost(): String
-    suspend fun discover(): String
-}
+expect fun DiscoverySocket.getLocalHost(): String
+expect suspend fun DiscoverySocket.discover(): String

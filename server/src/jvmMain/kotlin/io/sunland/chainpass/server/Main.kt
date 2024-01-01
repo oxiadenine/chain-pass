@@ -10,6 +10,7 @@ import io.ktor.server.cio.*
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.sunland.chainpass.common.network.DiscoverySocket
+import io.sunland.chainpass.common.network.getLocalHost
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
 
