@@ -41,7 +41,7 @@ class ChainLinkListViewModel(
     }
 
     fun rejectDrafts() {
-        val chainLinks = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.ACTUAL }
+        val chainLinks = chainLinkListState.filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)
@@ -132,6 +132,8 @@ class ChainLinkListViewModel(
         val chainLinks = chainLinkListState
             .filter { chainLink -> chainLink.status == ChainLink.Status.ACTUAL }
             .sortedBy { chainLink -> chainLink.name.value }
+
+        println(chainLinks.size)
 
         chainLinkSearchListState.addAll(chainLinks)
     }
