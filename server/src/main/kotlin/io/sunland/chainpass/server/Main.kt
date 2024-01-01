@@ -5,15 +5,27 @@ import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.isTraySupported
 import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueFactory
 import io.ktor.server.config.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.sunland.chainpass.common.network.DiscoverySocket
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 
 fun main(args: Array<String>) {
+    val appConfig = args.joinToString { env -> "application.$env" }.ifEmpty { "application" }
+        .let { name -> ConfigFactory.load(name) }
+        .let { config ->
+            if (config.getString("server.discovery").isEmpty()) {
+                config.withValue("server.discovery", ConfigValueFactory.fromAnyRef(
+                    "${DiscoverySocket.getLocalHost()}:${config.getString("server.port")}")
+                )
+            } else config
+        }.let { config -> HoconApplicationConfig(config) }
+
     val server = embeddedServer(Netty, applicationEngineEnvironment {
-        config = args.joinToString { env -> "application.$env" }.ifEmpty { "application" }.let { name ->
-            HoconApplicationConfig(ConfigFactory.load(name))
-        }
+        config = appConfig
 
         module {
             main()
@@ -28,10 +40,15 @@ fun main(args: Array<String>) {
 
     if (isTraySupported) {
         application {
+            val discovery = appConfig.property("server.discovery").getString()
+
             Tray(
                 icon = painterResource("icon.png"),
                 menu = {
-                    Item("Exit", onClick = {
+                    Item(text = discovery, onClick = {
+                        Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(discovery), null)
+                    })
+                    Item(text = "Exit", onClick = {
                         server.stop(0, 0)
 
                         exitApplication()

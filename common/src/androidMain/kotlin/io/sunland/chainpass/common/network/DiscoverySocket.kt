@@ -11,22 +11,22 @@ import java.net.DatagramSocket
 import java.net.InetAddress
 import kotlin.text.toByteArray
 
-actual object DiscoverySocketClient {
-    actual suspend fun discover() = withContext(Dispatchers.IO) {
-        val localhost = DatagramSocket().use { socket ->
-            socket.connect(InetAddress.getByName(DiscoverySocket.DNS), DiscoverySocket.PORT)
-            socket.localAddress.hostAddress!!
-        }
+actual object DiscoverySocket {
+    actual fun getLocalHost() = DatagramSocket().use { socket ->
+        socket.connect(InetAddress.getByName(SocketConfig.DNS), SocketConfig.PORT)
+        socket.localAddress.hostAddress!!
+    }
 
+    actual suspend fun discover() = withContext(Dispatchers.IO) {
         val socket = aSocket(ActorSelectorManager(Dispatchers.IO)).udp().bind()
 
-        (2..254).map { index -> "${localhost.substringBeforeLast(".")}.$index" }.forEach { host ->
-            if (InetAddress.getByName(host).isReachable(DiscoverySocket.TIMEOUT)) {
+        (2..254).map { index -> "${getLocalHost().substringBeforeLast(".")}.$index" }.forEach { host ->
+            if (InetAddress.getByName(host).isReachable(SocketConfig.TIMEOUT)) {
                 try {
-                    val serverAddress = withTimeout(DiscoverySocket.TIMEOUT.toLong()) {
+                    val serverAddress = withTimeout(SocketConfig.TIMEOUT.toLong()) {
                         socket.send(Datagram(
-                            ByteReadPacket(DiscoverySocket.MESSAGE.toByteArray()),
-                            InetSocketAddress(host, DiscoverySocket.PORT)
+                            ByteReadPacket(SocketConfig.MESSAGE.toByteArray()),
+                            InetSocketAddress(host, SocketConfig.PORT)
                         ))
 
                         return@withTimeout socket.receive().packet.readText()
