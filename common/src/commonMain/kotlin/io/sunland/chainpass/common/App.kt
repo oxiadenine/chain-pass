@@ -17,8 +17,7 @@ import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.common.security.PasswordGenerator
 import io.sunland.chainpass.common.view.*
 import io.sunland.chainpass.sqldelight.Database
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 object Theme {
     enum class Palette(val color: Color) {
@@ -35,6 +34,37 @@ class NavigationState(val screenState: MutableState<Screen>, val chainState: Mut
 @Composable
 fun rememberNavigationState(screen: Screen) = remember {
     NavigationState(mutableStateOf(screen), mutableStateOf(null))
+}
+
+class SettingsState(
+    private val settingsManager: SettingsManager,
+    val deviceAddressState: MutableState<String>,
+    val passwordLengthState: MutableState<Int>,
+    val passwordIsAlphanumericState: MutableState<Boolean>
+) {
+    fun save() {
+        val settings = Settings(
+            deviceAddressState.value,
+            passwordLengthState.value,
+            passwordIsAlphanumericState.value
+        )
+
+        settingsManager.save(settings)
+    }
+}
+
+@Composable
+fun rememberSettingsState(settingsManager: SettingsManager) = remember {
+    val settings = settingsManager.load() ?: Settings("", 16, false)
+
+    settingsManager.save(settings)
+
+    SettingsState(
+        settingsManager,
+        mutableStateOf(settings.deviceAddress),
+        mutableStateOf(settings.passwordLength),
+        mutableStateOf(settings.passwordIsAlphanumeric)
+    )
 }
 
 @Composable
@@ -60,12 +90,13 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
         large = RoundedCornerShape(percent = 0)
     )
 ) {
+    val chainRepository = ChainRepository(database)
+    val chainLinkRepository = ChainLinkRepository(database)
+
     val coroutineScope = rememberCoroutineScope()
 
     val navigationState = rememberNavigationState(Screen.CHAIN_LIST)
-
-    val chainRepository = ChainRepository(database)
-    val chainLinkRepository = ChainLinkRepository(database)
+    val settingsState = rememberSettingsState(settingsManager)
 
     coroutineScope.launch(Dispatchers.IO) {
         WebSocket.start(WebSocket.getLocalHost()) {
@@ -81,46 +112,20 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        val settingsState = remember {
-            settingsManager.load()?.let { settings ->
-                mutableStateOf(settings)
-            } ?: run {
-                val settings = Settings(
-                    hostAddress = "",
-                    deviceAddress = "",
-                    passwordLength = 16,
-                    passwordIsAlphanumeric =  false,
-                    storePath = ""
-                )
+        val hostAddressState = remember { mutableStateOf("") }
 
-                settingsManager.save(settings)
-
-                mutableStateOf(settings)
-            }
-        }
-
-        LaunchedEffect(settingsState.value.hostAddress) {
-            settingsState.value = Settings(
-                hostAddress = WebSocket.getLocalHost(),
-                deviceAddress = settingsState.value.deviceAddress,
-                passwordLength = settingsState.value.passwordLength,
-                passwordIsAlphanumeric = settingsState.value.passwordIsAlphanumeric,
-                storePath = storage.storePath
-            )
+        LaunchedEffect(hostAddressState.value) {
+            hostAddressState.value = WebSocket.getLocalHost()
         }
 
         Crossfade(targetState = navigationState.screenState.value) { screen ->
             when (screen) {
                 Screen.SETTINGS -> {
                     Settings(
-                        settings = settingsState.value,
-                        onBack = { navigationState.screenState.value = Screen.CHAIN_LIST },
-                        onSave = { settings ->
-                            settingsManager.save(settings)
-
-                            settingsState.value = settings
-                            navigationState.screenState.value = Screen.CHAIN_LIST
-                        },
+                        hostAddress = hostAddressState.value,
+                        storePath = storage.storePath,
+                        settingsState = settingsState,
+                        navigationState = navigationState,
                         modifier = Modifier.fillMaxSize()
                     )
                 }
@@ -129,8 +134,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         chainRepository,
                         chainLinkRepository,
                         PasswordGenerator(PasswordGenerator.Strength(
-                            settingsState.value.passwordLength,
-                            settingsState.value.passwordIsAlphanumeric
+                            settingsState.passwordLengthState.value,
+                            settingsState.passwordIsAlphanumericState.value
                         )),
                         storage
                     )

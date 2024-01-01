@@ -8,10 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -27,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import io.sunland.chainpass.common.Settings
+import io.sunland.chainpass.common.*
 import io.sunland.chainpass.common.component.ValidationTextField
 
 class DeviceAddress(value: String? = null) {
@@ -43,8 +40,14 @@ class DeviceAddress(value: String? = null) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit, modifier: Modifier = Modifier) {
-    val deviceAddressState = remember { mutableStateOf(settings.deviceAddress) }
+fun Settings(
+    hostAddress: String,
+    storePath: String,
+    settingsState: SettingsState,
+    navigationState: NavigationState,
+    modifier: Modifier = Modifier
+) {
+    val deviceAddressState = remember { mutableStateOf(settingsState.deviceAddressState.value) }
     val deviceAddressErrorState = remember { mutableStateOf(false) }
 
     val onDeviceAddressChange = { value: String ->
@@ -54,8 +57,8 @@ fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit,
         deviceAddressErrorState.value = deviceAddress.validation.isFailure
     }
 
-    val passwordLengthState = remember { mutableStateOf(settings.passwordLength.toFloat()) }
-    val passwordIsAlphanumericState = remember { mutableStateOf(settings.passwordIsAlphanumeric) }
+    val passwordLengthState = remember { mutableStateOf(settingsState.passwordLengthState.value.toFloat()) }
+    val passwordIsAlphanumericState = remember { mutableStateOf(settingsState.passwordIsAlphanumericState.value) }
 
     val onPasswordLengthChange = { value: Float ->
         passwordLengthState.value = value
@@ -69,13 +72,13 @@ fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit,
         deviceAddressErrorState.value = DeviceAddress(deviceAddressState.value).validation.isFailure
 
         if (!deviceAddressErrorState.value) {
-            onSave(Settings(
-                hostAddress = settings.hostAddress,
-                deviceAddress = deviceAddressState.value,
-                passwordLength = passwordLengthState.value.toInt(),
-                passwordIsAlphanumeric = passwordIsAlphanumericState.value,
-                storePath = settings.storePath
-            ))
+            settingsState.deviceAddressState.value = deviceAddressState.value
+            settingsState.passwordLengthState.value = passwordLengthState.value.toInt()
+            settingsState.passwordIsAlphanumericState.value = passwordIsAlphanumericState.value
+
+            settingsState.save()
+
+            navigationState.screenState.value = Screen.CHAIN_LIST
         }
     }
 
@@ -90,7 +93,7 @@ fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit,
             modifier = Modifier.fillMaxWidth(),
             navigationIcon = {
                 IconButton(
-                    onClick = onBack,
+                    onClick = { navigationState.screenState.value = Screen.CHAIN_LIST },
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                 ) { Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null) }
             },
@@ -124,7 +127,7 @@ fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit,
                             text = buildAnnotatedString {
                                 append("Your IPv4 address ")
                                 withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                    append(settings.hostAddress)
+                                    append(hostAddress)
                                 }
                                 append(" to sync with other devices.")
                             },
@@ -202,7 +205,7 @@ fun Settings(settings: Settings, onBack: () -> Unit, onSave: (Settings) -> Unit,
                         text = buildAnnotatedString {
                             append("Files are stored at ")
                             withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                append(settings.storePath)
+                                append(storePath)
                             }
                             append(" directory.")
                         },
