@@ -25,8 +25,6 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
 
     suspend fun create(chainLinkListItem: ChainLinkListItem) = runCatching {
         httpClient.webSocket {
-            val socketId = call.request.headers["Socket-Id"]!!
-
             val chainLink = ChainLink(
                 chainLinkListItem.id,
                 chainLinkListItem.name,
@@ -34,7 +32,7 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
                 chainLinkListItem.chainId
             )
 
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_CREATE, socketId, Json.encodeToString(chainLink)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_LINK_CREATE, Json.encodeToString(chainLink)).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue
@@ -54,11 +52,9 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
 
     suspend fun read() = runCatching {
         httpClient.webSocket {
-            val socketId = call.request.headers["Socket-Id"]!!
-
             val chain = Chain(chainListItem!!.id, chainListItem!!.name, chainListItem!!.key)
 
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_READ, socketId, Json.encodeToString(chain)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chain)).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue
@@ -67,8 +63,14 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
 
                 if (message.type == SocketMessageType.CHAIN_LINK_READ) {
                     chainLinkListItems.clear()
-                    chainLinkListItems.addAll(Json.decodeFromString<List<ChainLink>>(message.text).map {
-                        ChainLinkListItem(it.id, it.name, it.password, it.chainId, ChainLinkListItemStatus.ACTUAL)
+                    chainLinkListItems.addAll(Json.decodeFromString<List<ChainLink>>(message.text).map { chainLink ->
+                        ChainLinkListItem(
+                            chainLink.id,
+                            chainLink.name,
+                            chainLink.password,
+                            chainLink.chainId,
+                            ChainLinkListItemStatus.ACTUAL
+                        )
                     })
                 }
 
@@ -81,8 +83,6 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
 
     suspend fun update(chainLinkListItem: ChainLinkListItem) = runCatching {
         httpClient.webSocket {
-            val socketId = call.request.headers["Socket-Id"]!!
-
             val chainLink = ChainLink(
                 chainLinkListItem.id,
                 chainLinkListItem.name,
@@ -90,15 +90,13 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
                 chainLinkListItem.chainId
             )
 
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_UPDATE, socketId, Json.encodeToString(chainLink)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_LINK_UPDATE, Json.encodeToString(chainLink)).toFrame())
             close()
         }
     }
 
     suspend fun delete(chainLinkListItem: ChainLinkListItem) = runCatching {
         httpClient.webSocket {
-            val socketId = call.request.headers["Socket-Id"]!!
-
             val chainLink = ChainLink(
                 chainLinkListItem.id,
                 chainLinkListItem.name,
@@ -106,7 +104,7 @@ class ChainLinkListViewModel(private val httpClient: HttpClient) : ViewModel {
                 chainLinkListItem.chainId
             )
 
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_DELETE, socketId, Json.encodeToString(chainLink)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_LINK_DELETE, Json.encodeToString(chainLink)).toFrame())
             close()
         }
     }

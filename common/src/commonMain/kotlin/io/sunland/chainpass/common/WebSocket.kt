@@ -2,7 +2,7 @@ package io.sunland.chainpass.common
 
 import io.ktor.http.cio.websocket.*
 
-enum class SocketType { SERVICE, CLIENT }
+enum class SocketConnectionType { SERVICE, CLIENT }
 
 enum class SocketMessageType {
     CHAIN_CREATE,
@@ -14,18 +14,16 @@ enum class SocketMessageType {
     CHAIN_LINK_DELETE
 }
 
-data class SocketConnection(val type: SocketType, val id: String, val session: DefaultWebSocketSession, )
+data class SocketConnection(val type: SocketConnectionType, val socketId: String, val session: DefaultWebSocketSession)
 
-data class SocketMessage(val type: SocketMessageType, val id: String, val text: String = "") {
+data class SocketMessage(val type: SocketMessageType, val text: String = "", var socketId: String = "") {
     companion object {
         fun from(frame: Frame.Text): SocketMessage {
-            val (type, id, text) = frame.readText().split("#")
+            val (type, text, socketId) = frame.readText().split("#")
 
-            return SocketMessage(SocketMessageType.valueOf(type), id, text)
+            return SocketMessage(SocketMessageType.valueOf(type), text, socketId)
         }
     }
 
-    fun toFrame() = Frame.Text("${type.name}#$id#$text")
+    fun toFrame() = Frame.Text("${type.name}#$text#$socketId")
 }
-
-expect fun socketId(): String

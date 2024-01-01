@@ -13,8 +13,8 @@ import io.ktor.client.features.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.sunland.chainpass.common.App
-import io.sunland.chainpass.common.SocketType
-import io.sunland.chainpass.common.socketId
+import io.sunland.chainpass.common.SocketConnectionType
+import java.util.*
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,8 +37,8 @@ class MainActivity : AppCompatActivity() {
                     protocol = URLProtocol.byName[config.getString("protocol")]!!
                 }
 
-                header("Socket-Type", SocketType.CLIENT)
-                header("Socket-Id", socketId())
+                header("Socket-Type", SocketConnectionType.CLIENT)
+                header("Socket-Id", UUID.randomUUID().toString())
             }
         }
 

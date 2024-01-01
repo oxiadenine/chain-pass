@@ -23,11 +23,9 @@ class ChainListViewModel(private val httpClient: HttpClient) : ViewModel {
 
     suspend fun create(chainListItem: ChainListItem) = runCatching {
         httpClient.webSocket {
-            val socketId = call.request.headers["Socket-Id"]!!
-
             val chain = Chain(chainListItem.id, chainListItem.name, chainListItem.key)
 
-            send(SocketMessage(SocketMessageType.CHAIN_CREATE, socketId, Json.encodeToString(chain)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_CREATE, Json.encodeToString(chain)).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue
@@ -47,9 +45,7 @@ class ChainListViewModel(private val httpClient: HttpClient) : ViewModel {
 
     suspend fun read() = runCatching {
         httpClient.webSocket {
-            val socketId = call.request.headers["Socket-Id"]!!
-
-            send(SocketMessage(SocketMessageType.CHAIN_READ, socketId).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_READ).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue
@@ -58,8 +54,8 @@ class ChainListViewModel(private val httpClient: HttpClient) : ViewModel {
 
                 if (message.type == SocketMessageType.CHAIN_READ) {
                     chainListItems.clear()
-                    chainListItems.addAll(Json.decodeFromString<List<Chain>>(message.text).map {
-                        ChainListItem(it.id, it.name, it.key, ChainListItemStatus.ACTUAL)
+                    chainListItems.addAll(Json.decodeFromString<List<Chain>>(message.text).map { chain ->
+                        ChainListItem(chain.id, chain.name, chain.key, ChainListItemStatus.ACTUAL)
                     })
                 }
 
@@ -72,11 +68,9 @@ class ChainListViewModel(private val httpClient: HttpClient) : ViewModel {
 
     suspend fun delete(chainListItem: ChainListItem) = runCatching {
         httpClient.webSocket {
-            val socketId = call.request.headers["Socket-Id"]!!
-
             val chain = Chain(chainListItem.id, chainListItem.name, chainListItem.key)
 
-            send(SocketMessage(SocketMessageType.CHAIN_DELETE, socketId, Json.encodeToString(chain)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_DELETE, Json.encodeToString(chain)).toFrame())
             close()
         }
     }
