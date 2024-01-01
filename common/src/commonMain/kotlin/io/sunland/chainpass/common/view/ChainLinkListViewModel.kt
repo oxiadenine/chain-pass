@@ -17,42 +17,110 @@ class ChainLinkListViewModel(
 ) {
     var chain: Chain? = null
 
-    val chainLinks = mutableStateListOf<ChainLink>()
-    val searchChainLinks = mutableStateListOf<ChainLink>()
+    val chainLinkListState = mutableStateListOf<ChainLink>()
+    val chainLinkSearchListState = mutableStateListOf<ChainLink>()
 
-    var isSearchState = mutableStateOf(false)
-    var searchKeywordState = mutableStateOf("")
+    val isSearchState = mutableStateOf(false)
 
-    private var _chainLinks = emptyList<ChainLink>()
+    private var chainLinks = emptyList<ChainLink>()
 
-    suspend fun load() = runCatching {
-        _chainLinks = getAll().getOrThrow()
+    fun draft() {
+        chainLinkListState.add(ChainLink())
+    }
 
-        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
-        val editChainLink = chainLinks.firstOrNull { chainLink -> chainLink.status == ChainLink.Status.EDIT }
+    fun rejectDraft(chainLink: ChainLink) {
+        chainLinkListState.remove(chainLink)
 
-        chainLinks.clear()
-        chainLinks.addAll(if (editChainLink != null) {
-            _chainLinks.map { chainLink ->
+        update()
+    }
+
+    fun startEdit(chainLinkId: Int) {
+        val draftChainLinks = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
+
+        chainLinkListState.clear()
+        chainLinkListState.addAll(chainLinks.map { chainLink ->
+            if (chainLink.status == ChainLink.Status.EDIT) {
+                chainLink.status = ChainLink.Status.ACTUAL
+            }
+
+            if (chainLink.id == chainLinkId) {
+                chainLink.status = ChainLink.Status.EDIT
+            }
+
+            chainLink
+        }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
+    }
+
+    fun endEdit(chainLink: ChainLink) {
+        chainLink.status = ChainLink.Status.ACTUAL
+
+        update()
+    }
+
+    fun remove(chainLink: ChainLink) {
+        chainLinkListState.remove(chainLink)
+    }
+
+    fun undoRemove(chainLink: ChainLink) {
+        chainLinkListState.add(chainLink)
+
+        update()
+    }
+
+    fun startSearch() {
+        isSearchState.value = true
+
+        chainLinkSearchListState.addAll(chainLinkListState.filter { chainLink ->
+            chainLink.status == ChainLink.Status.ACTUAL
+        }.sortedBy { chainLink -> chainLink.name.value })
+    }
+
+    fun search(keyword: String) {
+        chainLinkSearchListState.clear()
+        chainLinkSearchListState.addAll(chainLinkListState.filter { chainLink ->
+            chainLink.name.value.lowercase().contains(keyword.lowercase()) &&
+                    chainLink.status == ChainLink.Status.ACTUAL
+        }.sortedBy { chainLink -> chainLink.name.value })
+    }
+
+    fun endSearch() {
+        isSearchState.value = false
+
+        chainLinkSearchListState.clear()
+    }
+
+    suspend fun getAll() = chainRepository.key(chain!!.id).mapCatching { key ->
+        var passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
+
+        passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), key.key)
+
+        val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.hash(passphrase))
+
+        chainLinkRepository.read(chainKeyEntity).getOrThrow()
+    }.map { chainLinkEntities ->
+        val passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
+
+        chainLinks = chainLinkEntities.map { chainLinkEntity ->
+            ChainLink().apply {
+                id = chainLinkEntity.id
+                name = ChainLink.Name(chainLinkEntity.name)
+                description = ChainLink.Description(chainLinkEntity.description)
+                password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLinkEntity.password))
+                status = ChainLink.Status.ACTUAL
+            }
+        }
+
+        val draftChainLinks = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
+        val editChainLink = chainLinkListState.firstOrNull { chainLink -> chainLink.status == ChainLink.Status.EDIT }
+
+        chainLinkListState.clear()
+        chainLinkListState.addAll(if (editChainLink != null) {
+            chainLinks.map { chainLink ->
                 if (chainLink.id == editChainLink.id) {
                     editChainLink
                 } else chainLink
             }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks)
-        } else _chainLinks.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
-
-        Unit
-    }
-
-    fun draft() {
-        val chainLink = ChainLink()
-
-        chainLinks.add(chainLink)
-    }
-
-    fun rejectDraft(chainLink: ChainLink) {
-        chainLinks.remove(chainLink)
-
-        update()
+        } else chainLinks.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
     }
 
     suspend fun new(chainLink: ChainLink): Result<Unit> {
@@ -87,29 +155,6 @@ class ChainLinkListViewModel(
         }
     }
 
-    fun startEdit(chainLinkId: Int) {
-        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
-
-        chainLinks.clear()
-        chainLinks.addAll(_chainLinks.map { chainLink ->
-            if (chainLink.status == ChainLink.Status.EDIT) {
-                chainLink.status = ChainLink.Status.ACTUAL
-            }
-
-            if (chainLink.id == chainLinkId) {
-                chainLink.status = ChainLink.Status.EDIT
-            }
-
-            chainLink
-        }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
-    }
-
-    fun endEdit(chainLink: ChainLink) {
-        chainLink.status = ChainLink.Status.ACTUAL
-
-        update()
-    }
-
     suspend fun edit(chainLink: ChainLink): Result<Unit> {
         return chainRepository.key(chain!!.id).mapCatching { key ->
             var passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
@@ -140,25 +185,6 @@ class ChainLinkListViewModel(
         }
     }
 
-    fun remove(chainLink: ChainLink, onRemove: (Chain, ChainLink) -> Unit) {
-        chainLinks.remove(chainLink)
-
-        val chain = Chain().apply {
-            id = chain!!.id
-            name = chain!!.name
-            key = chain!!.key
-            status = chain!!.status
-        }
-
-        onRemove(chain, chainLink)
-    }
-
-    fun undoRemove(chainLink: ChainLink) {
-        chainLinks.add(chainLink)
-
-        update()
-    }
-
     suspend fun remove(chain: Chain, chainLink: ChainLink): Result<Unit> {
         return chainRepository.key(chain.id).mapCatching { key ->
             var passphrase = EncoderSpec.Passphrase(chain.key.value, chain.name.value)
@@ -185,59 +211,12 @@ class ChainLinkListViewModel(
         }
     }
 
-    fun startSearch() {
-        isSearchState.value = true
-
-        searchChainLinks.addAll(chainLinks.filter { chainLink ->
-            chainLink.status == ChainLink.Status.ACTUAL
-        }.sortedBy { chainLink -> chainLink.name.value })
-    }
-
-    fun search(keyword: String = searchKeywordState.value) {
-        searchKeywordState.value = keyword
-
-        searchChainLinks.clear()
-        searchChainLinks.addAll(chainLinks.filter { chainLink ->
-            chainLink.name.value.lowercase().contains(keyword.lowercase()) &&
-                    chainLink.status == ChainLink.Status.ACTUAL
-        }.sortedBy { chainLink -> chainLink.name.value })
-    }
-
-    fun endSearch() {
-        isSearchState.value = false
-        searchKeywordState.value = ""
-
-        searchChainLinks.clear()
-    }
-
-    private suspend fun getAll() = chainRepository.key(chain!!.id).mapCatching { key ->
-        var passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
-
-        passphrase = EncoderSpec.Passphrase(PasswordEncoder.encrypt(passphrase, chain!!.key.value), key.key)
-
-        val chainKeyEntity = ChainKeyEntity(chain!!.id, PasswordEncoder.hash(passphrase))
-
-        chainLinkRepository.read(chainKeyEntity).getOrThrow()
-    }.map { chainLinkEntities ->
-        val passphrase = EncoderSpec.Passphrase(chain!!.key.value, chain!!.name.value)
-
-        chainLinkEntities.map { chainLinkEntity ->
-            ChainLink().apply {
-                id = chainLinkEntity.id
-                name = ChainLink.Name(chainLinkEntity.name)
-                description = ChainLink.Description(chainLinkEntity.description)
-                password = ChainLink.Password(PasswordEncoder.decrypt(passphrase, chainLinkEntity.password))
-                status = ChainLink.Status.ACTUAL
-            }
-        }
-    }
-
     private fun update() {
-        val draftChainLinks = chainLinks.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
+        val draftChainLinks = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
 
-        _chainLinks = chainLinks.filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
+        chainLinks = chainLinkListState.filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
 
-        chainLinks.clear()
-        chainLinks.addAll(_chainLinks.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
+        chainLinkListState.clear()
+        chainLinkListState.addAll(chainLinks.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
     }
 }

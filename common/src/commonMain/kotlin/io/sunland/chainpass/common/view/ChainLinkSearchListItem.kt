@@ -7,8 +7,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
@@ -23,23 +21,11 @@ import io.sunland.chainpass.common.ChainLink
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconDeleteClick: () -> Unit) {
+fun ChainLinkSearchListItem(chainLink: ChainLink) {
     val passwordVisibleState = remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name.value)
-            Row {
-                IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onIconEditClick
-                ) { Icon(imageVector = Icons.Default.Edit, contentDescription = null) }
-                IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onIconDeleteClick
-                ) { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
-            }
-        }
+        Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name.value)
         if (chainLink.description.value.isNotEmpty()) {
             Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.description.value, fontSize = 14.sp)
         }
