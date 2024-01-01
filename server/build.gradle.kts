@@ -41,8 +41,25 @@ kotlin {
         }
     }
 
-    tasks.test {
-        useJUnitPlatform()
+    tasks {
+        jar {
+            manifest {
+                attributes["Main-Class"] = "${rootProject.group}.chainpass.${project.name}.MainKt"
+            }
+
+            archiveBaseName.set("${rootProject.name}-${project.name}")
+            archiveVersion.set("")
+
+            from(configurations["runtimeClasspath"].map { file: File ->
+                if (file.isDirectory) file else zipTree(file)
+            })
+
+            duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        }
+
+        test {
+            useJUnitPlatform()
+        }
     }
 }
 
