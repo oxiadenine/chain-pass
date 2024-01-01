@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.http.*
+import io.sunland.chainpass.common.network.DiscoverySocketClient
 import io.sunland.chainpass.common.repository.ChainLinkNetRepository
 import io.sunland.chainpass.common.repository.ChainNetRepository
 import io.sunland.chainpass.common.view.*
@@ -120,8 +121,30 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
         Box {
             when (appState.screenState.value) {
                 Screen.SERVER_CONNECTION -> {
+                    val serverConnectionState = ServerConnectionState(appState.serverAddressState.value)
+
                     ServerConnection(
-                        serverAddress = appState.serverAddressState.value,
+                        serverConnectionState = serverConnectionState,
+                        onIconRefreshClick = {
+                            serverConnectionState.discoveringState.value = coroutineScope.launch {
+                                val serverAddress = DiscoverySocketClient.discover()
+
+                                if (serverAddress.isEmpty()) {
+                                    scaffoldState.snackbarHostState.showSnackbar("Server address cannot be discovered")
+                                } else {
+                                    val host = ServerAddress.Host(serverAddress.substringBefore(":"))
+                                    val port = ServerAddress.Port(serverAddress.substringAfter(":"))
+
+                                    serverConnectionState.hostState.value = host.value
+                                    serverConnectionState.hostValidationState.value = host.validation
+
+                                    serverConnectionState.portState.value = port.value
+                                    serverConnectionState.portValidationState.value = port.validation
+                                }
+
+                                serverConnectionState.discoveringState.value = null
+                            }
+                        },
                         onIconDoneClick = { serverAddress ->
                             settingsFactory.save(serverAddress).let {
                                 appState.serverAddressState.value = serverAddress

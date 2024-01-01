@@ -1,10 +1,14 @@
 package io.sunland.chainpass.server
 
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
+import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import io.sunland.chainpass.common.Chain
+import io.sunland.chainpass.common.network.DiscoverySocket
 import io.sunland.chainpass.common.network.SocketMessage
 import io.sunland.chainpass.common.network.SocketRoute
 import io.sunland.chainpass.common.repository.ChainEntity
@@ -14,9 +18,13 @@ import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.server.repository.ChainDataRepository
 import io.sunland.chainpass.server.repository.ChainLinkDataRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.net.DatagramSocket
+import java.net.InetAddress
 
 fun Application.main() {
     Database.connect(environment.config.config("database"))
@@ -216,6 +224,36 @@ fun Application.main() {
             )
 
             close()
+        }
+    }
+}
+
+fun Application.discovery() {
+    val host = DatagramSocket().use { socket ->
+        socket.connect(InetAddress.getByName(DiscoverySocket.DNS), DiscoverySocket.PORT)
+        socket.localAddress.hostAddress
+    }
+    val port = environment.config.property("server.port").getString().toInt()
+    val discovery = environment.config.property("server.discovery").getString()
+
+    val socket = aSocket(ActorSelectorManager(Dispatchers.IO)).udp().bind(
+        InetSocketAddress(DiscoverySocket.HOST, DiscoverySocket.PORT)
+    )
+
+    environment.log.info("Discovery listening at ${socket.localAddress.toJavaAddress()}")
+
+    launch(Dispatchers.IO) {
+        while (true) {
+            val datagram = socket.receive()
+
+            if (datagram.packet.readText() == DiscoverySocket.MESSAGE) {
+                socket.send(Datagram(ByteReadPacket(
+                    discovery.ifEmpty { "$host:$port" }.toByteArray()),
+                    datagram.address
+                ))
+            }
+
+            datagram.packet.close()
         }
     }
 }
