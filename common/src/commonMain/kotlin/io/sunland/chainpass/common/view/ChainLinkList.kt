@@ -25,11 +25,11 @@ data class ChainLinkListItem(
 @Composable
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
-    onItemCreate: (ChainLinkListItem) -> Unit,
-    onItemUpdate: (ChainLinkListItem) -> Unit,
-    onItemDelete: (ChainLinkListItem) -> Unit
+    onItemNew: (ChainLinkListItem) -> Unit,
+    onItemEdit: (ChainLinkListItem) -> Unit,
+    onItemRemove: (ChainLinkListItem) -> Unit
 ) {
-    if (viewModel.chainLinkListItems.isEmpty()) {
+    if (viewModel.chainLinks.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -44,33 +44,33 @@ fun ChainLinkList(
             val scrollState = rememberScrollState()
 
             Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-                viewModel.chainLinkListItems.forEach { chainLinkListItem ->
-                    when (chainLinkListItem.status) {
+                viewModel.chainLinks.forEach { chainLink ->
+                    when (chainLink.status) {
                         ChainLinkListItemStatus.ACTUAL -> ChainLinkListItem(
-                            name = chainLinkListItem.name,
-                            password = chainLinkListItem.password,
+                            name = chainLink.name,
+                            password = chainLink.password,
                             onIconEditClick = {
-                                chainLinkListItem.status = ChainLinkListItemStatus.EDIT
+                                chainLink.status = ChainLinkListItemStatus.EDIT
 
                                 viewModel.refresh()
                             },
                             onIconDeleteClick = {
-                                viewModel.chainLinkListItems.remove(chainLinkListItem)
+                                viewModel.chainLinks.remove(chainLink)
 
-                                onItemDelete(chainLinkListItem)
+                                onItemRemove(chainLink)
                             }
                         )
                         ChainLinkListItemStatus.DRAFT -> ChainLinkListItemDraft(
-                            chainLinkListItem = chainLinkListItem,
-                            onIconDoneClick = { onItemCreate(chainLinkListItem) },
-                            onIconClearClick = { viewModel.chainLinkListItems.remove(chainLinkListItem) }
+                            chainLinkListItem = chainLink,
+                            onIconDoneClick = { onItemNew(chainLink) },
+                            onIconClearClick = { viewModel.chainLinks.remove(chainLink) }
                         )
                         ChainLinkListItemStatus.EDIT -> ChainLinkListItemEdit(
-                            password = chainLinkListItem.password,
-                            chainLinkListItem = chainLinkListItem,
-                            onIconDoneClick = { onItemUpdate(chainLinkListItem) },
+                            password = chainLink.password,
+                            chainLinkListItem = chainLink,
+                            onIconDoneClick = { onItemEdit(chainLink) },
                             onIconClearClick = {
-                                chainLinkListItem.status = ChainLinkListItemStatus.ACTUAL
+                                chainLink.status = ChainLinkListItemStatus.ACTUAL
 
                                 viewModel.refresh()
                             }
