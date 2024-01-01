@@ -42,7 +42,7 @@ kotlin {
     }
 
     tasks {
-        jar {
+        create<Jar>("fatJar") {
             manifest {
                 attributes["Main-Class"] = "${rootProject.group}.chainpass.${project.name}.MainKt"
             }
@@ -52,11 +52,12 @@ kotlin {
             from(configurations["runtimeClasspath"].map { file: File ->
                 if (file.isDirectory) file else zipTree(file)
             })
+            with(getByName<Jar>("jar"))
 
             duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         }
 
-        test {
+        withType<Test> {
             useJUnitPlatform()
         }
     }
