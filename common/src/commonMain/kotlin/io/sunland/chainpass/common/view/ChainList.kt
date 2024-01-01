@@ -24,8 +24,8 @@ fun ChainList(
     onNew: (Chain) -> Unit,
     onSelect: (Chain) -> Unit,
     onRemove: (Chain) -> Unit,
-    onStore: (Chain, StoreOptions) -> Unit,
-    onUnstore: (Chain.Key, FilePath) -> Unit
+    onStore: (StoreOptions) -> Unit,
+    onUnstore: (FilePath) -> Unit
 ) {
     val inputActionTypeState = remember { mutableStateOf(InputActionType.SELECT) }
     val inputActionDialogVisibleState = remember { mutableStateOf(false) }
@@ -35,6 +35,10 @@ fun ChainList(
             onSettings = onSettings,
             onSync = onSync,
             onAdd = { viewModel.draft() },
+            onStore = {
+                inputActionTypeState.value = InputActionType.STORE
+                inputActionDialogVisibleState.value = true
+            },
             onUnstore = {
                 inputActionTypeState.value = InputActionType.UNSTORE
                 inputActionDialogVisibleState.value = true
@@ -70,12 +74,6 @@ fun ChainList(
 
                                         inputActionTypeState.value = InputActionType.REMOVE
                                         inputActionDialogVisibleState.value = true
-                                    },
-                                    onStore = {
-                                        viewModel.setSelected(chain)
-
-                                        inputActionTypeState.value = InputActionType.STORE
-                                        inputActionDialogVisibleState.value = true
                                     }
                                 )
                             }
@@ -96,28 +94,48 @@ fun ChainList(
             }
 
             if (inputActionDialogVisibleState.value) {
-                ChainListItemKeyInput(
-                    inputActionType = inputActionTypeState.value,
-                    onDismiss = { inputActionDialogVisibleState.value = false },
-                    onConfirm = { chainKey, storageOptions, filePath ->
-                        val chain = viewModel.chainSelected?.apply { key = chainKey }
+                when (inputActionTypeState.value) {
+                    InputActionType.SELECT -> ChainListItemKeyInput(
+                        onCancel = { inputActionDialogVisibleState.value = false },
+                        onSelect = { chainKey ->
+                            val chain = viewModel.chainSelected?.apply { key = chainKey }
 
-                        when (inputActionTypeState.value) {
-                            InputActionType.SELECT -> onSelect(chain!!)
-                            InputActionType.REMOVE -> {
-                                viewModel.removeLater(chain!!)
+                            viewModel.setSelected()
 
-                                onRemove(chain)
-                            }
-                            InputActionType.STORE -> onStore(chain!!, storageOptions!!)
-                            InputActionType.UNSTORE -> onUnstore(chainKey, filePath!!)
+                            inputActionDialogVisibleState.value = false
+
+                            onSelect(chain!!)
                         }
+                    )
+                    InputActionType.REMOVE -> ChainListItemKeyInput(
+                        onCancel = { inputActionDialogVisibleState.value = false },
+                        onSelect = { chainKey ->
+                            val chain = viewModel.chainSelected?.apply { key = chainKey }
 
-                        viewModel.setSelected()
+                            viewModel.removeLater(chain!!)
 
-                        inputActionDialogVisibleState.value = false
-                    }
-                )
+                            inputActionDialogVisibleState.value = false
+
+                            onRemove(chain)
+                        }
+                    )
+                    InputActionType.STORE -> ChainListStoreInput(
+                        onCancel = { inputActionDialogVisibleState.value = false },
+                        onSelect = { storeOptions ->
+                            inputActionDialogVisibleState.value = false
+
+                            onStore(storeOptions)
+                        }
+                    )
+                    InputActionType.UNSTORE -> ChainListUnstoreInput(
+                        onCancel = { inputActionDialogVisibleState.value = false },
+                        onSelect = { filePath ->
+                            inputActionDialogVisibleState.value = false
+
+                            onUnstore(filePath)
+                        }
+                    )
+                }
             }
         }
     }

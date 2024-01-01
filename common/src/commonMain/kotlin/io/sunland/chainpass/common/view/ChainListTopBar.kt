@@ -23,7 +23,13 @@ import io.sunland.chainpass.common.component.DropdownMenuItem
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainListTopBar(onSettings: () -> Unit, onSync: () -> Unit, onAdd: () -> Unit, onUnstore: () -> Unit) {
+fun ChainListTopBar(
+    onSettings: () -> Unit,
+    onSync: () -> Unit,
+    onAdd: () -> Unit,
+    onStore: () -> Unit,
+    onUnstore: () -> Unit
+) {
     val actionMenuExpandedState = remember { mutableStateOf(false) }
 
     TopAppBar(
@@ -83,6 +89,23 @@ fun ChainListTopBar(onSettings: () -> Unit, onSync: () -> Unit, onAdd: () -> Uni
                     ) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = null)
                         Text(text = "Add", fontSize = 12.sp)
+                    }
+                }
+                DropdownMenuItem(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    onClick = {
+                        actionMenuExpandedState.value = false
+
+                        onStore()
+                    },
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Icons.Default.Archive, contentDescription = null)
+                        Text(text = "Store", fontSize = 12.sp)
                     }
                 }
                 DropdownMenuItem(
