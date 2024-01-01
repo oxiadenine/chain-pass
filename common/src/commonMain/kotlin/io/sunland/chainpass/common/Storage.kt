@@ -24,9 +24,9 @@ class Storage(val storeDirPath: String) {
             applyPattern("yyyy.MM.dd-HH.mm.ss")
         }.format(Date())
 
-        if (storable.chains.size == 1) {
-            val storableChain = storable.chains[0]
+        val storableFileNames = mutableListOf<String>()
 
+        storable.chains.forEach { storableChain ->
             val storableDir = File("$storeDirPath/${storableChain.name}")
 
             if (!storableDir.exists()) {
@@ -47,24 +47,10 @@ class Storage(val storeDirPath: String) {
 
             File(filePath).writeText(Storable(storable.options, listOf(storableChain)).toString(storageType))
 
-            return fileName
-        } else {
-            val fileName = "chain-pass-$currentDateTime"
-
-            val filePath = when (storageType) {
-                StorageType.JSON -> "$storeDirPath/$fileName.json"
-                StorageType.CSV -> "$storeDirPath/$fileName.csv"
-                StorageType.TXT -> "$storeDirPath/$fileName.txt"
-            }
-
-            if (!File(filePath).exists()) {
-                File(filePath).createNewFile()
-            }
-
-            File(filePath).writeText(storable.toString(storageType))
-
-            return fileName
+            storableFileNames.add(fileName)
         }
+
+        return storableFileNames.joinToString(", ")
     }
 
     fun unstore(filePath: String, fileBytes: ByteArray): Storable {
@@ -82,10 +68,20 @@ class Storage(val storeDirPath: String) {
 data class StorableOptions(val isPrivate: Boolean)
 
 @Serializable
-data class StorableChain(val name: String, val key: String, val chainLinks: List<StorableChainLink>)
+data class StorableChain(
+    val name: String,
+    val key: String,
+    val salt: String,
+    val chainLinks: List<StorableChainLink>
+)
 
 @Serializable
-data class StorableChainLink(val name: String, val description: String, val password: String)
+data class StorableChainLink(
+    val name: String,
+    val description: String,
+    val password: String,
+    val iv: String
+)
 
 @Serializable
 data class Storable(val options: StorableOptions, val chains: List<StorableChain>)
@@ -181,7 +177,8 @@ fun String.toStorable(storageType: StorageType) = when (storageType) {
         for (i in 2 until data.size - 1) {
             record = data[i].split(",")
 
-            if (record.size == chainHeader.size && record[0] == chainHeader[0] && record[1] == chainHeader[1]) {
+            if (record.size == chainHeader.size && record[0] == chainHeader[0] &&
+                record[1] == chainHeader[1] && record[2] == chainHeader[2]) {
                 record = data[i + 1].split(",")
 
                 val chainRecord = record.map { value ->
@@ -192,25 +189,33 @@ fun String.toStorable(storageType: StorageType) = when (storageType) {
 
                 val storableChainLinks = mutableListOf<StorableChainLink>()
 
-                if (record.size == chainLinkHeader.size && record[0] == chainLinkHeader[0] &&
-                    record[1] == chainLinkHeader[1] && record[2] == chainLinkHeader[2]) {
-
+                if (record.size == chainLinkHeader.size &&
+                    record[0] == chainLinkHeader[0] && record[1] == chainLinkHeader[1] &&
+                    record[2] == chainLinkHeader[2] && record[3] == chainLinkHeader[3]) {
                     for (j in i + 3 until data.size - 1) {
                         record = data[j].split(",")
 
-                        if (record.size == 3) {
+                        if (record.size == 4) {
                             val chainLinkRecord = record.map { value ->
                                 value.replace("\"", "")
                             }
 
-                            storableChainLinks.add(
-                                StorableChainLink(chainLinkRecord[0], chainLinkRecord[1], chainLinkRecord[2])
-                            )
+                            storableChainLinks.add(StorableChainLink(
+                                chainLinkRecord[0],
+                                chainLinkRecord[1],
+                                chainLinkRecord[2],
+                                chainLinkRecord[3]
+                            ))
                         } else break
                     }
                 }
 
-                storableChains.add(StorableChain(chainRecord[0], chainRecord[1], storableChainLinks))
+                storableChains.add(StorableChain(
+                    chainRecord[0],
+                    chainRecord[1],
+                    chainRecord[2],
+                    storableChainLinks
+                ))
             } else continue
         }
 

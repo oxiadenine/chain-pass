@@ -1,6 +1,5 @@
 package io.sunland.chainpass.common
 
-import io.sunland.chainpass.common.security.EncoderSpec
 import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.common.security.Random
 
@@ -13,6 +12,7 @@ class Chain() {
         id = chain.id
         name = chain.name
         key = chain.key
+        salt = chain.salt
     }
 
     class Name(value: String? = null) {
@@ -66,16 +66,15 @@ class Chain() {
     var id = Random.uuid()
     var name = Name()
     var key = Key()
+    var salt = ""
 
-    fun secretKey() = Key(PasswordEncoder.hash(EncoderSpec.Passphrase(
-        PasswordEncoder.Base64.encode(key.value.encodeToByteArray()),
-        PasswordEncoder.Base64.encode(name.value.encodeToByteArray())
-    )))
+    fun secretKey() = Key(PasswordEncoder.hash(
+        PasswordEncoder.Base64.encode(key.value.encodeToByteArray()), salt)
+    )
 
-    fun privateKey(secretKey: Key) = Key(PasswordEncoder.encrypt(
-        PasswordEncoder.Base64.encode(key.value.encodeToByteArray()),
-        EncoderSpec.Passphrase(secretKey.value, PasswordEncoder.Base64.encode(name.value.encodeToByteArray()))
-    ))
+    fun privateKey(secretKey: Key) = Key(PasswordEncoder.hash(
+        PasswordEncoder.Base64.encode(key.value.encodeToByteArray()), secretKey.value)
+    )
 
     fun validateKey(key: Key) = if (key.value != this.key.value) {
         throw KeyInvalidError

@@ -11,6 +11,7 @@ object ChainTable : Table("chain") {
     val id = text("id")
     val name = text("name").index()
     val key = text("key")
+    val salt = text("salt")
 
     override val primaryKey = PrimaryKey(id)
 }
@@ -20,6 +21,8 @@ object ChainLinkTable : Table("chain_link") {
     val name = text("name").index()
     val description = text("description").index()
     val password = text("password")
+    val iv = text("iv")
+
     val chainId = text("chain_id").references(ChainTable.id, onDelete = ReferenceOption.CASCADE)
 
     override val primaryKey = PrimaryKey(id, chainId)

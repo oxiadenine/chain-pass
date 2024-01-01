@@ -8,6 +8,7 @@ import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
+import io.sunland.chainpass.common.security.PasswordEncoder
 
 class ChainListViewModel(
     private val chainRepository: ChainRepository,
@@ -41,19 +42,13 @@ class ChainListViewModel(
 
     fun removeLater(chainKey: Chain.Key) {
         if (chainListState.removeIf { chain -> chain.id == chainSelected!!.id }) {
-            chainRemovedListState.add(Chain(chainSelected!!.apply { key = chainKey }))
+            val chain = Chain(chainSelected!!).apply { key = chainKey }
+
+            chain.key = chain.secretKey()
+            chain.key = chain.privateKey(chain.key)
+
+            chainRemovedListState.add(chain)
         }
-    }
-
-    fun undoRemove() {
-        chainSelected = chainRemovedListState.removeAt(0)
-
-        val chains = chainListState.plus(chainSelected!!.apply {
-            key = Chain.Key()
-        }).sortedBy { chain -> chain.name.value }
-
-        chainListState.clear()
-        chainListState.addAll(chains)
     }
 
     suspend fun getAll() {
@@ -61,6 +56,8 @@ class ChainListViewModel(
             Chain().apply {
                 id = chainEntity.id
                 name = Chain.Name(chainEntity.name)
+                key = Chain.Key(chainEntity.key)
+                salt = chainEntity.salt
             }
         }.sortedBy { chain -> chain.name.value }
 
@@ -74,14 +71,18 @@ class ChainListViewModel(
             key = chainKey
         }
 
-        val secretKey = chainDraft.secretKey()
-        val privateKey = chainDraft.privateKey(secretKey)
+        chainDraft.salt = PasswordEncoder.Salt.generate()
+        chainDraft.key = chainDraft.secretKey()
+        chainDraft.key = chainDraft.privateKey(chainDraft.key)
 
-        val chainEntity = ChainEntity(chainDraft.id, chainDraft.name.value, privateKey.value)
+        val chainEntity = ChainEntity(
+            chainDraft.id,
+            chainDraft.name.value,
+            chainDraft.key.value,
+            chainDraft.salt
+        )
 
         chainRepository.create(chainEntity)
-
-        chainDraft.key = Chain.Key()
 
         chainSelected = chainDraft
 
@@ -92,18 +93,41 @@ class ChainListViewModel(
     }
 
     suspend fun select(chainKey: Chain.Key) = runCatching {
-        val chain = chainSelected!!.apply { key = chainKey }
-
-        val chainEntity = chainRepository.getOne(chain.id).getOrThrow()
+        val chain = Chain(chainSelected!!).apply { key = chainKey }
 
         val secretKey = chain.secretKey()
-        val privateKey = chain.privateKey(secretKey)
+
+        chain.key = secretKey
+        chain.key = chain.privateKey(chain.key)
+
+        val chainEntity = chainRepository.getOne(chain.id).getOrThrow()
 
         Chain().apply {
             id = chainEntity.id
             name = Chain.Name(chainEntity.name)
             key = Chain.Key(chainEntity.key)
-        }.validateKey(privateKey)
+            salt = chainEntity.salt
+        }.validateKey(chain.key)
+
+        chainSelected!!.key = secretKey
+    }
+
+    suspend fun undoRemove() = runCatching {
+        val chainRemoved = chainRemovedListState.removeAt(0)
+
+        val chainEntity = chainRepository.getOne(chainRemoved.id).getOrThrow()
+
+        val chains = chainListState.plus(
+            Chain().apply {
+                id = chainEntity.id
+                name = Chain.Name(chainEntity.name)
+                key = Chain.Key(chainEntity.key)
+                salt = chainEntity.salt
+            }
+        ).sortedBy { chain -> chain.name.value }
+
+        chainListState.clear()
+        chainListState.addAll(chains)
     }
 
     suspend fun remove() = runCatching {
@@ -111,14 +135,12 @@ class ChainListViewModel(
 
         val chainEntity = chainRepository.getOne(chain.id).getOrThrow()
 
-        val secretKey = chain.secretKey()
-        val privateKey = chain.privateKey(secretKey)
-
         Chain().apply {
             id = chainEntity.id
             name = Chain.Name(chainEntity.name)
             key = Chain.Key(chainEntity.key)
-        }.validateKey(privateKey)
+            salt = chainEntity.salt
+        }.validateKey(chain.key)
 
         chainRepository.delete(chain.id)
 
@@ -128,11 +150,16 @@ class ChainListViewModel(
     suspend fun store(storageType: StorageType, storeIsPrivate: Boolean): String {
         val storableOptions = StorableOptions(storeIsPrivate)
         val storableChains = chainRepository.getAll().map { chainEntity ->
-            val storableChainLinks = chainLinkRepository.getBy(chainEntity.id).map { chainLink ->
-                StorableChainLink(chainLink.name, chainLink.description, chainLink.password)
+            val storableChainLinks = chainLinkRepository.getBy(chainEntity.id).map { chainLinkEntity ->
+                StorableChainLink(
+                    chainLinkEntity.name,
+                    chainLinkEntity.description,
+                    chainLinkEntity.password,
+                    chainLinkEntity.iv
+                )
             }
 
-            StorableChain(chainEntity.name, chainEntity.key, storableChainLinks)
+            StorableChain(chainEntity.name, chainEntity.key, chainEntity.salt, storableChainLinks)
         }
 
         val storable = Storable(storableOptions, storableChains)
@@ -162,6 +189,7 @@ class ChainListViewModel(
             val chain = Chain().apply {
                 name = Chain.Name(storableChain.name)
                 key = Chain.Key(storableChain.key)
+                salt = storableChain.salt
             }
 
             chains.add(chain)
@@ -171,12 +199,13 @@ class ChainListViewModel(
                     name = ChainLink.Name(storableChainLink.name)
                     description = ChainLink.Description(storableChainLink.description)
                     password = ChainLink.Password(storableChainLink.password)
+                    iv = storableChainLink.iv
                 }
             })
         }
 
         chains.forEach { chain ->
-            val chainEntity = ChainEntity(chain.id, chain.name.value, chain.key.value)
+            val chainEntity = ChainEntity(chain.id, chain.name.value, chain.key.value, chain.salt)
 
             chainRepository.create(chainEntity)
         }
@@ -187,6 +216,7 @@ class ChainListViewModel(
                 chainLink.name.value,
                 chainLink.description.value,
                 chainLink.password.value,
+                chainLink.iv,
                 chainLink.chain.id
             )
 

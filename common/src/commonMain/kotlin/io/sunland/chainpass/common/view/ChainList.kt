@@ -183,10 +183,10 @@ fun ChainList(
             onConfirm = { chainKey ->
                 listItemKeyDialogVisible = false
 
-                scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
-
                 when (listItemMenuItem!!) {
                     ChainListItemMenuItem.OPEN -> coroutineScope.launch(Dispatchers.IO) {
+                        scaffoldListState.snackbarHostState.currentSnackbarData?.performAction()
+
                         loadingDialogVisible = true
 
                         viewModel.select(chainKey).onSuccess {
@@ -205,7 +205,13 @@ fun ChainList(
                         }
                     }
                     ChainListItemMenuItem.DELETE -> coroutineScope.launch(Dispatchers.IO) {
+                        scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
+
+                        loadingDialogVisible = true
+
                         viewModel.removeLater(chainKey)
+
+                        loadingDialogVisible = false
 
                         when (scaffoldListState.snackbarHostState.showSnackbar(
                             message = intl.translate(

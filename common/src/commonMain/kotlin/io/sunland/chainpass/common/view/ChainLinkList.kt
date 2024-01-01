@@ -324,6 +324,9 @@ fun ChainLinkList(
                             is ChainLinkListViewModel.StorableFormatError -> {
                                 intl.translate("popup.unstore.storable.format.error")
                             }
+                            is ChainLinkListViewModel.StorablePrivateError -> {
+                                intl.translate("popup.unstore.storable.private.error")
+                            }
                             is ChainLinkListViewModel.StorableMultipleError -> {
                                 intl.translate("popup.unstore.storable.multiple.error")
                             }
