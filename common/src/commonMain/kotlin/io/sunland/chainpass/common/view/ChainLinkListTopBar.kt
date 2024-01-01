@@ -29,7 +29,7 @@ fun ChainLinkListTopBar(
     onAdd: () -> Unit,
     onSearch: () -> Unit
 ) {
-    val actionMenuExpandState = remember { mutableStateOf(false) }
+    val actionMenuExpandedState = remember { mutableStateOf(false) }
 
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
@@ -43,18 +43,18 @@ fun ChainLinkListTopBar(
         actions = {
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = { actionMenuExpandState.value = true }
+                onClick = { actionMenuExpandedState.value = true }
             ) { Icon(imageVector = Icons.Default.MoreVert, contentDescription = null) }
             DropdownMenu(
                 modifier = Modifier.width(width = 150.dp),
-                expanded = actionMenuExpandState.value,
-                onDismissRequest = { actionMenuExpandState.value = false },
+                expanded = actionMenuExpandedState.value,
+                onDismissRequest = { actionMenuExpandedState.value = false },
                 offset = DpOffset(x = 4.dp, y = (-48).dp)
             ) {
                 DropdownMenuItem(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
-                        actionMenuExpandState.value = false
+                        actionMenuExpandedState.value = false
 
                         onSync()
                     },
@@ -71,7 +71,7 @@ fun ChainLinkListTopBar(
                 DropdownMenuItem(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
-                        actionMenuExpandState.value = false
+                        actionMenuExpandedState.value = false
 
                         onAdd()
                     },
@@ -88,7 +88,7 @@ fun ChainLinkListTopBar(
                 DropdownMenuItem(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = {
-                        actionMenuExpandState.value = false
+                        actionMenuExpandedState.value = false
 
                         onSearch()
                     },

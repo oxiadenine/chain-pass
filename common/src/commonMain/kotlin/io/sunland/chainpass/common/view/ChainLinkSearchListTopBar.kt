@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkSearchListTopBar(keywordState: MutableState<String>, onBack: () -> Unit, onSearch: (String) -> Unit) {
-    val focusRequester = FocusRequester()
+    val focusRequester = remember { FocusRequester() }
 
     val onSearchChange = { value: String ->
         keywordState.value = value
@@ -37,18 +37,20 @@ fun ChainLinkSearchListTopBar(keywordState: MutableState<String>, onBack: () -> 
         onSearch(keywordState.value)
     }
 
+    val onKeyEvent = { keyEvent: KeyEvent ->
+        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
+            onBack()
+
+            true
+        } else false
+    }
+
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
         title = {
             TextField(
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent { keyEvent ->
-                    if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
-                        onBack()
-
-                        true
-                    } else false
-                },
-                placeholder = { Text(text = "Search") },
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
+                placeholder = { Text(text = "Search...") },
                 value = keywordState.value,
                 onValueChange = onSearchChange,
                 trailingIcon = if (keywordState.value.isNotEmpty()) {

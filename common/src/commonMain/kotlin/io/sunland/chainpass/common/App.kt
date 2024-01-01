@@ -108,11 +108,11 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                 TextButton(
                                     modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand),
                                     onClick = { snackbarHostState.currentSnackbarData?.performAction() }
-                                ) { Text(text = label, color = ThemeColor.COPPER.color) }
+                                ) { Text(text = label, color = MaterialTheme.colors.error) }
                             }
                         },
-                        backgroundColor = ThemeColor.ANTHRACITE.color,
-                        contentColor = ThemeColor.QUARTZ.color
+                        backgroundColor = MaterialTheme.colors.background,
+                        contentColor = MaterialTheme.colors.primary
                     )
                 }
             )
@@ -185,6 +185,15 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                             port = ServerAddress.Port(appState.settingsState.value.serverPort.toString())
                         },
                         viewModel = chainListViewModel,
+                        onSync = {
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+
+                                chainListViewModel.getAll().onFailure { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
+                            }
+                        },
                         onNew = { chain ->
                             coroutineScope.launch {
                                 chainListViewModel.new(chain).onFailure { exception ->
@@ -225,15 +234,6 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                 }
                             }
                         },
-                        onSync = {
-                            coroutineScope.launch {
-                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
-
-                                chainListViewModel.getAll().onFailure { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
-                                }
-                            }
-                        },
                         onDisconnect = {
                             scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
@@ -249,6 +249,20 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                 Screen.CHAIN_LINK_LIST -> {
                     ChainLinkList(
                         viewModel = chainLinkListViewModel,
+                        onBack = {
+                            scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+
+                            appState.screenState.value = Screen.CHAIN_LIST
+                        },
+                        onSync = {
+                            coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+
+                                chainLinkListViewModel.getAll().onFailure { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
+                            }
+                        },
                         onNew = { chainLink ->
                             coroutineScope.launch {
                                 chainLinkListViewModel.new(chainLink).onFailure { exception ->
@@ -283,21 +297,7 @@ fun App(settingsManager: SettingsManager, appState: AppState) = MaterialTheme(
                                 }
                             }
                         },
-                        onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.performAction() },
-                        onSync = {
-                            coroutineScope.launch {
-                                scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
-
-                                chainLinkListViewModel.getAll().onFailure { exception ->
-                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
-                                }
-                            }
-                        },
-                        onBack = {
-                            scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-
-                            appState.screenState.value = Screen.CHAIN_LIST
-                        }
+                        onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.performAction() }
                     )
                 }
             }
