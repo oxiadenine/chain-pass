@@ -24,10 +24,10 @@ import io.sunland.chainpass.common.component.DropdownMenuItem
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListTopBar(
-    onIconArrowBackClick: () -> Unit,
-    onIconSyncClick: () -> Unit,
-    onIconAddClick: () -> Unit,
-    onIconSearchClick: () -> Unit
+    onBack: () -> Unit,
+    onSync: () -> Unit,
+    onAdd: () -> Unit,
+    onSearch: () -> Unit
 ) {
     val actionMenuExpandState = remember { mutableStateOf(false) }
 
@@ -37,7 +37,7 @@ fun ChainLinkListTopBar(
         navigationIcon = {
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onIconArrowBackClick
+                onClick = onBack
             ) { Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null) }
         },
         actions = {
@@ -56,7 +56,7 @@ fun ChainLinkListTopBar(
                     onClick = {
                         actionMenuExpandState.value = false
 
-                        onIconSyncClick()
+                        onSync()
                     },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
@@ -73,7 +73,7 @@ fun ChainLinkListTopBar(
                     onClick = {
                         actionMenuExpandState.value = false
 
-                        onIconAddClick()
+                        onAdd()
                     },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
@@ -90,7 +90,7 @@ fun ChainLinkListTopBar(
                     onClick = {
                         actionMenuExpandState.value = false
 
-                        onIconSearchClick()
+                        onSearch()
                     },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {

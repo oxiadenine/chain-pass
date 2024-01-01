@@ -11,7 +11,7 @@ import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.component.InputDialog
 
 @Composable
-fun ChainListItemKeyInput(onInputDismiss: () -> Unit, onInputConfirm: (Chain.Key) -> Unit) {
+fun ChainListItemKeyInput(onDismiss: () -> Unit, onConfirm: (Chain.Key) -> Unit) {
     val keyState = remember { mutableStateOf("") }
     val keyErrorState = remember { mutableStateOf(false) }
 
@@ -27,14 +27,14 @@ fun ChainListItemKeyInput(onInputDismiss: () -> Unit, onInputConfirm: (Chain.Key
         visualTransformation = PasswordVisualTransformation(),
         isError = keyErrorState.value,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-        onDismissRequest = onInputDismiss,
+        onDismissRequest = onDismiss,
         onConfirmRequest = {
             val chainKey = Chain.Key(keyState.value)
 
             keyErrorState.value = chainKey.value.isEmpty()
 
             if (!keyErrorState.value) {
-                onInputConfirm(chainKey)
+                onConfirm(chainKey)
             }
         }
     )

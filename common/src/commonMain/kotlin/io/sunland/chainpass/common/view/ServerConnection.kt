@@ -88,8 +88,8 @@ class ServerConnectionState(serverAddress: ServerAddress) {
 @Composable
 fun ServerConnection(
     serverConnectionState: ServerConnectionState,
-    onIconRefreshClick: () -> Unit,
-    onIconDoneClick: (ServerAddress) -> Unit
+    onDiscover: () -> Unit,
+    onConnect: (ServerAddress) -> Unit
 ) {
     val onHostChange = { value: String ->
         val host = ServerAddress.Host(value)
@@ -116,7 +116,7 @@ fun ServerConnection(
 
         if (serverConnectionState.hostValidationState.value.isSuccess &&
             serverConnectionState.portValidationState.value.isSuccess) {
-            onIconDoneClick(serverAddress)
+            onConnect(serverAddress)
         }
     }
 
@@ -127,7 +127,7 @@ fun ServerConnection(
             actions = {
                 IconButton(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = onIconRefreshClick,
+                    onClick = onDiscover,
                     enabled = serverConnectionState.discoveringState.value?.isActive != true
                 ) { Icon(imageVector = Icons.Default.Refresh, contentDescription = null) }
                 if (serverConnectionState.discoveringState.value?.isActive == true) {

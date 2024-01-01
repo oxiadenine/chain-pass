@@ -19,28 +19,28 @@ import io.sunland.chainpass.common.component.VerticalScrollbar
 @Composable
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
-    onItemNew: (ChainLink) -> Unit,
-    onItemEdit: (ChainLink) -> Unit,
-    onItemRemove: (ChainLink) -> Unit,
+    onNew: (ChainLink) -> Unit,
+    onEdit: (ChainLink) -> Unit,
+    onRemove: (ChainLink) -> Unit,
     onSync: () -> Unit,
     onBack: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         if (viewModel.isSearchState.value) {
             ChainLinkSearchListTopBar(
-                onIconArrowBackClick = { viewModel.endSearch() },
+                onBack = { viewModel.endSearch() },
                 onSearch = { keyword -> viewModel.search(keyword) }
             )
         } else {
             ChainLinkListTopBar(
-                onIconArrowBackClick = {
+                onBack = {
                     viewModel.cancelEdit()
 
                     onBack()
                 },
-                onIconSyncClick = onSync,
-                onIconAddClick = { viewModel.draft() },
-                onIconSearchClick = { viewModel.startSearch() }
+                onSync = onSync,
+                onAdd = { viewModel.draft() },
+                onSearch = { viewModel.startSearch() }
             )
         }
         Box(modifier = Modifier.fillMaxSize()) {
@@ -70,7 +70,7 @@ fun ChainLinkList(
                         if (viewModel.isSearchState.value) {
                             ChainLinkSearchListItem(
                                 chainLink = chainLink,
-                                onIconLockClick = { isPasswordLocked ->
+                                onPasswordLock = { isPasswordLocked ->
                                     if (isPasswordLocked) {
                                         viewModel.unlockPassword(chainLink)
                                     } else viewModel.lockPassword(chainLink)
@@ -80,16 +80,16 @@ fun ChainLinkList(
                             when (chainLink.status) {
                                 ChainLink.Status.ACTUAL -> ChainLinkListItem(
                                     chainLink = chainLink,
-                                    onIconEditClick = {
+                                    onEdit = {
                                         viewModel.cancelEdit()
                                         viewModel.startEdit(chainLink)
                                     },
-                                    onIconDeleteClick = {
+                                    onDelete = {
                                         viewModel.removeLater(chainLink)
 
-                                        onItemRemove(chainLink)
+                                        onRemove(chainLink)
                                     },
-                                    onIconLockClick = { isPasswordLocked ->
+                                    onPasswordLock = { isPasswordLocked ->
                                         if (isPasswordLocked) {
                                             viewModel.unlockPassword(chainLink)
                                         } else viewModel.lockPassword(chainLink)
@@ -97,14 +97,14 @@ fun ChainLinkList(
                                 )
                                 ChainLink.Status.DRAFT -> ChainLinkListItemDraft(
                                     chainLink = chainLink,
-                                    onIconDoneClick = { onItemNew(chainLink) },
-                                    onIconClearClick = { viewModel.rejectDraft(chainLink) }
+                                    onNew = { onNew(chainLink) },
+                                    onCancel = { viewModel.rejectDraft(chainLink) }
                                 )
                                 ChainLink.Status.EDIT -> key(chainLink.id) {
                                     ChainLinkListItemEdit(
                                         chainLink = chainLink,
-                                        onIconDoneClick = { onItemEdit(chainLink) },
-                                        onIconClearClick = { viewModel.cancelEdit() }
+                                        onEdit = { onEdit(chainLink) },
+                                        onCancel = { viewModel.cancelEdit() }
                                     )
                                 }
                             }

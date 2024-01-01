@@ -24,9 +24,9 @@ import io.sunland.chainpass.common.ChainLink
 @Composable
 fun ChainLinkListItem(
     chainLink: ChainLink,
-    onIconEditClick: () -> Unit,
-    onIconDeleteClick: () -> Unit,
-    onIconLockClick: (Boolean) -> Unit
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    onPasswordLock: (Boolean) -> Unit
 ) {
     val passwordLockState = mutableStateOf(chainLink.password.isPrivate)
     val passwordLockIconState = mutableStateOf(Icons.Default.Lock)
@@ -36,7 +36,7 @@ fun ChainLinkListItem(
     } else passwordLockIconState.value = Icons.Default.LockOpen
 
     val onLock = {
-        onIconLockClick(passwordLockState.value)
+        onPasswordLock(passwordLockState.value)
 
         passwordLockState.value = !passwordLockState.value
     }
@@ -60,7 +60,7 @@ fun ChainLinkListItem(
                             onLock()
                         }
 
-                        onIconEditClick()
+                        onEdit()
                     }
                 ) { Icon(imageVector = Icons.Default.Edit, contentDescription = null) }
                 IconButton(
@@ -70,7 +70,7 @@ fun ChainLinkListItem(
                             onLock()
                         }
 
-                        onIconDeleteClick()
+                        onDelete()
                     }
                 ) { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
             }

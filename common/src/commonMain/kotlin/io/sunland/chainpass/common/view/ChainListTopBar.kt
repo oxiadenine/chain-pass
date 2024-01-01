@@ -25,9 +25,9 @@ import io.sunland.chainpass.common.component.DropdownMenuItem
 @Composable
 fun ChainListTopBar(
     serverAddress: ServerAddress,
-    onIconSyncClick: () -> Unit,
-    onIconAddClick: () -> Unit,
-    onIconLogoutClick: () -> Unit
+    onSync: () -> Unit,
+    onAdd: () -> Unit,
+    onDisconnect: () -> Unit
 ) {
     val actionMenuExpandState = remember { mutableStateOf(false) }
 
@@ -58,7 +58,7 @@ fun ChainListTopBar(
                     onClick = {
                         actionMenuExpandState.value = false
 
-                        onIconSyncClick()
+                        onSync()
                     },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
@@ -75,7 +75,7 @@ fun ChainListTopBar(
                     onClick = {
                         actionMenuExpandState.value = false
 
-                        onIconAddClick()
+                        onAdd()
                     },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
@@ -92,7 +92,7 @@ fun ChainListTopBar(
                     onClick = {
                         actionMenuExpandState.value = false
 
-                        onIconLogoutClick()
+                        onDisconnect()
                     },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {

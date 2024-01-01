@@ -36,7 +36,7 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
+fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: () -> Unit) {
     val nameState = mutableStateOf(chainLink.name.value)
     val nameValidationState = mutableStateOf(chainLink.name.validation)
 
@@ -79,16 +79,14 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
         if (nameValidationState.value.isSuccess && descriptionValidationState.value.isSuccess &&
             passwordValidationState.value.isSuccess
         ) {
-            onIconDoneClick()
+            onNew()
         }
     }
-
-    val onClear = { onIconClearClick() }
 
     val onKeyEvent = { keyEvent: KeyEvent ->
         when (keyEvent.key) {
             Key.Escape -> {
-                onClear()
+                onCancel()
 
                 true
             }
@@ -113,7 +111,7 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
             ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
             IconButton(
                 modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = onClear
+                onClick = onCancel
             ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
         }
         Column(modifier = Modifier.padding(horizontal = 4.dp)) {

@@ -20,18 +20,18 @@ import io.sunland.chainpass.common.component.VerticalScrollbar
 fun ChainList(
     serverAddress: ServerAddress,
     viewModel: ChainListViewModel,
-    onItemNew: (Chain) -> Unit,
-    onItemSelect: (Chain) -> Unit,
-    onItemRemove: (Chain) -> Unit,
+    onNew: (Chain) -> Unit,
+    onSelect: (Chain) -> Unit,
+    onRemove: (Chain) -> Unit,
     onSync: () -> Unit,
     onDisconnect: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         ChainListTopBar(
             serverAddress = serverAddress,
-            onIconSyncClick = onSync,
-            onIconAddClick = { viewModel.draft() },
-            onIconLogoutClick = onDisconnect
+            onSync = onSync,
+            onAdd = { viewModel.draft() },
+            onDisconnect = onDisconnect
         )
         Box(modifier = Modifier.fillMaxSize()) {
             if (viewModel.chainListState.isEmpty()) {
@@ -54,15 +54,15 @@ fun ChainList(
 
                                 if (keyInputDialogVisible.value) {
                                     ChainListItemKeyInput(
-                                        onInputDismiss = {
+                                        onDismiss = {
                                             viewModel.chainRemoveState.value = null
                                             viewModel.chainSelectState.value = null
 
                                             keyInputDialogVisible.value = false
                                         },
-                                        onInputConfirm = { chainKey ->
-                                            viewModel.removeLater(chainKey)?.let(onItemRemove)
-                                            viewModel.select(chainKey)?.let(onItemSelect)
+                                        onConfirm = { chainKey ->
+                                            viewModel.removeLater(chainKey)?.let(onRemove)
+                                            viewModel.select(chainKey)?.let(onSelect)
 
                                             viewModel.chainRemoveState.value = null
                                             viewModel.chainSelectState.value = null
@@ -74,12 +74,12 @@ fun ChainList(
 
                                 ChainListItem(
                                     chain = chain,
-                                    onClick = {
+                                    onSelect = {
                                         viewModel.chainSelectState.value = chain
 
                                         keyInputDialogVisible.value = true
                                     },
-                                    onIconDeleteClick = {
+                                    onDelete = {
                                         viewModel.chainRemoveState.value = chain
 
                                         keyInputDialogVisible.value = true
@@ -88,8 +88,8 @@ fun ChainList(
                             }
                             Chain.Status.DRAFT -> ChainListItemDraft(
                                 chain = chain,
-                                onIconDoneClick = { onItemNew(chain) },
-                                onIconClearClick = { viewModel.rejectDraft(chain) }
+                                onNew = { onNew(chain) },
+                                onCancel = { viewModel.rejectDraft(chain) }
                             )
                         }
                     }
