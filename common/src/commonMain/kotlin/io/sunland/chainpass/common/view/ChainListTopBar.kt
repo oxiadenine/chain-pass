@@ -1,6 +1,7 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -23,14 +24,13 @@ fun ChainListTopBar(
     onMenu: () -> Unit,
     onSync: () -> Unit,
     onStore: () -> Unit,
-    onUnstore: () -> Unit,
-    modifier: Modifier = Modifier
+    onUnstore: () -> Unit
 ) {
     val isActionMenuExpandedState = remember { mutableStateOf(false) }
 
     TopAppBar(
         title = { Text(text = title) },
-        modifier = modifier,
+        modifier = Modifier.fillMaxWidth(),
         navigationIcon = {
             IconButton(
                 onClick = onMenu,

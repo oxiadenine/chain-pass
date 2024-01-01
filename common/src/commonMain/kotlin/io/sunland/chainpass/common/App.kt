@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.sp
 import io.ktor.server.cio.*
 import io.rsocket.kotlin.RSocketRequestHandler
 import io.rsocket.kotlin.payload.Payload
-import io.sunland.chainpass.common.component.rememberScaffoldListState
 import io.sunland.chainpass.common.network.WebSocket
 import io.sunland.chainpass.common.network.decode
 import io.sunland.chainpass.common.network.encode
@@ -232,15 +231,11 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage, 
                             storage
                         )
 
-                        val scaffoldListState = rememberScaffoldListState()
-
                         ChainScaffoldList(
                             viewModel = chainListViewModel,
                             settingsState = settingsState,
                             navigationState = navigationState,
-                            drawerState = drawerState,
-                            scaffoldListState = scaffoldListState,
-                            modifier = Modifier.fillMaxSize()
+                            drawerState = drawerState
                         )
                     }
                     Screen.CHAIN_LINK_LIST -> {
@@ -248,14 +243,10 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage, 
                             chain = navigationState.chainState.value
                         }
 
-                        val scaffoldListState = rememberScaffoldListState()
-
                         ChainLinkScaffoldList(
                             viewModel = chainLinkListViewModel,
                             settingsState = settingsState,
                             navigationState = navigationState,
-                            scaffoldListState = scaffoldListState,
-                            modifier = Modifier.fillMaxSize()
                         )
                     }
                 }

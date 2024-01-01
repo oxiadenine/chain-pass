@@ -36,10 +36,10 @@ fun ChainScaffoldList(
     settingsState: SettingsState,
     navigationState: NavigationState,
     drawerState: DrawerState,
-    scaffoldListState: ScaffoldListState,
-    modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
+
+    val scaffoldListState = rememberScaffoldListState()
 
     val chainListActionState = remember { mutableStateOf(ChainListAction.SELECT) }
 
@@ -95,7 +95,7 @@ fun ChainScaffoldList(
                 }
             )
         },
-        modifier = modifier,
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             ChainListTopBar(
                 title = "Chain Pass",
@@ -138,8 +138,7 @@ fun ChainScaffoldList(
                 onUnstore = {
                     chainListActionState.value = ChainListAction.UNSTORE
                     isDialogVisibleState.value = true
-                },
-                modifier = Modifier.fillMaxWidth()
+                }
             )
         },
         floatingButton = {
@@ -210,8 +209,7 @@ fun ChainScaffoldList(
 
                             chainListActionState.value = ChainListAction.REMOVE
                             isDialogVisibleState.value = true
-                        },
-                        modifier = Modifier.fillMaxWidth()
+                        }
                     )
                 }
             }

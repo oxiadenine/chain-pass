@@ -10,8 +10,8 @@ import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
 
 @Composable
-fun ChainLinkSearchListItem(chainLink: ChainLink, onSelect: () -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.clickable(onClick = onSelect)) {
+fun ChainLinkSearchListItem(chainLink: ChainLink, onSelect: () -> Unit) {
+    Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onSelect)) {
         if (chainLink.description.value.isNotEmpty()) {
             Column(
                 modifier = Modifier.padding(vertical = 6.dp, horizontal = 16.dp),

@@ -38,10 +38,10 @@ fun ChainLinkScaffoldList(
     viewModel: ChainLinkListViewModel,
     settingsState: SettingsState,
     navigationState: NavigationState,
-    scaffoldListState: ScaffoldListState,
-    modifier: Modifier = Modifier
 ) {
     val coroutineScope = rememberCoroutineScope()
+
+    val scaffoldListState = rememberScaffoldListState()
 
     val chainLinkListActionState = remember { mutableStateOf(ChainLinkListAction.NONE) }
 
@@ -97,14 +97,13 @@ fun ChainLinkScaffoldList(
                 }
             )
         },
-        modifier = modifier,
+        modifier = Modifier.fillMaxSize(),
         topBar = {
             if (viewModel.isSearchState.value) {
                 ChainLinkSearchListTopBar(
                     keywordState = viewModel.searchKeywordState,
                     onBack = { viewModel.endSearch() },
-                    onSearch = { keyword -> viewModel.search(keyword) },
-                    modifier = Modifier.fillMaxWidth()
+                    onSearch = { keyword -> viewModel.search(keyword) }
                 )
             } else {
                 ChainLinkListTopBar(
@@ -152,8 +151,7 @@ fun ChainLinkScaffoldList(
                     onUnstore = {
                         chainLinkListActionState.value = ChainLinkListAction.UNSTORE
                         isDialogVisibleState.value = true
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                    }
                 )
             }
         },
@@ -222,11 +220,7 @@ fun ChainLinkScaffoldList(
             LazyColumn(state = lazyListState, modifier = Modifier.fillMaxWidth()) {
                 items(items = chainLinks, key = { chainLink -> chainLink.id }) { chainLink ->
                     if (viewModel.isSearchState.value) {
-                        ChainLinkSearchListItem(
-                            chainLink = chainLink,
-                            onSelect = { viewModel.endSearch(chainLink) },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        ChainLinkSearchListItem(chainLink = chainLink, onSelect = { viewModel.endSearch(chainLink) })
                     } else {
                         val clipboardManager = LocalClipboardManager.current
 
@@ -270,8 +264,7 @@ fun ChainLinkScaffoldList(
                                 coroutineScope.launch(Dispatchers.IO) {
                                     scaffoldListState.popupHostState.showPopup(message = "Password copied")
                                 }
-                            },
-                            modifier = Modifier.fillMaxWidth()
+                            }
                         )
                     }
                 }

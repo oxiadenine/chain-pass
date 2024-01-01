@@ -29,12 +29,11 @@ fun ChainLinkListItem(
     chainLink: ChainLink,
     onEdit: () -> Unit,
     onRemove: () -> Unit,
-    onPasswordCopy: () -> Unit,
-    modifier: Modifier = Modifier
+    onPasswordCopy: () -> Unit
 ) {
     if (chainLink.isDraft) {
         Row(
-            modifier = modifier,
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -68,7 +67,8 @@ fun ChainLinkListItem(
         val density = LocalDensity.current
 
         Row(
-            modifier = modifier
+            modifier = Modifier
+                .fillMaxWidth()
                 .clickable { isDropDownMenuExpandedState.value = true }
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
