@@ -1,13 +1,35 @@
 package io.sunland.chainpass.common
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import java.io.File
 
-expect class SettingsManager(dirPath: String) {
-    val dirPath: String
+class SettingsManager(val dirPath: String) {
+    private val filePath = "$dirPath/settings.json"
 
-    fun save(settings: Settings)
-    fun load(): Settings?
-    fun delete()
+    fun save(settings: Settings) {
+        if (!File(dirPath).exists()) {
+            File(dirPath).mkdir()
+        }
+
+        val file = File(filePath)
+
+        if (!file.exists()) {
+            file.createNewFile()
+        }
+
+        file.writeText(Json.encodeToString(settings))
+    }
+
+    fun load(): Settings? {
+        val file = File(filePath)
+
+        return if (file.exists()) {
+            Json.decodeFromString(file.readText())
+        } else null
+    }
 }
 
 @Serializable
