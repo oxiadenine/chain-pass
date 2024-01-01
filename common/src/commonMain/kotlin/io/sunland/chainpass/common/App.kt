@@ -16,6 +16,7 @@ import io.rsocket.kotlin.payload.Payload
 import io.sunland.chainpass.common.network.*
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
+import io.sunland.chainpass.common.security.PasswordGenerator
 import io.sunland.chainpass.common.view.*
 import io.sunland.chainpass.sqldelight.Database
 import kotlinx.coroutines.Dispatchers
@@ -61,7 +62,7 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
         settingsManager.load()?.let { settings ->
             mutableStateOf(settings)
         } ?: run {
-            val settings = Settings("")
+            val settings = Settings("", 16, false)
 
             settingsManager.save(settings)
 
@@ -73,10 +74,15 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
 
     val scaffoldState = rememberScaffoldState()
 
+    val passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
+        settingsState.value.passwordLength,
+        settingsState.value.passwordIsAlphanumeric
+    ))
+
     val chainRepository = ChainRepository(database)
     val chainLinkRepository = ChainLinkRepository(database)
 
-    val chainListViewModel = ChainListViewModel(chainRepository, chainLinkRepository, storage)
+    val chainListViewModel = ChainListViewModel(chainRepository, chainLinkRepository, passwordGenerator, storage)
     val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository)
 
     coroutineScope.launch(Dispatchers.IO) {

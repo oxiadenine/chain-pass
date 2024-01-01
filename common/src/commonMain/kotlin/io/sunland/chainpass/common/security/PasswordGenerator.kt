@@ -1,53 +1,51 @@
 package io.sunland.chainpass.common.security
 
-object GeneratorSpec {
+class PasswordGenerator(private val strength: Strength) {
     enum class CharCodeRanges(val ranges: Array<Pair<Int, Int>>) {
         ALPHABET(arrayOf(65 to 90, 97 to 122)),
         NUMERIC(arrayOf(48 to 57)),
         SYMBOL(arrayOf(33 to 47, 58 to 64, 91 to 96, 123 to 126))
     }
 
-    data class Strength(val length: Int, val alphanumeric: Boolean = false)
-}
+    data class Strength(val length: Int = 16, val isAlphanumeric: Boolean = false)
 
-class PasswordGenerator(private val strength: GeneratorSpec.Strength) {
-    fun generate(length: Int = strength.length, alphanumeric: Boolean = strength.alphanumeric): String {
-        if (length <= 0) {
+    fun generate(): String {
+        if (strength.length <= 0) {
             return ""
         }
 
         val charNumbers = mutableListOf<Int>()
 
-        var charCount = length
+        var charCount = strength.length
 
         while (charCount > 0) {
             charCount /= 2
 
-            val charCodeRanges = if (charCount > (length / 2) - (charCount * 2)) {
-                if (charCount > (length / 2) - (charCount / 2) || alphanumeric) {
-                    GeneratorSpec.CharCodeRanges.ALPHABET
+            val charCodeRanges = if (charCount > (strength.length / 2) - (charCount * 2)) {
+                if (charCount > (strength.length / 2) - (charCount / 2) || strength.isAlphanumeric) {
+                    CharCodeRanges.ALPHABET
                 } else {
-                    GeneratorSpec.CharCodeRanges.SYMBOL
+                    CharCodeRanges.SYMBOL
                 }
             } else {
-                if (charCount < 2 || alphanumeric) {
-                    GeneratorSpec.CharCodeRanges.NUMERIC
+                if (charCount < 2 || strength.isAlphanumeric) {
+                    CharCodeRanges.NUMERIC
                 } else {
-                    GeneratorSpec.CharCodeRanges.SYMBOL
+                    CharCodeRanges.SYMBOL
                 }
             }
 
             repeat(if (charCount % 2 == 0) charCount else charCount + 1) { count ->
                 val charCodeRange = when (charCodeRanges) {
-                    GeneratorSpec.CharCodeRanges.ALPHABET -> charCodeRanges.ranges[count % 2]
-                    GeneratorSpec.CharCodeRanges.NUMERIC -> charCodeRanges.ranges[0]
-                    GeneratorSpec.CharCodeRanges.SYMBOL -> charCodeRanges.ranges[count % 2]
+                    CharCodeRanges.ALPHABET -> charCodeRanges.ranges[count % 2]
+                    CharCodeRanges.NUMERIC -> charCodeRanges.ranges[0]
+                    CharCodeRanges.SYMBOL -> charCodeRanges.ranges[count % 2]
                 }
 
                 charNumbers.add(Random.nextInt(charCodeRange))
             }
 
-            if (length % 2 != 0 && charCount == 0) {
+            if (strength.length % 2 != 0 && charCount == 0) {
                 charNumbers.add(Random.nextInt(charCodeRanges.ranges[0]))
             }
         }

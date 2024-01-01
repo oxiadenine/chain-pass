@@ -27,8 +27,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.component.ValidationTextField
-import io.sunland.chainpass.common.security.GeneratorSpec
-import io.sunland.chainpass.common.security.PasswordGenerator
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -103,8 +101,6 @@ fun ChainListItemDraft(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
             ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
         }
         Column(modifier = Modifier.padding(horizontal = 4.dp)) {
-            val keyGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
-
             ValidationTextField(
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
                 placeholder = { Text(text = "Name") },
@@ -136,12 +132,12 @@ fun ChainListItemDraft(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
                             .pointerHoverIcon(icon = PointerIconDefaults.Hand)
                             .onPreviewKeyEvent { keyEvent ->
                                 if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                                    onKeyChange(keyGenerator.generate())
+                                    onKeyChange(chain.generateKey())
 
                                     true
                                 } else false
                             },
-                        onClick = { onKeyChange(keyGenerator.generate()) }
+                        onClick = { onKeyChange(chain.generateKey()) }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
                 trailingIcon = if (keyValidationState.value.isFailure) {
