@@ -3,12 +3,10 @@ package io.sunland.chainpass.common.view
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -19,8 +17,11 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.component.Dialog
 
@@ -37,6 +38,12 @@ fun ChainListItemKeyInput(onDismiss: () -> Unit, onConfirm: (Chain.Key) -> Unit)
 
         keyState.value = chainKey.value
         keyErrorState.value = chainKey.validation.isFailure
+    }
+
+    val keyVisibleState = remember { mutableStateOf(false) }
+
+    val onKeyVisibleChange = {
+        keyVisibleState.value = !keyVisibleState.value
     }
 
     val onDone = {
@@ -76,12 +83,21 @@ fun ChainListItemKeyInput(onDismiss: () -> Unit, onConfirm: (Chain.Key) -> Unit)
             placeholder = { Text(text = "Key") },
             value = keyState.value,
             onValueChange = onKeyChange,
-            trailingIcon = if (keyErrorState.value) {
-                { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
-            } else null,
+            trailingIcon = {
+                if (keyErrorState.value) {
+                    Icon(imageVector = Icons.Default.Info, contentDescription = null)
+                } else {
+                    IconButton(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        onClick = onKeyVisibleChange
+                    ) { Icon(imageVector = Icons.Default.Visibility, contentDescription = null) }
+                }
+            },
             isError = keyErrorState.value,
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
+            visualTransformation = if (!keyVisibleState.value) {
+                PasswordVisualTransformation()
+            } else VisualTransformation.None,
             colors = TextFieldDefaults.textFieldColors(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
