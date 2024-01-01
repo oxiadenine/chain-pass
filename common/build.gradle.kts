@@ -6,6 +6,10 @@ plugins {
     id("com.squareup.sqldelight")
 }
 
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(11))
+}
+
 kotlin {
     jvm("desktop") {
         compilations.all {
@@ -24,16 +28,16 @@ kotlin {
                 api(compose.material)
                 api(compose.materialIconsExtended)
 
-                api(kotlinxDependency("coroutines-core"))
-                api(kotlinxDependency("serialization-json"))
+                implementation(kotlinxDependency("coroutines-core"))
+                implementation(kotlinxDependency("serialization-json"))
 
-                api(ktorDependency("client-cio"))
-                api(ktorDependency("client-websockets"))
-                api(ktorDependency("server-cio"))
-                api(ktorDependency("server-websockets"))
+                implementation(ktorDependency("client-cio"))
+                implementation(ktorDependency("client-websockets"))
+                implementation(ktorDependency("server-cio"))
+                implementation(ktorDependency("server-websockets"))
 
-                api(rsocketDependency("transport-ktor-websocket-client"))
-                api(rsocketDependency("transport-ktor-websocket-server"))
+                implementation(rsocketDependency("transport-ktor-websocket-client"))
+                implementation(rsocketDependency("transport-ktor-websocket-server"))
             }
         }
 
@@ -48,7 +52,7 @@ kotlin {
             dependencies {
                 api(compose.desktop.common)
 
-                api(sqldelightDependency("sqlite-driver"))
+                implementation(sqldelightDependency("sqlite-driver"))
             }
         }
         named("desktopTest") {
@@ -61,8 +65,8 @@ kotlin {
             dependencies {
                 api(androidxDependency("core-ktx"))
                 api(androidxDependency("appcompat"))
-                
-                api(sqldelightDependency("android-driver"))
+
+                implementation(sqldelightDependency("android-driver"))
             }
         }
         named("androidTest") {
@@ -96,6 +100,6 @@ android {
 
 sqldelight {
     database("Database") {
-        packageName = "io.sunland.chainpass.sqldelight"
+        packageName = "${rootProject.group}.chainpass.sqldelight"
     }
 }
