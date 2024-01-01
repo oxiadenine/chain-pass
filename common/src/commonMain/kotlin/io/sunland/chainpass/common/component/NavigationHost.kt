@@ -1,40 +1,71 @@
 package io.sunland.chainpass.common.component
 
+import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.runtime.*
 
 class NavigationState {
-    data class RouteArgument(val name: String, val value: Any)
+    data class Route(
+        val path: String = "",
+        val argument: RouteArgument? = null,
+        val animation: FiniteAnimationSpec<Float>? = null
+    )
 
-    class ComposableRoute(
-        val route: String,
-        val composable: (@Composable (List<RouteArgument>) -> Unit)? = null
+    open class RouteArgument
+
+    class ComposableRoute<in T : RouteArgument>(
+        val route: Route,
+        val composable: (@Composable (T?) -> Unit)? = null
     )
 
     class ComposableRouteScope {
-        val composableRouteListState = mutableStateListOf<ComposableRoute>()
-        val routeArgumentListState = mutableStateListOf<RouteArgument>()
+        val composableRouteListState = mutableStateListOf<ComposableRoute<RouteArgument>>()
 
-        fun composableRoute(route: String, composable: @Composable (List<RouteArgument>) -> Unit) {
-            val composableRoute = ComposableRoute(route, composable)
+        fun <T : RouteArgument> composableRoute(route: String, composable: @Composable (T?) -> Unit) {
+            val composableRoute = ComposableRoute(route = Route(route), composable = composable)
 
-            composableRouteListState.add(composableRoute)
+            composableRouteListState.add(composableRoute as ComposableRoute<RouteArgument>)
         }
     }
 
     var composableRouteScope by mutableStateOf(ComposableRouteScope())
 
-    var currentComposableRoute by mutableStateOf(ComposableRoute(""))
+    var currentComposableRoute by mutableStateOf<ComposableRoute<RouteArgument>?>(null)
 
-    fun navigate(route: String, arguments: List<RouteArgument> = emptyList()) {
-        val composableRoute = composableRouteScope.composableRouteListState.firstOrNull { composableRoute ->
-            composableRoute.route == route
+    private val composableRouteStack = mutableStateListOf<ComposableRoute<RouteArgument>>()
+
+    fun initStack(initialRoute: String) {
+        val composableRoute = composableRouteScope.composableRouteListState
+            .firstOrNull { composableRoute ->
+                composableRoute.route.path == initialRoute
+            } ?: ComposableRoute(route = Route(initialRoute))
+
+        composableRouteStack.add(composableRoute)
+
+        currentComposableRoute = composableRoute
+    }
+
+    fun pop(route: Route? = null) {
+        val lastComposableRoute = composableRouteStack.removeLastOrNull()
+
+        currentComposableRoute = composableRouteStack.lastOrNull()?.let { composableRoute ->
+            ComposableRoute(
+                route = Route(
+                    path = composableRoute.route.path,
+                    argument = route?.argument ?: composableRoute.route.argument,
+                    animation = route?.animation ?: lastComposableRoute?.route?.animation
+                ),
+                composable = composableRoute.composable
+            )
         }
+    }
 
-        if (composableRoute != null) {
-            currentComposableRoute = composableRoute
+    fun push(route: Route) {
+        composableRouteScope.composableRouteListState.firstOrNull { composableRoute ->
+            composableRoute.route.path == route.path
+        }?.let { composableRoute ->
+            composableRouteStack.add(ComposableRoute(route = route, composable = composableRoute.composable))
 
-            composableRouteScope.routeArgumentListState.clear()
-            composableRouteScope.routeArgumentListState.addAll(arguments)
+            currentComposableRoute = composableRouteStack.last()
         }
     }
 }

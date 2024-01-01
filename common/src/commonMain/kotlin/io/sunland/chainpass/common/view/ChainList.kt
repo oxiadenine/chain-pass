@@ -27,6 +27,8 @@ import io.sunland.chainpass.common.component.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+class ChainListRouteArgument : NavigationState.RouteArgument()
+
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
 @Composable
 fun ChainList(

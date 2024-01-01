@@ -1,6 +1,5 @@
 package io.sunland.chainpass.common.view
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,12 +25,14 @@ import io.sunland.chainpass.common.component.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeUiApi::class, ExperimentalAnimationApi::class)
+class ChainLinkListRouteArgument(val chain: Chain, val chainLink: ChainLink? = null) : NavigationState.RouteArgument()
+
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
     onTopAppBarBackClick: () -> Unit,
-    onTopAppBarSearchClick: (Chain, List<ChainLink>) -> Unit,
+    onTopAppBarSearchClick: (List<ChainLink>) -> Unit,
     deviceAddress: String,
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -99,7 +100,7 @@ fun ChainLinkList(
                     scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
                     scaffoldListState.popupHostState.currentPopupData?.dismiss()
 
-                    onTopAppBarSearchClick(viewModel.chain, viewModel.chainLinkListState.toList())
+                    onTopAppBarSearchClick(viewModel.chainLinkListState.toList())
                 },
                 onMenuItemClick = { menuItem ->
                     when (menuItem) {

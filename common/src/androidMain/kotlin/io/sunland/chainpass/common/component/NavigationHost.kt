@@ -2,6 +2,9 @@
 
 package io.sunland.chainpass.common.component
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 
@@ -13,15 +16,19 @@ actual fun NavigationHost(
 ) {
     content(navigationState.composableRouteScope)
 
-    val composableRoute = navigationState.currentComposableRoute
-    val routeArguments = navigationState.composableRouteScope.routeArgumentListState
+    Crossfade(
+        targetState = navigationState.currentComposableRoute,
+        animationSpec = navigationState.currentComposableRoute?.route?.animation ?: tween()
+    ) { composableRoute ->
+        BackHandler(
+            enabled = navigationState.currentComposableRoute?.route?.path != initialRoute,
+            onBack = { navigationState.pop() }
+        )
 
-    composableRoute.composable?.invoke(routeArguments)
+        composableRoute?.composable?.invoke(composableRoute.route.argument)
+    }
 
     LaunchedEffect(Unit) {
-        navigationState.currentComposableRoute = navigationState.composableRouteScope.composableRouteListState
-            .firstOrNull { composableRoute ->
-                composableRoute.route == initialRoute
-            } ?: NavigationState.ComposableRoute(initialRoute)
+        navigationState.initStack(initialRoute)
     }
 }
