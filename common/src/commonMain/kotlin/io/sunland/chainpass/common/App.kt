@@ -76,13 +76,23 @@ fun rememberThemeState(mode: ThemeMode = ThemeMode.LIGHT) = remember {
     ThemeState(mutableStateOf(mode))
 }
 
-enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST }
+enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST, CHAIN_LINK_SEARCH_LIST }
 
-class NavigationState(val screenState: MutableState<Screen>, val chainState: MutableState<Chain?>)
+class NavigationState(
+    val screenState: MutableState<Screen>,
+    val chainState: MutableState<Chain?>,
+    val chainLinkSearchListState: MutableState<List<ChainLink>>,
+    val chainLinkSearchState: MutableState<ChainLink?>
+)
 
 @Composable
 fun rememberNavigationState(screen: Screen) = remember {
-    NavigationState(mutableStateOf(screen), mutableStateOf(null))
+    NavigationState(
+        mutableStateOf(screen),
+        mutableStateOf(null),
+        mutableStateOf(emptyList()),
+        mutableStateOf(null)
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
@@ -204,14 +214,35 @@ fun App(
                                 settingsState.passwordIsAlphanumericState.value
                             )),
                         chainLinkRepository = chainLinkRepository
-                    ).apply { chain = navigationState.chainState.value }
+                    ).apply {
+                        chain = navigationState.chainState.value
+                        chainLinkSelected = navigationState.chainLinkSearchState.value
+                    }
 
                     ChainLinkList(
                         viewModel = chainLinkListViewModel,
                         onTopAppBarBackClick = {
                             navigationState.screenState.value = Screen.CHAIN_LIST
                         },
+                        onTopAppBarSearchClick = { chainLinks ->
+                            navigationState.chainLinkSearchListState.value = chainLinks
+                            navigationState.screenState.value = Screen.CHAIN_LINK_SEARCH_LIST
+                        },
                         deviceAddress = settingsState.deviceAddressState.value
+                    )
+                }
+                Screen.CHAIN_LINK_SEARCH_LIST -> {
+                    val chainLinkSearchListState = rememberChainLinkSearchListState(
+                        chainLinks = navigationState.chainLinkSearchListState.value.toList()
+                    )
+
+                    ChainLinkSearchList(
+                        state = chainLinkSearchListState,
+                        onTopAppBarBackClick = { navigationState.screenState.value = Screen.CHAIN_LINK_LIST },
+                        onListItemClick = { chainLink ->
+                            navigationState.chainLinkSearchState.value = chainLink
+                            navigationState.screenState.value = Screen.CHAIN_LINK_LIST
+                        }
                     )
                 }
             }
