@@ -51,14 +51,14 @@ compose.desktop {
             packageVersion = rootProject.version as String
             vendor = "SunLand"
 
-            val resourcesDir = "${project.layout.buildDirectory}/processedResources/jvm/main"
+            val resourcesDir = project.file("src/jvmMain/resources")
 
             linux {
                 packageName = "${rootProject.name}-${project.name}"
                 menuGroup = "Security"
                 appCategory = "Security"
 
-                iconFile.set(project.file("$resourcesDir/icon.png"))
+                iconFile.set(resourcesDir.resolve("icon.png"))
             }
 
             windows {
@@ -67,7 +67,7 @@ compose.desktop {
                 menu = true
                 shortcut = true
 
-                iconFile.set(project.file("$resourcesDir/icon.ico"))
+                iconFile.set(resourcesDir.resolve("icon.ico"))
             }
 
             modules("java.naming", "java.sql")
