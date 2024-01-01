@@ -5,6 +5,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Info
@@ -26,10 +27,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
+import io.sunland.chainpass.common.security.GeneratorSpec
+import io.sunland.chainpass.common.security.PasswordGenerator
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
+    val keyGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
+
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
 
@@ -104,6 +109,12 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
             placeholder = { Text(text = "Key") },
             value = keyState.value,
             onValueChange = onKeyChange,
+            leadingIcon = {
+                IconButton(
+                    modifier = Modifier.padding(horizontal = 2.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    onClick = { onKeyChange(keyGenerator.generate()) }
+                ) { Icon(imageVector = Icons.Default.Build, contentDescription = null) }
+            },
             trailingIcon = if (keyErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
             } else null,
