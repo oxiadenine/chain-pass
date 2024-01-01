@@ -76,10 +76,10 @@ class ChainListViewModel(private val repository: ChainRepository) {
             PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
         ))
 
-        val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
-            secretKey,
-            PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
-        ), chain.key.value)
+        val privateKey = PasswordEncoder.encrypt(
+            chain.key.value,
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray()))
+        )
 
         val chainEntity = ChainEntity(chain.id, chain.name.value, privateKey)
 
@@ -98,10 +98,10 @@ class ChainListViewModel(private val repository: ChainRepository) {
             PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
         ))
 
-        val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
-            secretKey,
-            PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray())
-        ), chain.key.value)
+        val privateKey = PasswordEncoder.encrypt(
+            chain.key.value,
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chain.name.value.encodeToByteArray()))
+        )
 
         val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 

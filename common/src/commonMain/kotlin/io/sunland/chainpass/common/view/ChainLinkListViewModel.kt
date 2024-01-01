@@ -86,10 +86,10 @@ class ChainLinkListViewModel(
             PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
         ))
 
-        val password = PasswordEncoder.decrypt(EncoderSpec.Passphrase(
-            secretKey,
-            PasswordEncoder.Base64.encode(chainLink.name.value.encodeToByteArray())
-        ), chainLink.password.value)
+        val password = PasswordEncoder.decrypt(
+            chainLink.password.value,
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chainLink.name.value.encodeToByteArray()))
+        )
 
         chainLink.password = ChainLink.Password(PasswordEncoder.Base64.decode(password).decodeToString(), false)
     }
@@ -100,10 +100,10 @@ class ChainLinkListViewModel(
             PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
         ))
 
-        val privatePassword = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
-            secretKey,
-            PasswordEncoder.Base64.encode(chainLink.name.value.encodeToByteArray())
-        ), PasswordEncoder.Base64.encode(chainLink.password.value.encodeToByteArray()))
+        val privatePassword = PasswordEncoder.encrypt(
+            PasswordEncoder.Base64.encode(chainLink.password.value.encodeToByteArray()),
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chainLink.name.value.encodeToByteArray()))
+        )
 
         chainLink.password = ChainLink.Password(privatePassword)
     }
@@ -136,10 +136,10 @@ class ChainLinkListViewModel(
             PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
         ))
 
-        val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
-            secretKey,
-            PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
-        ), chain!!.key.value)
+        val privateKey = PasswordEncoder.encrypt(
+            chain!!.key.value,
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray()))
+        )
 
         val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
@@ -174,17 +174,17 @@ class ChainLinkListViewModel(
             PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
         ))
 
-        val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
-            secretKey,
-            PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
-        ), chain!!.key.value)
+        val privateKey = PasswordEncoder.encrypt(
+            chain!!.key.value,
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray()))
+        )
 
         val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
-        val privatePassword = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
-            secretKey,
-            PasswordEncoder.Base64.encode(chainLink.name.value.encodeToByteArray())
-        ), PasswordEncoder.Base64.encode(chainLink.password.value.encodeToByteArray()))
+        val privatePassword = PasswordEncoder.encrypt(
+            PasswordEncoder.Base64.encode(chainLink.password.value.encodeToByteArray()),
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chainLink.name.value.encodeToByteArray()))
+        )
 
         chainLink.password = ChainLink.Password(privatePassword)
 
@@ -210,17 +210,17 @@ class ChainLinkListViewModel(
             PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
         ))
 
-        val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
-            secretKey,
-            PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
-        ), chain!!.key.value)
+        val privateKey = PasswordEncoder.encrypt(
+            chain!!.key.value,
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray()))
+        )
 
         val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 
-        val privatePassword = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
-            secretKey,
-            PasswordEncoder.Base64.encode(chainLink.name.value.encodeToByteArray())
-        ), PasswordEncoder.Base64.encode(chainLink.password.value.encodeToByteArray()))
+        val privatePassword = PasswordEncoder.encrypt(
+            PasswordEncoder.Base64.encode(chainLink.password.value.encodeToByteArray()),
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chainLink.name.value.encodeToByteArray()))
+        )
 
         chainLink.password = ChainLink.Password(privatePassword)
 
@@ -245,10 +245,10 @@ class ChainLinkListViewModel(
             PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
         ))
 
-        val privateKey = PasswordEncoder.encrypt(EncoderSpec.Passphrase(
-            secretKey,
-            PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray())
-        ), chain!!.key.value)
+        val privateKey = PasswordEncoder.encrypt(
+            chain!!.key.value,
+            EncoderSpec.Passphrase(secretKey, PasswordEncoder.Base64.encode(chain!!.name.value.encodeToByteArray()))
+        )
 
         val saltKey = PasswordEncoder.hash(EncoderSpec.Passphrase(privateKey, chainKeyEntity.key))
 

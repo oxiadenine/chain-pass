@@ -26,6 +26,6 @@ expect object PasswordEncoder {
 
     fun hash(passphrase: EncoderSpec.Passphrase): String
 
-    fun encrypt(passphrase: EncoderSpec.Passphrase, password: String): String
-    fun decrypt(passphrase: EncoderSpec.Passphrase, password: String): String
+    fun encrypt(password: String, passphrase: EncoderSpec.Passphrase): String
+    fun decrypt(password: String, passphrase: EncoderSpec.Passphrase): String
 }
