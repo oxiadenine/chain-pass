@@ -12,14 +12,13 @@ import java.lang.IllegalStateException
 
 class ChainLinkListViewModel(
     val passwordGenerator: PasswordGenerator,
-    private val chainLinkRepository: ChainLinkRepository
+    private val chainLinkRepository: ChainLinkRepository,
+    val chain: Chain
 ) {
     val chainLinkListState = mutableStateListOf<ChainLink>()
 
     val chainLinkSelectedIndex: Int
         get() = chainLinkListState.indexOfFirst { chainLink -> chainLink.id == chainLinkSelected?.id }
-
-    var chain by mutableStateOf<Chain?>(null)
 
     var chainLinkEdit by mutableStateOf<ChainLink?>(null)
         private set
@@ -29,7 +28,7 @@ class ChainLinkListViewModel(
     private val chainLinkRemovedListState = mutableStateListOf<ChainLink>()
 
     fun startEdit(chainLink: ChainLink) {
-        chainLinkEdit = ChainLink(chain!!).apply {
+        chainLinkEdit = ChainLink(chain).apply {
             id = chainLink.id
             name = chainLink.name
             description = chainLink.description
@@ -63,8 +62,8 @@ class ChainLinkListViewModel(
     }
 
     fun getAll() {
-        val chainLinks = chainLinkRepository.getBy(chain!!.id).map { chainLinkEntity ->
-            ChainLink(chain!!).apply {
+        val chainLinks = chainLinkRepository.getBy(chain.id).map { chainLinkEntity ->
+            ChainLink(chain).apply {
                 id = chainLinkEntity.id
                 name = ChainLink.Name(chainLinkEntity.name)
                 description = ChainLink.Description(chainLinkEntity.description)
@@ -81,7 +80,7 @@ class ChainLinkListViewModel(
         chainLinkDescription: ChainLink.Description,
         chainLinkPassword : ChainLink.Password
     ) = coroutineScope {
-        val chainLinkDraft = ChainLink(chain!!).apply {
+        val chainLinkDraft = ChainLink(chain).apply {
             name = chainLinkName
             description = chainLinkDescription
             password = chainLinkPassword
@@ -122,7 +121,7 @@ class ChainLinkListViewModel(
     }
 
     fun edit(chainLinkDescription: ChainLink.Description, chainLinkPassword: ChainLink.Password) {
-        val chainLinkEdit = ChainLink(chain!!).apply {
+        val chainLinkEdit = ChainLink(chain).apply {
             id = chainLinkEdit!!.id
             name = chainLinkEdit!!.name
             description = chainLinkDescription
@@ -173,8 +172,8 @@ class ChainLinkListViewModel(
 
     fun store(storageType: StorageType, storeIsPrivate: Boolean) = runCatching {
         val storableOptions = StorableOptions(storeIsPrivate, true)
-        val storableChainLinks = chainLinkRepository.getBy(chain!!.id).map { chainLinkEntity ->
-            val chainLink = ChainLink(chain!!).apply {
+        val storableChainLinks = chainLinkRepository.getBy(chain.id).map { chainLinkEntity ->
+            val chainLink = ChainLink(chain).apply {
                 id = chainLinkEntity.id
                 name = ChainLink.Name(chainLinkEntity.name)
                 description = ChainLink.Description(chainLinkEntity.description)
@@ -185,12 +184,12 @@ class ChainLinkListViewModel(
                 chainLink.name.value,
                 chainLink.description.value,
                 if (!storableOptions.isPrivate) {
-                    chainLink.plainPassword(chain!!.secretKey()).value
+                    chainLink.plainPassword(chain.secretKey()).value
                 } else chainLink.password.value
             )
         }
         val storableChains = listOf(StorableChain(
-            chain!!.name.value, chain!!.privateKey(chain!!.secretKey()).value,
+            chain.name.value, chain.privateKey(chain.secretKey()).value,
             storableChainLinks
         ))
 
@@ -207,18 +206,18 @@ class ChainLinkListViewModel(
         }
 
         val chains = storable.chains.map { storableChain ->
-            Chain(chain!!).apply {
+            Chain(chain).apply {
                 name = Chain.Name(storableChain.name)
                 key = Chain.Key(storableChain.key)
             }
         }
 
-        chains[0].validateKey(chain!!.privateKey(chain!!.secretKey()))
+        chains[0].validateKey(chain.privateKey(chain.secretKey()))
 
         val chainLinks = mutableStateListOf<ChainLink>()
 
         storable.chains[0].chainLinks.forEach { storableChainLink ->
-            val chainLink = ChainLink(chain!!).apply {
+            val chainLink = ChainLink(chain).apply {
                 name = ChainLink.Name(storableChainLink.name)
                 description = ChainLink.Description(storableChainLink.description)
                 password = ChainLink.Password(storableChainLink.password)
@@ -233,7 +232,7 @@ class ChainLinkListViewModel(
                 chainLink.name.value,
                 chainLink.description.value,
                 if (!storable.options.isPrivate) {
-                    chainLink.privatePassword(chain!!.secretKey()).value
+                    chainLink.privatePassword(chain.secretKey()).value
                 } else chainLink.password.value,
                 chainLink.chain.id
             )
@@ -245,12 +244,13 @@ class ChainLinkListViewModel(
     suspend fun sync(deviceAddress: String) = runCatching {
         val webSocket = WebSocket.connect(deviceAddress)
 
-        ChainLinkApi(chainLinkRepository, webSocket).sync(chain!!.id).getOrThrow()
+        ChainLinkApi(chainLinkRepository, webSocket).sync(chain.id).getOrThrow()
     }
 }
 
 @Composable
 fun rememberChainLinkListViewModel(
     passwordGenerator: PasswordGenerator,
-    chainLinkRepository: ChainLinkRepository
-) = remember { ChainLinkListViewModel(passwordGenerator, chainLinkRepository) }
+    chainLinkRepository: ChainLinkRepository,
+    chain: Chain
+) = remember { ChainLinkListViewModel(passwordGenerator, chainLinkRepository, chain) }

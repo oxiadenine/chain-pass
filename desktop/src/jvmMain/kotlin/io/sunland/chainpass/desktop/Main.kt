@@ -7,6 +7,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import io.sunland.chainpass.common.*
+import io.sunland.chainpass.common.component.rememberNavigationState
 import io.sunland.chainpass.common.network.*
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
@@ -33,7 +34,7 @@ fun main() {
             val settingsState = rememberSettingsState(settingsManager)
             val networkState = rememberNetworkState(syncServer.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
-            val navigationState = rememberNavigationState(Screen.CHAIN_LIST)
+            val navigationState = rememberNavigationState()
 
             CompositionLocalProvider(
                 LocalContextMenuRepresentation provides if (themeState.isDarkMode) {
