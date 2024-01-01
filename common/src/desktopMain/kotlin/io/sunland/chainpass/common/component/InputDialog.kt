@@ -6,9 +6,13 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -28,13 +32,15 @@ actual fun InputDialog(
     onDismissRequest: () -> Unit,
     onConfirmRequest: () -> Unit
 ) = PopupAlertDialogProvider.AlertDialog(onDismissRequest) {
+    val focusRequester = remember { FocusRequester() }
+
     title ?: Text(text = "")
     Column(
         modifier = Modifier.size(width = 300.dp, height = 170.dp).padding(horizontal = 16.dp).padding(top = 32.dp),
         verticalArrangement = Arrangement.spacedBy(space = 16.dp)
     ) {
         TextField(
-            modifier = Modifier.padding(horizontal = 16.dp),
+            modifier = Modifier.padding(horizontal = 16.dp).focusRequester(focusRequester),
             placeholder = { Text(text = placeholder) },
             value = value,
             onValueChange = ontValueChange,
@@ -65,5 +71,7 @@ actual fun InputDialog(
                 onClick = onConfirmRequest
             ) { Text(text = "Ok") }
         }
+
+        LaunchedEffect(Unit) { focusRequester.requestFocus() }
     }
 }
