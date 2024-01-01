@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.SpanStyle
@@ -75,6 +76,24 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
         }
     }
 
+    val onKeyEvent = { keyEvent: KeyEvent ->
+        if (keyEvent.type == KeyEventType.KeyDown) {
+            false
+        } else when (keyEvent.key) {
+            Key.Escape -> {
+                onClose()
+
+                true
+            }
+            Key.Enter -> {
+                onDone()
+
+                true
+            }
+            else -> false
+        }
+    }
+
     Dialog(
         onDismissRequest = onClose,
         title = {
@@ -119,7 +138,9 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
                     ValidationTextField(
                         value = deviceAddressState.value,
                         onValueChange = onDeviceAddressChange,
-                        modifier = Modifier.focusRequester(focusRequester = focusRequester),
+                        modifier = Modifier
+                            .focusRequester(focusRequester = focusRequester)
+                            .onKeyEvent(onKeyEvent = onKeyEvent),
                         placeholder = { Text(text = "Device Address", fontSize = 14.sp) },
                         singleLine = true,
                         leadingIcon = { Icon(imageVector = Icons.Default.Devices, contentDescription = null) },
