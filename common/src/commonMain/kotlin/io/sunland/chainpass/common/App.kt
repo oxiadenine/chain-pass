@@ -58,33 +58,10 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    val settingsState = remember {
-        settingsManager.load()?.let { settings ->
-            mutableStateOf(settings)
-        } ?: run {
-            val settings = Settings("", 16, false)
-
-            settingsManager.save(settings)
-
-            mutableStateOf(settings)
-        }
-    }
-
-    val screenState = remember { mutableStateOf(Screen.CHAIN_LIST) }
-    val loadingState = remember { mutableStateOf(false) }
-
     val scaffoldState = rememberScaffoldState()
-
-    val passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
-        settingsState.value.passwordLength,
-        settingsState.value.passwordIsAlphanumeric
-    ))
 
     val chainRepository = ChainRepository(database)
     val chainLinkRepository = ChainLinkRepository(database)
-
-    val chainListViewModel = ChainListViewModel(chainRepository, chainLinkRepository, passwordGenerator, storage)
-    val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository)
 
     coroutineScope.launch(Dispatchers.IO) {
         WebSocket.start(WebSocket.getLocalHost()) {
@@ -128,6 +105,29 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
             )
         }
     ) {
+        val settingsState = remember {
+            settingsManager.load()?.let { settings ->
+                mutableStateOf(settings)
+            } ?: run {
+                val settings = Settings("", 16, false)
+
+                settingsManager.save(settings)
+
+                mutableStateOf(settings)
+            }
+        }
+
+        val screenState = remember { mutableStateOf(Screen.CHAIN_LIST) }
+        val loadingState = remember { mutableStateOf(false) }
+
+        val passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
+            settingsState.value.passwordLength,
+            settingsState.value.passwordIsAlphanumeric
+        ))
+
+        val chainListViewModel = ChainListViewModel(chainRepository, chainLinkRepository, passwordGenerator, storage)
+        val chainLinkListViewModel = ChainLinkListViewModel(chainLinkRepository)
+
         Box {
             when (screenState.value) {
                 Screen.SETTINGS -> {
