@@ -12,11 +12,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import io.sunland.chainpass.common.*
-import io.sunland.chainpass.common.component.PopupText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -99,11 +101,23 @@ fun ChainLinkList(
     }
 
     if (isPopupVisibleState.value) {
-        PopupText(
+        Popup(
             alignment = Alignment.BottomCenter,
-            offset = IntOffset(x = 0, y = -80),
-            text = popupMessageState.value
-        )
+            offset = IntOffset(
+                x = 0,
+                y = if (snackbarHostState.currentSnackbarData != null) {
+                    -(80 * LocalDensity.current.density).toInt()
+                } else -(16 * LocalDensity.current.density).toInt()
+            )
+        ) {
+            Surface(elevation = 2.dp) {
+                Text(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    text = popupMessageState.value,
+                    fontSize = 14.sp
+                )
+            }
+        }
     }
 
     LaunchedEffect(Unit) {
