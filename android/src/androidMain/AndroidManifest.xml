@@ -13,7 +13,7 @@
             android:supportsRtl="true"
             android:theme="@style/Theme.AppCompat.NoActionBar">
         <activity
-                android:name="com.github.sunland.chainpass.MainActivity"
+                android:name="io.github.oxiadenine.chainpass.MainActivity"
                 android:screenOrientation="portrait"
                 android:exported="true">
             <intent-filter>
