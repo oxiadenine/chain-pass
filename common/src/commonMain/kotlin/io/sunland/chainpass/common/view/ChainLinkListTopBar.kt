@@ -25,7 +25,7 @@ import io.sunland.chainpass.common.component.DropdownMenuItem
 @Composable
 fun ChainLinkListTopBar(
     onIconArrowBackClick: () -> Unit,
-    onIconRefreshClick: () -> Unit,
+    onIconSyncClick: () -> Unit,
     onIconAddClick: () -> Unit,
     onIconSearchClick: () -> Unit
 ) {
@@ -56,7 +56,7 @@ fun ChainLinkListTopBar(
                     onClick = {
                         actionMenuExpandState.value = false
 
-                        onIconRefreshClick()
+                        onIconSyncClick()
                     },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 ) {
@@ -64,8 +64,8 @@ fun ChainLinkListTopBar(
                         horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(imageVector = Icons.Default.Refresh, contentDescription = null)
-                        Text(text = "Refresh", fontSize = 12.sp)
+                        Icon(imageVector = Icons.Default.Sync, contentDescription = null)
+                        Text(text = "Sync", fontSize = 12.sp)
                     }
                 }
                 DropdownMenuItem(

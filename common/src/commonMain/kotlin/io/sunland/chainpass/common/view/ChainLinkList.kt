@@ -22,7 +22,7 @@ fun ChainLinkList(
     onItemNew: (ChainLink) -> Unit,
     onItemEdit: (ChainLink) -> Unit,
     onItemRemove: (ChainLink) -> Unit,
-    onRefresh: () -> Unit,
+    onSync: () -> Unit,
     onBack: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -38,7 +38,7 @@ fun ChainLinkList(
 
                     onBack()
                 },
-                onIconRefreshClick = onRefresh,
+                onIconSyncClick = onSync,
                 onIconAddClick = { viewModel.draft() },
                 onIconSearchClick = { viewModel.startSearch() }
             )

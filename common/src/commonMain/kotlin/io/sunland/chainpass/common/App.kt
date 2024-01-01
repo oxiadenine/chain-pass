@@ -215,7 +215,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                 }
                             }
                         },
-                        onRefresh = {
+                        onSync = {
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 
@@ -273,7 +273,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                 }
                             }
                         },
-                        onRefresh = {
+                        onSync = {
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
 

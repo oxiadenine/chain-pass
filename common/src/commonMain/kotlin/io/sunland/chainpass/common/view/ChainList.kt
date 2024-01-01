@@ -23,15 +23,15 @@ fun ChainList(
     onItemNew: (Chain) -> Unit,
     onItemSelect: (Chain) -> Unit,
     onItemRemove: (Chain) -> Unit,
-    onRefresh: () -> Unit,
+    onSync: () -> Unit,
     onDisconnect: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         ChainListTopBar(
             serverAddress = serverAddress,
-            onIconRefreshClick = onRefresh,
+            onIconSyncClick = onSync,
             onIconAddClick = { viewModel.draft() },
-            onIconExitClick = onDisconnect
+            onIconLogoutClick = onDisconnect
         )
         Box(modifier = Modifier.fillMaxSize()) {
             if (viewModel.chainListState.isEmpty()) {
