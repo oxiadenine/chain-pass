@@ -11,34 +11,34 @@ data class LazyListScrollInfo(val direction: LazyListScrollDirection, val positi
 
 @Composable
 fun LazyListState.scrollInfo(): LazyListScrollInfo {
-    val prevFirstVisibleItemIndexState = remember { mutableStateOf(firstVisibleItemIndex) }
-    val prevFirstVisibleItemScrollOffsetState = remember { mutableStateOf(firstVisibleItemScrollOffset) }
-    val lastVisibleItemIndexState = remember { mutableStateOf(layoutInfo.visibleItemsInfo.lastIndex) }
+    var prevFirstVisibleItemIndex by remember { mutableStateOf(firstVisibleItemIndex) }
+    var prevFirstVisibleItemScrollOffset by remember { mutableStateOf(firstVisibleItemScrollOffset) }
+    var lastVisibleItemIndex by remember { mutableStateOf(layoutInfo.visibleItemsInfo.lastIndex) }
 
     return remember {
         derivedStateOf {
             if (firstVisibleItemIndex == 0 && firstVisibleItemScrollOffset == 0) {
                 LazyListScrollInfo(LazyListScrollDirection.BACKWARD, LazyListScrollPosition.START)
-            } else if (firstVisibleItemIndex == prevFirstVisibleItemIndexState.value) {
-                if (firstVisibleItemIndex + lastVisibleItemIndexState.value == layoutInfo.totalItemsCount - 1 ||
-                    firstVisibleItemIndex + lastVisibleItemIndexState.value == layoutInfo.totalItemsCount) {
+            } else if (firstVisibleItemIndex == prevFirstVisibleItemIndex) {
+                if (firstVisibleItemIndex + lastVisibleItemIndex == layoutInfo.totalItemsCount - 1 ||
+                    firstVisibleItemIndex + lastVisibleItemIndex == layoutInfo.totalItemsCount) {
                     LazyListScrollInfo(LazyListScrollDirection.FORWARD, LazyListScrollPosition.END)
                 } else LazyListScrollInfo(LazyListScrollDirection.FORWARD, LazyListScrollPosition.BETWEEN)
             } else {
-                if (firstVisibleItemIndex < prevFirstVisibleItemIndexState.value) {
+                if (firstVisibleItemIndex < prevFirstVisibleItemIndex) {
                     if (firstVisibleItemScrollOffset == 0) {
                         LazyListScrollInfo(LazyListScrollDirection.BACKWARD, LazyListScrollPosition.START)
                     } else LazyListScrollInfo(LazyListScrollDirection.BACKWARD, LazyListScrollPosition.BETWEEN)
                 } else {
-                    if (firstVisibleItemIndex + lastVisibleItemIndexState.value == layoutInfo.totalItemsCount - 1 ||
-                        firstVisibleItemIndex + lastVisibleItemIndexState.value == layoutInfo.totalItemsCount) {
+                    if (firstVisibleItemIndex + lastVisibleItemIndex == layoutInfo.totalItemsCount - 1 ||
+                        firstVisibleItemIndex + lastVisibleItemIndex == layoutInfo.totalItemsCount) {
                         LazyListScrollInfo(LazyListScrollDirection.FORWARD, LazyListScrollPosition.END)
                     } else LazyListScrollInfo(LazyListScrollDirection.FORWARD, LazyListScrollPosition.BETWEEN)
                 }
             }.also {
-                prevFirstVisibleItemIndexState.value = firstVisibleItemIndex
-                prevFirstVisibleItemScrollOffsetState.value = firstVisibleItemScrollOffset
-                lastVisibleItemIndexState.value = layoutInfo.visibleItemsInfo.lastIndex
+                prevFirstVisibleItemIndex = firstVisibleItemIndex
+                prevFirstVisibleItemScrollOffset = firstVisibleItemScrollOffset
+                lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastIndex
             }
         }
     }.value

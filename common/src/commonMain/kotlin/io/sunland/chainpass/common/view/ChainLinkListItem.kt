@@ -7,79 +7,44 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerIconDefaults
-import androidx.compose.ui.input.pointer.PointerType
-import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.sunland.chainpass.common.ChainLink
+
+enum class ChainLinkListItemMenuItem { COPY, EDIT, DELETE }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkListItem(
-    chainLink: ChainLink,
-    onEdit: () -> Unit,
-    onRemove: () -> Unit,
-    onPasswordCopy: () -> Unit
-) {
-    if (chainLink.isDraft) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (chainLink.description.value.isNotEmpty()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp, horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(verticalArrangement = Arrangement.spacedBy(space = 4.dp)) {
-                        Text(text = chainLink.name.value)
-                        Text(text = chainLink.description.value, fontSize = 14.sp)
-                    }
-                    CircularProgressIndicator(modifier = Modifier.size(size = 16.dp), strokeWidth = 2.dp)
-                }
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 18.dp, horizontal = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(text = chainLink.name.value)
-                    CircularProgressIndicator(modifier = Modifier.size(size = 16.dp), strokeWidth = 2.dp)
-                }
-            }
-        }
-    } else {
-        val isDropDownMenuExpandedState = remember { mutableStateOf(false) }
-        val dropDownMenuOffsetState = remember { mutableStateOf(DpOffset.Zero) }
+fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name: String, description: String) {
+    var dropdownMenuExpanded by remember { mutableStateOf(false) }
+    var dropdownMenuOffset by remember { mutableStateOf(DpOffset.Zero) }
 
+    Box {
         val density = LocalDensity.current
 
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { isDropDownMenuExpandedState.value = true }
+                .clickable { dropdownMenuExpanded = true }
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {
-                            val event = awaitPointerEvent().changes.first()
+                            val pointerInputChange = awaitPointerEvent().changes.first()
 
-                            if (event.pressed && (event.type == PointerType.Mouse || event.type == PointerType.Touch)) {
-                                dropDownMenuOffsetState.value = with(density) {
+                            if (pointerInputChange.pressed &&
+                                (pointerInputChange.type == PointerType.Mouse ||
+                                        pointerInputChange.type == PointerType.Touch)
+                                ) {
+                                dropdownMenuOffset = with(density) {
                                     DpOffset(
-                                        x = event.position.x.toDp() - 20.dp,
-                                        y = event.position.y.toDp() - 40.dp
+                                        x = pointerInputChange.position.x.toDp() - 4.dp,
+                                        y = pointerInputChange.position.y.toDp() - 64.dp
                                     )
                                 }
                             }
@@ -89,57 +54,89 @@ fun ChainLinkListItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (chainLink.description.value.isNotEmpty()) {
+            if (description.isNotEmpty()) {
                 Column(
                     modifier = Modifier.padding(vertical = 6.dp, horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(space = 4.dp)
                 ) {
-                    Text(text = chainLink.name.value)
-                    Text(text = chainLink.description.value, fontSize = 14.sp)
+                    Text(text = name)
+                    Text(text = description, fontSize = 14.sp)
                 }
-            } else Text(text = chainLink.name.value, modifier = Modifier.padding(vertical = 18.dp, horizontal = 16.dp))
+            } else Text(text = name, modifier = Modifier.padding(vertical = 18.dp, horizontal = 16.dp))
+        }
 
-            if (isDropDownMenuExpandedState.value && !chainLink.isDraft) {
-                DropdownMenu(
-                    expanded = isDropDownMenuExpandedState.value,
-                    onDismissRequest = { isDropDownMenuExpandedState.value = false },
-                    modifier = Modifier.defaultMinSize(minWidth = 150.dp),
-                    offset = dropDownMenuOffsetState.value
-                ) {
-                    DropdownMenuItem(
-                        text = { Text(text = "Copy", fontSize = 14.sp) },
-                        onClick = {
-                            isDropDownMenuExpandedState.value = false
+        if (dropdownMenuExpanded) {
+            DropdownMenu(
+                expanded = true,
+                onDismissRequest = { dropdownMenuExpanded = false },
+                modifier = Modifier.defaultMinSize(minWidth = 150.dp),
+                offset = dropdownMenuOffset
+            ) {
+                DropdownMenuItem(
+                    text = { Text(text = "Copy", fontSize = 14.sp) },
+                    onClick = {
+                        dropdownMenuExpanded = false
 
-                            onPasswordCopy()
-                        },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        leadingIcon = { Icon(imageVector = Icons.Default.CopyAll, contentDescription = null) },
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "Edit", fontSize = 14.sp) },
-                        onClick = {
-                            isDropDownMenuExpandedState.value = false
+                        onMenuItemClick(ChainLinkListItemMenuItem.COPY)
+                    },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    leadingIcon = { Icon(imageVector = Icons.Default.CopyAll, contentDescription = null) },
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                )
+                DropdownMenuItem(
+                    text = { Text(text = "Edit", fontSize = 14.sp) },
+                    onClick = {
+                        dropdownMenuExpanded = false
 
-                            onEdit()
-                        },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        leadingIcon = { Icon(imageVector = Icons.Default.Edit, contentDescription = null) },
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    )
-                    DropdownMenuItem(
-                        text = { Text(text = "Delete", fontSize = 14.sp) },
-                        onClick = {
-                            isDropDownMenuExpandedState.value = false
+                        onMenuItemClick(ChainLinkListItemMenuItem.EDIT)
+                    },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    leadingIcon = { Icon(imageVector = Icons.Default.Edit, contentDescription = null) },
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                )
+                DropdownMenuItem(
+                    text = { Text(text = "Delete", fontSize = 14.sp) },
+                    onClick = {
+                        dropdownMenuExpanded = false
 
-                            onRemove()
-                        },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                        leadingIcon = { Icon(imageVector = Icons.Default.Delete, contentDescription = null) },
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    )
+                        onMenuItemClick(ChainLinkListItemMenuItem.DELETE)
+                    },
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    leadingIcon = { Icon(imageVector = Icons.Default.Delete, contentDescription = null) },
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ChainLinkListItemDraft(name: String, description: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (description.isNotEmpty()) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp, horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(space = 4.dp)) {
+                    Text(text = name)
+                    Text(text = description, fontSize = 14.sp)
                 }
+                CircularProgressIndicator(modifier = Modifier.size(size = 16.dp), strokeWidth = 2.dp)
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 18.dp, horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = name)
+                CircularProgressIndicator(modifier = Modifier.size(size = 16.dp), strokeWidth = 2.dp)
             }
         }
     }

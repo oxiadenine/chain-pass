@@ -18,8 +18,8 @@ class MainActivity : AppCompatActivity() {
         val database = DatabaseFactory.createDatabase(DriverFactory(applicationContext))
         val storage = Storage(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path)
 
-        val chainRepository = ChainRepository(database)
-        val chainLinkRepository = ChainLinkRepository(database)
+        val chainRepository = ChainRepository(database, storage)
+        val chainLinkRepository = ChainLinkRepository(database, storage)
 
         val syncServer = SyncServer(chainRepository, chainLinkRepository).start()
 
@@ -28,20 +28,20 @@ class MainActivity : AppCompatActivity() {
 
             val settingsState = rememberSettingsState(settingsManager)
             val networkState = rememberNetworkState(syncServer.hostAddressFlow)
-            val navigationState = rememberNavigationState(Screen.CHAIN_LIST)
             val themeState = rememberThemeState(ThemeMode.DARK)
+            val navigationState = rememberNavigationState(Screen.CHAIN_LIST)
 
             MaterialTheme(colorScheme = if (themeState.isDarkMode) {
                 Theme.DarkColors
             } else Theme.LightColors) {
                 App(
-                    storage = storage,
                     chainRepository = chainRepository,
                     chainLinkRepository = chainLinkRepository,
                     settingsState = settingsState,
                     networkState = networkState,
+                    themeState = themeState,
                     navigationState = navigationState,
-                    themeState = themeState
+                    storePath = storage.storePath
                 )
             }
         }

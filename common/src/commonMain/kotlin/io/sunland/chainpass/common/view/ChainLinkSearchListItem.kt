@@ -7,19 +7,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.sunland.chainpass.common.ChainLink
 
 @Composable
-fun ChainLinkSearchListItem(chainLink: ChainLink, onSelect: () -> Unit) {
-    Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onSelect)) {
-        if (chainLink.description.value.isNotEmpty()) {
+fun ChainLinkSearchListItem(onClick: () -> Unit, name: String, description: String) {
+    Column(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)) {
+        if (description.isNotEmpty()) {
             Column(
                 modifier = Modifier.padding(vertical = 6.dp, horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(space = 4.dp)
             ) {
-                Text(text = chainLink.name.value)
-                Text(text = chainLink.description.value, fontSize = 14.sp)
+                Text(text = name)
+                Text(text = description, fontSize = 14.sp)
             }
-        } else Text(text = chainLink.name.value, modifier = Modifier.padding(all = 16.dp))
+        } else Text(text = name, modifier = Modifier.padding(all = 16.dp))
     }
 }

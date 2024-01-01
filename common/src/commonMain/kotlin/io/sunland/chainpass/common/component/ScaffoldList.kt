@@ -35,8 +35,8 @@ fun ScaffoldList(
     snackbarHost: @Composable (SnackbarHostState) -> Unit = { hostState -> SnackbarHost(hostState) },
     modifier: Modifier = Modifier,
     topBar: @Composable () -> Unit = {},
-    floatingButton: @Composable () -> Unit = {},
-    floatingButtonPosition: Alignment = Alignment.BottomEnd,
+    floatingActionButton: @Composable () -> Unit = {},
+    floatingActionButtonPosition: Alignment = Alignment.BottomEnd,
     content: @Composable BoxScope.(LazyListState) -> Unit
 ) = Column(modifier = modifier) {
     topBar()
@@ -46,8 +46,8 @@ fun ScaffoldList(
 
         content(scaffoldListState.lazyListState)
 
-        Column(modifier = Modifier.align(alignment = floatingButtonPosition)) {
-            floatingButton()
+        Column(modifier = Modifier.align(alignment = floatingActionButtonPosition)) {
+            floatingActionButton()
         }
 
         Column(modifier = Modifier.align(alignment = Alignment.BottomCenter)) {

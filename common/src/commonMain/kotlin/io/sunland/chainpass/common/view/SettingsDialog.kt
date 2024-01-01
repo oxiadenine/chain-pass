@@ -40,35 +40,35 @@ class DeviceAddress(value: String? = null) {
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () -> Unit) {
-    val deviceAddressState = remember { mutableStateOf(settingsState.deviceAddressState.value) }
-    val deviceAddressErrorState = remember { mutableStateOf(false) }
+fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath: String) {
+    var deviceAddress by remember { mutableStateOf(DeviceAddress(settingsState.deviceAddressState.value)) }
 
-    val onDeviceAddressChange = { value: String ->
-        val deviceAddress = DeviceAddress(value)
-
-        deviceAddressState.value = deviceAddress.value
-        deviceAddressErrorState.value = deviceAddress.validation.isFailure
+    val onDeviceAddressTextFieldValueChange = { address: String ->
+        deviceAddress = DeviceAddress(address)
     }
 
-    val passwordLengthState = remember { mutableStateOf(settingsState.passwordLengthState.value.toFloat()) }
-    val passwordIsAlphanumericState = remember { mutableStateOf(settingsState.passwordIsAlphanumericState.value) }
+    var passwordLength by remember { mutableStateOf(settingsState.passwordLengthState.value.toFloat()) }
+    val passwordLengthValueRange by remember { mutableStateOf(8f..32f) }
 
-    val onPasswordLengthChange = { value: Float ->
-        passwordLengthState.value = value
+    var passwordIsAlphanumeric by remember { mutableStateOf(settingsState.passwordIsAlphanumericState.value) }
+
+    val onPasswordLengthChange = { length: Float ->
+        if (length >= passwordLengthValueRange.start && length <= passwordLengthValueRange.endInclusive) {
+            passwordLength = length
+        }
     }
 
-    val onPasswordIsAlphanumericChange = { value: Boolean ->
-        passwordIsAlphanumericState.value = value
+    val onPasswordIsAlphanumericChange = { isAlphanumeric: Boolean ->
+        passwordIsAlphanumeric = isAlphanumeric
     }
 
-    val onDone = {
-        deviceAddressErrorState.value = DeviceAddress(deviceAddressState.value).validation.isFailure
+    val onInputDialogConfirmRequest = {
+        deviceAddress = DeviceAddress(deviceAddress.value)
 
-        if (!deviceAddressErrorState.value) {
-            settingsState.deviceAddressState.value = deviceAddressState.value
-            settingsState.passwordLengthState.value = passwordLengthState.value.toInt()
-            settingsState.passwordIsAlphanumericState.value = passwordIsAlphanumericState.value
+        if (deviceAddress.validation.isSuccess) {
+            settingsState.deviceAddressState.value = deviceAddress.value
+            settingsState.passwordLengthState.value = passwordLength.toInt()
+            settingsState.passwordIsAlphanumericState.value = passwordIsAlphanumeric
 
             settingsState.save()
 
@@ -93,7 +93,7 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
         },
         buttons = {
             TextButton(
-                onClick = onDone,
+                onClick = onInputDialogConfirmRequest,
                 modifier = Modifier.align(alignment = Alignment.End).pointerHoverIcon(icon = PointerIconDefaults.Hand)
             ) { Text(text = "Save") }
         }
@@ -101,16 +101,7 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
         val scrollState = rememberScrollState(initial = 0)
 
         Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .verticalScroll(state = scrollState)
-                .onKeyEvent { keyEvent: KeyEvent ->
-                    if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                        onDone()
-
-                        true
-                    } else false
-                },
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).verticalScroll(state = scrollState),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -122,30 +113,39 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
                 ) {
                     val focusRequester = remember { FocusRequester() }
 
-                    LaunchedEffect(focusRequester) {
-                        focusRequester.requestFocus()
-                    }
-
                     ValidationTextField(
-                        value = deviceAddressState.value,
-                        onValueChange = onDeviceAddressChange,
-                        modifier = Modifier.focusRequester(focusRequester = focusRequester),
+                        value = deviceAddress.value,
+                        onValueChange = onDeviceAddressTextFieldValueChange,
+                        modifier = Modifier
+                            .focusRequester(focusRequester = focusRequester)
+                            .onKeyEvent { keyEvent: KeyEvent ->
+                                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+                                    onInputDialogConfirmRequest()
+
+                                    true
+                                } else false
+                            }
+                        ,
                         placeholder = { Text(text = "Device Address", fontSize = 14.sp) },
                         singleLine = true,
                         leadingIcon = { Icon(imageVector = Icons.Default.Devices, contentDescription = null) },
-                        trailingIcon = if (deviceAddressErrorState.value) {
+                        trailingIcon = if (deviceAddress.validation.isFailure) {
                             { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                         } else null,
-                        isError = deviceAddressErrorState.value,
-                        errorMessage = DeviceAddress(deviceAddressState.value).validation.exceptionOrNull()?.message,
+                        isError = deviceAddress.validation.isFailure,
+                        errorMessage = deviceAddress.validation.exceptionOrNull()?.message,
                         colors = TextFieldDefaults.textFieldColors(
                             containerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             errorIndicatorColor = Color.Transparent
                         ),
-                        keyboardActions = KeyboardActions(onDone = { onDone() })
+                        keyboardActions = KeyboardActions(onDone = { onInputDialogConfirmRequest() })
                     )
+
+                    LaunchedEffect(focusRequester) {
+                        focusRequester.requestFocus()
+                    }
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
@@ -157,12 +157,26 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
                     ) {
                         Text(text = "Length")
                         Slider(
-                            value = passwordLengthState.value,
+                            value = passwordLength,
                             onValueChange = onPasswordLengthChange,
-                            modifier = Modifier.weight(1f, false).pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                            valueRange = 8f..32f
+                            modifier = Modifier
+                                .weight(1f, false)
+                                .pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                                .onKeyEvent { keyEvent: KeyEvent ->
+                                    if (keyEvent.type == KeyEventType.KeyUp) {
+                                        if (keyEvent.key == Key.DirectionLeft) {
+                                            onPasswordLengthChange(passwordLength - 1)
+                                        } else if (keyEvent.key == Key.DirectionRight) {
+                                            onPasswordLengthChange(passwordLength + 1)
+                                        }
+
+                                        true
+                                    } else false
+                                }
+                            ,
+                            valueRange = passwordLengthValueRange
                         )
-                        Text(text = passwordLengthState.value.toInt().toString())
+                        Text(text = passwordLength.toInt().toString())
                     }
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
@@ -170,7 +184,7 @@ fun SettingsDialog(storePath: String, settingsState: SettingsState, onClose: () 
                     ) {
                         Text(text = "Alphanumeric")
                         Switch(
-                            checked = passwordIsAlphanumericState.value,
+                            checked = passwordIsAlphanumeric,
                             onCheckedChange = onPasswordIsAlphanumericChange,
                             modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
                         )

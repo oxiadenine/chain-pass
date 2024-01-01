@@ -11,6 +11,8 @@ import java.util.*
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.primaryConstructor
 
+enum class StorageType { JSON, CSV, TXT }
+
 class Storage(dirPath: String) {
     val storePath = "$dirPath/Chain Pass/Store"
 
@@ -20,7 +22,7 @@ class Storage(dirPath: String) {
         }
     }
 
-    fun store(storable: Storable, storageType: StorageType): String {
+    fun store(storageType: StorageType, storable: Storable): String {
         val date = (DateFormat.getDateTimeInstance() as SimpleDateFormat).apply {
             applyPattern("yyyy.MM.dd-HH.mm.ss")
         }.format(Date())
@@ -52,8 +54,6 @@ class Storage(dirPath: String) {
         return File(filePath).readText().toStorable(storageType)
     }
 }
-
-enum class StorageType { JSON, CSV, TXT }
 
 @Serializable
 data class StorableOptions(val isPrivate: Boolean, val isSingle: Boolean)
