@@ -221,25 +221,28 @@ class ChainLinkListViewModel(
     }
 
     fun store(storage: Storage) = runCatching {
-        val chainLinks = chainLinkListState.map { chainLink ->
-            ChainLink(chain!!).apply {
-                id = chainLink.id
-                name = chainLink.name
-                description = chainLink.description
-                password = chainLink.password
+        val chainLinks = chainLinkListState
+            .filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
+            .map { chainLink ->
+                ChainLink(chain!!).apply {
+                    id = chainLink.id
+                    name = chainLink.name
+                    description = chainLink.description
+                    password = chainLink.password
 
-                if (chainLink.password.isPrivate) {
-                    unlockPassword(this)
+                    if (chainLink.password.isPrivate) {
+                        unlockPassword(this)
+                    }
                 }
             }
-        }.map { chainLink ->
-            mapOf(
-                "id" to chainLink.id.toString(),
-                "name" to chainLink.name.value,
-                "description" to chainLink.description.value,
-                "password" to chainLink.password.value
-            )
-        }
+            .map { chainLink ->
+                mapOf(
+                    "id" to chainLink.id.toString(),
+                    "name" to chainLink.name.value,
+                    "description" to chainLink.description.value,
+                    "password" to chainLink.password.value
+                )
+            }
 
         val chain = mapOf("id" to chain!!.id.toString(), "name" to chain!!.name.value)
 
