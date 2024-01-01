@@ -61,14 +61,32 @@ fun App(httpClient: HttpClient) = MaterialTheme(
         scaffoldState = scaffoldState,
         topBar = {
             when (screenState.value) {
-                Screen.CHAIN_LIST -> ChainListTopBar(onIconAddClick = { chainListViewModel.draft() })
+                Screen.CHAIN_LIST -> ChainListTopBar(
+                    onIconAddClick = { chainListViewModel.draft() },
+                    onIconRefreshClick = {
+                        coroutineScope.launch {
+                            chainListViewModel.getAll().onFailure { exception ->
+                                scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                            }
+                        }
+                    }
+                )
                 Screen.CHAIN_LINK_LIST -> ChainLinkListTopBar(
                     onIconArrowBackClick = {
                         scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
                         screenState.value = Screen.CHAIN_LIST
                     },
-                    onIconAddClick = { chainLinkListViewModel.draft() }
+                    onIconAddClick = { chainLinkListViewModel.draft() },
+                    onIconRefreshClick = {
+                        coroutineScope.launch {
+                            chainLinkListViewModel.getAll()
+                                .onSuccess { screenState.value = Screen.CHAIN_LINK_LIST }
+                                .onFailure { exception ->
+                                    scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
+                                }
+                        }
+                    }
                 )
             }
         }
