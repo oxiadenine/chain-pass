@@ -188,6 +188,8 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                         },
                         onSelect = { chain ->
                             coroutineScope.launch {
+                                scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
+
                                 chainLinkListViewModel.chain = chain
 
                                 chainLinkListViewModel.getAll()
@@ -251,7 +253,7 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                             }
                         },
                         onDisconnect = {
-                            scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+                            scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
                             appState.settingsState.value = Settings()
                             appState.screenState.value = Screen.SERVER_CONNECTION
@@ -312,7 +314,7 @@ fun App(settingsManager: SettingsManager, httpClient: HttpClient, appState: AppS
                                 }
                             }
                         },
-                        onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.performAction() }
+                        onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.dismiss() }
                     )
                 }
             }
