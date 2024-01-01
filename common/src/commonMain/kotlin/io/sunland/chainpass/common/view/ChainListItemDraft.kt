@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import io.sunland.chainpass.common.Chain
 
 @Composable
@@ -96,7 +95,6 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
             trailingIcon = if (keyErrorState.value) {
                 { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
             } else null,
-            visualTransformation = PasswordVisualTransformation(),
             isError = keyErrorState.value,
             singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
