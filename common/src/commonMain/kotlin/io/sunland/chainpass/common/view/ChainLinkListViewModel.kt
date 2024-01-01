@@ -136,6 +136,10 @@ class ChainLinkListViewModel(
     }
 
     fun removeLater(chainLink: ChainLink) {
+        if (!chainLink.password.isPrivate) {
+            lockPassword(chainLink)
+        }
+
         chainLinkListState.remove(chainLink)
     }
 
