@@ -295,6 +295,27 @@ fun ChainList(
                     }
                 }
             }
+
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier.align(alignment = Alignment.BottomEnd),
+                snackbar = { snackbarData ->
+                    Snackbar(
+                        modifier = Modifier.padding(all = 16.dp),
+                        content = { Text(text = snackbarData.message) },
+                        action = {
+                            snackbarData.actionLabel?.let { label ->
+                                TextButton(
+                                    modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand),
+                                    onClick = { snackbarHostState.currentSnackbarData?.performAction() }
+                                ) { Text(text = label, color = MaterialTheme.colors.error) }
+                            }
+                        },
+                        backgroundColor = MaterialTheme.colors.background,
+                        contentColor = MaterialTheme.colors.primary
+                    )
+                }
+            )
         }
     }
 }
