@@ -10,6 +10,7 @@ class Chain constructor(val passwordGenerator: PasswordGenerator) {
         id = chain.id
         name = chain.name
         key = chain.key
+        isDraft = chain.isDraft
     }
 
     class Name(value: String? = null) {
@@ -41,6 +42,7 @@ class Chain constructor(val passwordGenerator: PasswordGenerator) {
     var id = Random.uuid()
     var name = Name()
     var key = Key()
+    var isDraft = false
 
     fun generateKey() = passwordGenerator.generate()
 

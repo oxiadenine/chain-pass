@@ -10,6 +10,7 @@ class ChainLink(val chain: Chain) {
         name = chainLink.name
         description = chainLink.description
         password = chainLink.password
+        isDraft = chainLink.isDraft
     }
 
     class Name(value: String? = null) {
@@ -53,6 +54,7 @@ class ChainLink(val chain: Chain) {
     var name = Name()
     var description = Description()
     var password = Password()
+    var isDraft = false
 
     fun generatePassword() = chain.passwordGenerator.generate()
 

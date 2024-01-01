@@ -9,6 +9,7 @@ import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.common.security.PasswordGenerator
+import kotlinx.coroutines.coroutineScope
 
 class ChainListViewModel(
     private val chainRepository: ChainRepository,
@@ -26,7 +27,7 @@ class ChainListViewModel(
 
     private val chainsRemoved = mutableListOf<Chain>()
 
-    fun draft() = Chain(passwordGenerator)
+    fun draft() = Chain(passwordGenerator).apply { isDraft = true }
 
     fun selectForKey(chain: Chain) {
         chainSelected = Chain(chain)
@@ -61,19 +62,30 @@ class ChainListViewModel(
         chainListState.addAll(chains)
     }
 
-    fun new(chainDraft: Chain) {
+    suspend fun new(chainDraft: Chain) = coroutineScope {
         val secretKey = chainDraft.secretKey()
         val privateKey = chainDraft.privateKey(secretKey)
 
         val chainEntity = ChainEntity(chainDraft.id, chainDraft.name.value, privateKey.value)
 
-        chainRepository.create(chainEntity)
-
         chainDraft.key = Chain.Key()
 
         chainSelected = Chain(chainDraft)
 
-        val chains = chainListState.plus(chainSelected!!).sortedBy { chain -> chain.name.value }
+        var chains = chainListState.plus(chainDraft).sortedBy { chain -> chain.name.value }
+
+        chainListState.clear()
+        chainListState.addAll(chains)
+
+        chainRepository.create(chainEntity)
+
+        chains = chainListState.map { chain ->
+            if (chain.id == chainDraft.id) {
+                chain.isDraft = false
+            }
+
+            chain
+        }.sortedBy { chain -> chain.name.value }
 
         chainListState.clear()
         chainListState.addAll(chains)

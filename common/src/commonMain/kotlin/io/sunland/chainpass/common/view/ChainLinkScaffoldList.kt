@@ -300,11 +300,7 @@ fun ChainLinkScaffoldList(
                             isInputDialogVisibleState.value = false
 
                             coroutineScope.launch(Dispatchers.IO) {
-                                isLoadingIndicatorVisibleState.value = true
-
                                 viewModel.new(chainLink)
-
-                                isLoadingIndicatorVisibleState.value = false
                             }
                         },
                         onCancel = { isInputDialogVisibleState.value = false }
