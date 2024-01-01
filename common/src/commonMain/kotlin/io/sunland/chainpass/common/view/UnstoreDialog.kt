@@ -6,10 +6,8 @@ import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,7 +25,6 @@ class FilePath(value: String? = null) {
     val fileName = value?.substringAfterLast("/")?.substringBeforeLast(".") ?: ""
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun UnstoreDialog(onConfirm: (FilePath) -> Unit, onCancel: () -> Unit) {
     val intl = LocalIntl.current
@@ -69,7 +66,7 @@ fun UnstoreDialog(onConfirm: (FilePath) -> Unit, onCancel: () -> Unit) {
         ) {
             Button(
                 onClick = onSelectFileButtonClick,
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),

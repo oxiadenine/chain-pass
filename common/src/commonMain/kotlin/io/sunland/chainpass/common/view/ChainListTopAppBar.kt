@@ -7,9 +7,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -18,7 +17,7 @@ import io.sunland.chainpass.common.LocalIntl
 
 enum class ChainListTopAppBarMenuItem { SYNC, STORE, UNSTORE }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChainListTopAppBar(
     onMenuClick: () -> Unit,
@@ -35,13 +34,13 @@ fun ChainListTopAppBar(
         navigationIcon = {
             IconButton(
                 onClick = onMenuClick,
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
             ) { Icon(imageVector = Icons.Default.Menu, contentDescription = null) }
         },
         actions = {
             IconButton(
                 onClick = { dropdownMenuExpanded = true },
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
             ) { Icon(imageVector = Icons.Default.MoreVert, contentDescription = null) }
 
             if (dropdownMenuExpanded) {
@@ -63,7 +62,7 @@ fun ChainListTopAppBar(
 
                             onMenuItemClick(ChainListTopAppBarMenuItem.SYNC)
                         },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                         leadingIcon = { Icon(imageVector = Icons.Default.Sync, contentDescription = null) },
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     )
@@ -79,7 +78,7 @@ fun ChainListTopAppBar(
 
                             onMenuItemClick(ChainListTopAppBarMenuItem.STORE)
                         },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                         leadingIcon = { Icon(imageVector = Icons.Default.Archive, contentDescription = null) },
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     )
@@ -95,7 +94,7 @@ fun ChainListTopAppBar(
 
                             onMenuItemClick(ChainListTopAppBarMenuItem.UNSTORE)
                         },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                         leadingIcon = { Icon(imageVector = Icons.Default.Unarchive, contentDescription = null) },
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     )

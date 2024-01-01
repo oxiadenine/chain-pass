@@ -9,7 +9,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.platform.LocalDensity
@@ -20,7 +19,6 @@ import io.sunland.chainpass.common.LocalIntl
 
 enum class ChainLinkListItemMenuItem { COPY, EDIT, DELETE }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name: String, description: String) {
     val intl = LocalIntl.current
@@ -82,7 +80,7 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
 
                         onMenuItemClick(ChainLinkListItemMenuItem.COPY)
                     },
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                     leadingIcon = { Icon(imageVector = Icons.Default.CopyAll, contentDescription = null) },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
@@ -93,7 +91,7 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
 
                         onMenuItemClick(ChainLinkListItemMenuItem.EDIT)
                     },
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                     leadingIcon = { Icon(imageVector = Icons.Default.Edit, contentDescription = null) },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
@@ -104,7 +102,7 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
 
                         onMenuItemClick(ChainLinkListItemMenuItem.DELETE)
                     },
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                     leadingIcon = { Icon(imageVector = Icons.Default.Delete, contentDescription = null) },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )

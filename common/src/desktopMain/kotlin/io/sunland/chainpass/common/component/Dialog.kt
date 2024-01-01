@@ -16,8 +16,8 @@ actual fun Dialog(
     title: @Composable (() -> Unit)?,
     buttons: @Composable (ColumnScope.() -> Unit)?,
     content: @Composable ColumnScope.() -> Unit
-) = AlertDialog(onDismissRequest = onDismissRequest) {
-    Surface(shape = RectangleShape, tonalElevation = 4.dp) {
+) = AlertDialog(onDismissRequest = onDismissRequest, shape = RectangleShape, modifier = Modifier) {
+    Surface(tonalElevation = 4.dp) {
         Column(modifier = Modifier
             .widthIn(min = 200.dp, max = 300.dp)
             .heightIn(min = 100.dp, max = 400.dp)

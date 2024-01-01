@@ -25,6 +25,7 @@ kotlin {
 }
 
 android {
+    namespace = "${project.group}.chainpass"
     compileSdk = 33
 
     defaultConfig {
