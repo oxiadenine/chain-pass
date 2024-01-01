@@ -60,12 +60,22 @@ fun ChainList(
                             isError = keyInputErrorState.value,
                             onDismissRequest = { keyInputDialogVisible.value = false },
                             onConfirmRequest = {
-                                runCatching { viewModel.select(chain, keyInputState.value) }.fold(
+                                runCatching {
+                                    when (chain.status) {
+                                        ChainStatus.REMOVE -> viewModel.remove(chain, keyInputState.value)
+                                        ChainStatus.SELECT -> viewModel.select(chain, keyInputState.value)
+                                        else -> throw IllegalStateException()
+                                    }
+                                }.fold(
                                     onSuccess = { chain ->
                                         keyInputErrorState.value = false
                                         keyInputDialogVisible.value = false
 
-                                        onItemSelect(chain)
+                                        when (chain.status) {
+                                            ChainStatus.REMOVE -> onItemRemove(chain)
+                                            ChainStatus.SELECT -> onItemSelect(chain)
+                                            else -> Unit
+                                        }
                                     },
                                     onFailure = { keyInputErrorState.value = true }
                                 )
@@ -74,10 +84,18 @@ fun ChainList(
                     }
 
                     when (chain.status) {
-                        ChainStatus.ACTUAL -> ChainListItem(
+                        ChainStatus.ACTUAL, ChainStatus.REMOVE, ChainStatus.SELECT -> ChainListItem(
                             chain = chain,
-                            onClick = { keyInputDialogVisible.value = true },
-                            onIconDeleteClick = { viewModel.remove(chain, onItemRemove) }
+                            onClick = {
+                                chain.status = ChainStatus.SELECT
+
+                                keyInputDialogVisible.value = true
+                            },
+                            onIconDeleteClick = {
+                                chain.status = ChainStatus.REMOVE
+
+                                keyInputDialogVisible.value = true
+                            }
                         )
                         ChainStatus.DRAFT -> ChainListItemDraft(
                             chain = chain,

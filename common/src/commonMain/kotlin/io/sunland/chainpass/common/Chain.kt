@@ -2,7 +2,7 @@ package io.sunland.chainpass.common
 
 import io.sunland.chainpass.common.security.PasswordEncoder
 
-enum class ChainStatus { ACTUAL, DRAFT }
+enum class ChainStatus { ACTUAL, DRAFT, REMOVE, SELECT }
 
 class Chain {
     class Key(value: String) {

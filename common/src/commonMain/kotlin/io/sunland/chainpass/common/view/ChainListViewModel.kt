@@ -4,6 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainStatus
 import io.sunland.chainpass.common.repository.ChainEntity
+import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainRepository
 
 class ChainListViewModel(private val repository: ChainRepository) {
@@ -49,25 +50,33 @@ class ChainListViewModel(private val repository: ChainRepository) {
         }
     }
 
-    fun remove(chain: Chain, onRemove: (Chain) -> Unit) {
-        chains.remove(chain)
+    fun remove(chain: Chain, key: String) = Chain().apply {
+        id = chain.id
+        name = chain.name
+        status = chain.status
 
-        onRemove(chain)
+        setKey(key)
+        hashKey(key)
+
+        chains.remove(chain)
     }
 
     fun undoRemove(chain: Chain) {
+        chain.key.clear()
+
         chains.add(chain)
     }
 
     suspend fun remove(chain: Chain): Result<Unit> {
-        val chainEntity = ChainEntity(chain.id, chain.name, chain.key.value)
+        val chainKeyEntity = ChainKeyEntity(chain.id, chain.key.value)
 
-        return repository.delete(chainEntity)
+        return repository.delete(chainKeyEntity)
     }
 
     fun select(chain: Chain, key: String) = Chain().apply {
         id = chain.id
         name = chain.name
+        status = chain.status
 
         setKey(key)
         hashKey(key)

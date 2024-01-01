@@ -1,6 +1,7 @@
 package io.sunland.chainpass.service.repository
 
 import io.sunland.chainpass.common.repository.ChainEntity
+import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.service.ChainTable
 import io.sunland.chainpass.service.Database
@@ -35,9 +36,9 @@ object ChainDataRepository : ChainRepository {
         }
     }
 
-    override suspend fun delete(chainEntity: ChainEntity) = runCatching {
+    override suspend fun delete(chainKeyEntity: ChainKeyEntity) = runCatching {
         Database.execute<Unit> {
-            ChainTable.deleteWhere { ChainTable.id eq chainEntity.id }
+            ChainTable.deleteWhere { ChainTable.id eq chainKeyEntity.id }
         }
     }
 }
