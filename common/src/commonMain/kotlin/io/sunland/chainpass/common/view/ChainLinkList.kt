@@ -1,7 +1,6 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -18,7 +17,6 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -138,26 +136,10 @@ fun ChainLinkList(
             )
         },
         floatingActionButton = {
-            val density = LocalDensity.current
-
-            val (lazyListScrollDirection, lazyListScrollPosition) = scaffoldListState.lazyListState.scrollInfo()
-
-            AnimatedVisibility(
-                visible = scaffoldListState.snackbarHostState.isSnackbarVisible() ||
-                        lazyListScrollDirection == LazyListScrollDirection.BACKWARD ||
-                        lazyListScrollPosition == LazyListScrollPosition.END,
-                enter = slideInVertically(animationSpec = tween(durationMillis = 250)) {
-                    with(density) { 80.dp.roundToPx() }
-                },
-                exit = slideOutVertically(animationSpec = tween(durationMillis = 250)) {
-                    with(density) { 80.dp.roundToPx() }
-                }
-            ) {
-                FloatingActionButton(
-                    onClick = { listItemNewDialogVisible = true },
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
-                ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
-            }
+            FloatingActionButton(
+                onClick = { listItemNewDialogVisible = true },
+                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+            ) { Icon(imageVector = Icons.Default.Add, contentDescription = null) }
         }
     ) { lazyListState ->
         val chainLinks = viewModel.chainLinkListState.toTypedArray()

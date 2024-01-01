@@ -120,7 +120,21 @@ fun ScaffoldList(
                             animationSpec = tween(easing = LinearEasing, durationMillis = 75)
                         ) with ExitTransition.None
                     }
-                ) { floatingActionButton() }
+                ) {
+                    val (scrollDirection, scrollPosition) = scaffoldListState.lazyListState.scrollInfo()
+
+                    AnimatedVisibility(
+                        visible = scaffoldListState.snackbarHostState.isSnackbarVisible() ||
+                                scrollDirection == LazyListScrollDirection.BACKWARD ||
+                                scrollPosition == LazyListScrollPosition.END,
+                        enter = slideInVertically(animationSpec = tween(durationMillis = 250)) {
+                            with(density) { 80.dp.roundToPx() }
+                        },
+                        exit = slideOutVertically(animationSpec = tween(durationMillis = 250)) {
+                            with(density) { 80.dp.roundToPx() }
+                        }
+                    ) { floatingActionButton() }
+                }
             }
 
             Column(modifier = Modifier.align(alignment = scaffoldListState.snackbarPosition).onSizeChanged { size ->
