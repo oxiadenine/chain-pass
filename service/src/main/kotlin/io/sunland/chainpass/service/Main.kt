@@ -12,8 +12,15 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.sunland.chainpass.common.WebSocket
+import io.sunland.chainpass.common.repository.Chain
+import io.sunland.chainpass.common.repository.ChainLink
+import io.sunland.chainpass.service.repository.ChainLinkDataRepository
+import io.sunland.chainpass.service.repository.ChainDataRepository
 import kotlinx.coroutines.runBlocking
-import org.jetbrains.exposed.sql.exposedLogger
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.*
 import org.slf4j.LoggerFactory
 
 fun main() {
@@ -53,18 +60,69 @@ fun main() {
         runBlocking {
             try {
                 httpClient.webSocket(request = {
-                    header("Socket-Type", WebSocket.Type.SERVICE)
+                    header("Socket-Type", WebSocket.ConnectionType.SERVICE)
                 }) {
                     while (true) {
                         val frame = incoming.receive() as? Frame.Text ?: continue
 
                         val message = WebSocket.Message.from(frame)
 
-                        Database.execute {
-                            exposedLogger.info(message.text)
-                        }
+                        when (message.type) {
+                            WebSocket.MessageType.CREATE_CHAIN -> {
+                                val chain = Json.decodeFromString<Chain>(message.text)
 
-                        send(WebSocket.Message(message.text, WebSocket.Type.SERVICE).toFrame())
+                                chain.id = ChainDataRepository.create(chain)
+
+                                send(WebSocket.Message(
+                                    Json.encodeToString(chain),
+                                    WebSocket.MessageType.CREATE_CHAIN).toFrame()
+                                )
+                            }
+                            WebSocket.MessageType.READ_CHAIN -> {
+                                val chains = ChainDataRepository.read()
+
+                                send(WebSocket.Message(
+                                    Json.encodeToString(chains),
+                                    WebSocket.MessageType.READ_CHAIN).toFrame()
+                                )
+                            }
+                            WebSocket.MessageType.DELETE_CHAIN -> {
+                                val chain = Json.decodeFromString<Chain>(message.text)
+
+                                ChainDataRepository.delete(chain)
+                            }
+                            WebSocket.MessageType.CREATE_CHAIN_LINK -> {
+                                val chainLink = Json.decodeFromString<ChainLink>(message.text)
+
+                                chainLink.id = ChainLinkDataRepository.create(chainLink)
+
+                                send(WebSocket.Message(
+                                    Json.encodeToString(chainLink),
+                                    WebSocket.MessageType.CREATE_CHAIN_LINK).toFrame()
+                                )
+                            }
+                            WebSocket.MessageType.READ_CHAIN_LINK -> {
+                                val chain = Json.decodeFromString<Chain>(message.text)
+
+                                val chainLinks = ChainLinkDataRepository.read(chain)
+
+                                send(WebSocket.Message(
+                                    Json.encodeToString(chainLinks),
+                                    WebSocket.MessageType.READ_CHAIN_LINK).toFrame()
+                                )
+                            }
+                            WebSocket.MessageType.UPDATE_CHAIN_LINK -> {
+                                val chainLink = Json.decodeFromString<ChainLink>(message.text)
+
+                                ChainLinkDataRepository.update(chainLink)
+                            }
+                            WebSocket.MessageType.DELETE_CHAIN_LINK -> {
+                                val chainLink = Json.decodeFromString<ChainLink>(message.text)
+
+                                ChainLinkDataRepository.delete(chainLink)
+                            }
+                            else -> exposedLogger.info(message.text)
+                        }
                     }
                 }
             } catch (ex: Throwable) {

@@ -1,54 +1,102 @@
 package io.sunland.chainpass.common
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import io.ktor.client.*
-import io.ktor.client.features.websocket.*
-import io.ktor.client.request.*
-import io.ktor.http.cio.websocket.*
+import io.sunland.chainpass.common.view.*
 import kotlinx.coroutines.launch
+
+enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST }
 
 @Composable
 fun App(httpClient: HttpClient) {
     val coroutineScope = rememberCoroutineScope()
+
+    val screenState = remember { mutableStateOf(Screen.CHAIN_LIST) }
     val scaffoldState = rememberScaffoldState()
 
-    Scaffold(modifier = Modifier.fillMaxSize(), scaffoldState = scaffoldState) {
-        Box(modifier = Modifier.fillMaxSize().padding(all = 16.dp)) {
-            Button(
-                modifier = Modifier.align(Alignment.Center),
-                onClick = {
-                    coroutineScope.launch {
-                        try {
-                            httpClient.webSocket(request = {
-                                header("Socket-Type", WebSocket.Type.CLIENT)
-                            }) {
-                                send(WebSocket.Message("Chain Pass", WebSocket.Type.CLIENT).toFrame())
+    val chainListViewModel = ChainListViewModel(httpClient)
+    val chainLinkListViewModel = ChainLinkListViewModel(httpClient)
 
-                                while (true) {
-                                    val frame = incoming.receive() as? Frame.Text ?: continue
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        scaffoldState = scaffoldState,
+        topBar = {
+            when (screenState.value) {
+                Screen.CHAIN_LIST -> ChainListTopBar(onIconAddClick = {
+                    val chain = ChainListItem(0, "", "", ChainListItemStatus.DRAFT)
 
-                                    val message = WebSocket.Message.from(frame)
+                    chainListViewModel.chainListItems.add(chain)
+                })
+                Screen.CHAIN_LINK_LIST -> CHainLinkListTopBar(
+                    onIconArrowBackClick = { screenState.value = Screen.CHAIN_LIST },
+                    onIconAddClick = {
+                        val chainLinkListItem = ChainLinkListItem(
+                            id = 0,
+                            name = "",
+                            password = "",
+                            chainId = chainLinkListViewModel.chainListItem!!.id,
+                            status = ChainLinkListItemStatus.DRAFT
+                        )
 
-                                    scaffoldState.snackbarHostState.showSnackbar(message.text)
+                        chainLinkListViewModel.chainLinkListItems.add(chainLinkListItem)
+                    }
+                )
+            }
+        }
+    ) {
+        when (screenState.value) {
+            Screen.CHAIN_LIST -> {
+                coroutineScope.launch { chainListViewModel.read() }
 
-                                    break
+                ChainList(
+                    coroutineScope = coroutineScope,
+                    viewModel = chainListViewModel,
+                    onItemSelect = { chainListItem ->
+                        chainLinkListViewModel.chainListItem = chainListItem
+
+                        screenState.value = Screen.CHAIN_LINK_LIST
+                    },
+                    onItemDelete = { chainListItem ->
+                        coroutineScope.launch {
+                            when (scaffoldState.snackbarHostState.showSnackbar(
+                                message = "${chainListItem.name} removed",
+                                actionLabel = "Dismiss",
+                                duration = SnackbarDuration.Short
+                            )) {
+                                SnackbarResult.ActionPerformed -> {
+                                    chainListViewModel.chainListItems.add(chainListItem)
                                 }
-
-                                close()
+                                SnackbarResult.Dismissed -> chainListViewModel.delete(chainListItem)
                             }
-                        } catch (ex: Throwable) {
-                            scaffoldState.snackbarHostState.showSnackbar(ex.message!!)
                         }
                     }
-                }
-            ) { Text("Chain Pass") }
+                )
+            }
+            Screen.CHAIN_LINK_LIST -> {
+                coroutineScope.launch { chainLinkListViewModel.read() }
+
+                ChainLinkList(
+                    coroutineScope = coroutineScope,
+                    viewModel = chainLinkListViewModel,
+                    onItemDelete = { chainLinkListItem ->
+                        coroutineScope.launch {
+                            when (scaffoldState.snackbarHostState.showSnackbar(
+                                message = "${chainLinkListItem.name} removed",
+                                actionLabel = "Dismiss",
+                                duration = SnackbarDuration.Short
+                            )) {
+                                SnackbarResult.ActionPerformed -> {
+                                    chainLinkListViewModel.chainLinkListItems.add(chainLinkListItem)
+                                }
+                                SnackbarResult.Dismissed -> chainLinkListViewModel.delete(chainLinkListItem)
+                            }
+                        }
+                    }
+                )
+            }
         }
     }
 }

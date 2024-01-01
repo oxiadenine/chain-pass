@@ -21,7 +21,7 @@ fun Application.main() {
         webSocket("/") {
             val fromConnection = WebSocket.Connection(
                 this,
-                WebSocket.Type.valueOf(call.request.headers["Socket-Type"]!!),
+                WebSocket.ConnectionType.valueOf(call.request.headers["Socket-Type"]!!),
             )
             connections += fromConnection
 
@@ -31,17 +31,17 @@ fun Application.main() {
                 val message = WebSocket.Message.from(frame as Frame.Text)
 
                 val toConnection = when (fromConnection.type) {
-                    WebSocket.Type.SERVICE -> connections.first {
-                        it.type == WebSocket.Type.CLIENT && it.session.isActive
+                    WebSocket.ConnectionType.SERVICE -> connections.first {
+                        it.type == WebSocket.ConnectionType.CLIENT && it.session.isActive
                     }
                     else -> connections.first {
-                        it.type == WebSocket.Type.SERVICE && it.session.isActive
+                        it.type == WebSocket.ConnectionType.SERVICE && it.session.isActive
                     }
                 }
 
                 toConnection.session.send(message.toFrame())
 
-                log.info("${message.type.name} -> ${toConnection.type.name}")
+                log.info("${fromConnection.type.name} -> ${toConnection.type.name}")
             }
 
             connections.removeAll { !it.session.isActive }
