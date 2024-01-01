@@ -6,12 +6,12 @@ services:
       context: ./
       dockerfile: ./service/Dockerfile
     expose:
-      - 8080
+      - ${SERVER_PORT}
     env_file: ./service/.env
     volumes:
-      - ${DB_DIR}:/app/db
+      - ${DATABASE_DIR}:/app/db
     labels:
-      - traefik.http.routers.ws.rule=Host(`${HOST}`)
+      - traefik.http.routers.ws.rule=Host(`${SERVER_HOST}`)
       - traefik.http.routers.ws.tls=${TLS_ENABLE}
   chain-pass-proxy:
     image: traefik
