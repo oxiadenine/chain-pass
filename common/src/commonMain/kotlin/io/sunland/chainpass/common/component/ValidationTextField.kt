@@ -45,11 +45,11 @@ fun ValidationTextField(
     }
 
     TextField(
-        value = textFieldValueState.value,
+        value = textFieldValueState.value.copy(text = value),
         onValueChange = { textFieldValue ->
-            textFieldValueState.value = textFieldValue
-
             onValueChange(textFieldValue.text)
+
+            textFieldValueState.value = textFieldValue
         },
         modifier = modifier,
         enabled = enabled,
