@@ -48,15 +48,7 @@ android {
             isDebuggable = true
         }
         named("release") {
-            isMinifyEnabled = true
-            isShrinkResources = true
             signingConfig = signingConfigs["release"]
-
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"),"proguard-rules.pro")
         }
-    }
-
-    packagingOptions {
-        resources.excludes.add("META-INF/INDEX.LIST")
     }
 }
