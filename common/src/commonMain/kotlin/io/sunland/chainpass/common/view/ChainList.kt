@@ -60,14 +60,19 @@ fun ChainList(
                             isError = keyInputErrorState.value,
                             onDismissRequest = { keyInputDialogVisible.value = false },
                             onConfirmRequest = {
-                                runCatching { chain.key.validate(keyInputState.value) }
+                                val selectedChain = Chain().apply {
+                                    id = chain.id
+                                    name = chain.name
+                                }
+
+                                runCatching { selectedChain.setKey(keyInputState.value) }
                                     .onSuccess { keyInputErrorState.value = false }
                                     .onFailure { keyInputErrorState.value = true }
 
                                 if (!keyInputErrorState.value) {
                                     keyInputDialogVisible.value = false
 
-                                    onItemSelect(chain)
+                                    onItemSelect(selectedChain)
                                 }
                             }
                         )

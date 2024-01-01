@@ -5,7 +5,7 @@ enum class ChainStatus { ACTUAL, DRAFT }
 class Chain {
     class Key(val value: String) {
         fun validate(key: String) = if (value != key) {
-            throw IllegalArgumentException("${::Key.name} values doesn't match")
+            throw IllegalArgumentException("Key is not valid")
         } else Unit
     }
 
@@ -14,12 +14,8 @@ class Chain {
         set(value) {
             field = value
 
-            if (value.isEmpty()) {
-                throw IllegalArgumentException("${::name.name} can't be empty")
-            }
-
-            if (value.length > 16) {
-                throw IllegalArgumentException("${::name.name} length can't be greater than 16")
+            if (value.isEmpty() || value.length > 16) {
+                throw IllegalArgumentException("Name can't be empty or greater than 16 characters")
             }
         }
     var key: Key = Key("")
@@ -29,12 +25,8 @@ class Chain {
     fun setKey(value: String) {
         key = Key(value)
 
-        if (value.isEmpty()) {
-            throw IllegalArgumentException("${::key.name} can't be empty")
-        }
-
-        if (value.length > 32) {
-            throw IllegalArgumentException("${::key.name} length can't be greater than 32")
+        if (value.isEmpty() || value.length > 32) {
+            throw IllegalArgumentException("Key can't be empty or greater than 32 characters")
         }
     }
 }
