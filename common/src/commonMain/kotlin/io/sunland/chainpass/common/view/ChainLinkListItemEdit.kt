@@ -56,7 +56,6 @@ fun ChainLinkListItemEdit(password: String, chainLink: ChainLink, onIconDoneClic
             } else null,
             isError = passwordErrorState.value,
             singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.Transparent,
                 focusedIndicatorColor = Color.Transparent,
