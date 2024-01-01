@@ -19,7 +19,7 @@ actual fun PopupText(alignment: Alignment, offset: IntOffset, text: String) =
             Text(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                 text = text,
-                fontSize = 12.sp
+                fontSize = 14.sp
             )
         }
     }
