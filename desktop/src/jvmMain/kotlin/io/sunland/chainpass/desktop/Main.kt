@@ -1,5 +1,8 @@
 package io.sunland.chainpass.desktop
 
+import androidx.compose.foundation.DefaultContextMenuRepresentation
+import androidx.compose.foundation.LocalContextMenuRepresentation
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
@@ -19,7 +22,13 @@ fun main() {
         ) {
             window.minimumSize = Dimension(360, 480)
 
-            App(settingsManager, database, storage)
+            CompositionLocalProvider(
+                LocalContextMenuRepresentation provides DefaultContextMenuRepresentation(
+                    backgroundColor = Theme.Palette.ANTHRACITE.color,
+                    textColor = Theme.Palette.QUARTZ.color,
+                    itemHoverColor = Theme.Palette.ANTHRACITE.color
+                )
+            ) { App(settingsManager, database, storage) }
         }
     }
 }
