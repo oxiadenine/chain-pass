@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.*
 import io.sunland.chainpass.common.component.PopupText
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -52,7 +53,7 @@ fun ChainLinkList(
 
                     isInputDialogVisibleState.value = false
 
-                    coroutineScope.launch {
+                    coroutineScope.launch(Dispatchers.IO) {
                         isWorkInProgressState.value = true
 
                         viewModel.store(storeOptions).onSuccess { fileName ->
@@ -75,7 +76,7 @@ fun ChainLinkList(
 
                     isInputDialogVisibleState.value = false
 
-                    coroutineScope.launch {
+                    coroutineScope.launch(Dispatchers.IO) {
                         isWorkInProgressState.value = true
 
                         viewModel.unstore(filePath).onSuccess {
@@ -106,8 +107,12 @@ fun ChainLinkList(
     }
 
     LaunchedEffect(Unit) {
+        isWorkInProgressState.value = true
+
         viewModel.chain = navigationState.chainState.value
         viewModel.getAll()
+
+        isWorkInProgressState.value = false
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -129,7 +134,7 @@ fun ChainLinkList(
                 onSync = {
                     snackbarHostState.currentSnackbarData?.performAction()
 
-                    coroutineScope.launch {
+                    coroutineScope.launch(Dispatchers.IO) {
                         if (settingsState.value.deviceAddress.isEmpty()) {
                             snackbarHostState.showSnackbar("You have to set sync options on Settings")
                         } else {
@@ -201,13 +206,21 @@ fun ChainLinkList(
                                 ChainLink.Status.ACTUAL -> {
                                     ChainLinkListItem(
                                         chainLink = chainLink,
-                                        onEdit = { viewModel.startEdit(chainLink) },
+                                        onEdit = {
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                isWorkInProgressState.value = true
+
+                                                viewModel.startEdit(chainLink)
+
+                                                isWorkInProgressState.value = false
+                                            }
+                                        },
                                         onDelete = {
                                             snackbarHostState.currentSnackbarData?.dismiss()
 
-                                            viewModel.removeLater(chainLink)
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                viewModel.removeLater(chainLink)
 
-                                            coroutineScope.launch {
                                                 when (snackbarHostState.showSnackbar(
                                                     message = "${chainLink.name.value} removed",
                                                     actionLabel = "Dismiss",
@@ -223,7 +236,7 @@ fun ChainLinkList(
 
                                             clipboardManager.setText(AnnotatedString(password))
 
-                                            coroutineScope.launch {
+                                            coroutineScope.launch(Dispatchers.IO) {
                                                 popupMessageState.value = "Password copied"
                                                 isPopupVisibleState.value = true
 
@@ -238,14 +251,30 @@ fun ChainLinkList(
                                 ChainLink.Status.DRAFT -> key(chainLink.id) {
                                     ChainLinkListItemDraft(
                                         chainLink = chainLink,
-                                        onNew = { viewModel.new(chainLink) },
+                                        onNew = {
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                isWorkInProgressState.value = true
+
+                                                viewModel.new(chainLink)
+
+                                                isWorkInProgressState.value = false
+                                            }
+                                        },
                                         onCancel = { viewModel.rejectDraft(chainLink) }
                                     )
                                 }
                                 ChainLink.Status.EDIT -> key(chainLink.id) {
                                     ChainLinkListItemEdit(
                                         chainLink = chainLink,
-                                        onEdit = { viewModel.edit(chainLink) },
+                                        onEdit = {
+                                            coroutineScope.launch(Dispatchers.IO) {
+                                                isWorkInProgressState.value = true
+
+                                                viewModel.edit(chainLink)
+
+                                                isWorkInProgressState.value = false
+                                            }
+                                        },
                                         onCancel = { viewModel.cancelEdit(chainLink) }
                                     )
                                 }

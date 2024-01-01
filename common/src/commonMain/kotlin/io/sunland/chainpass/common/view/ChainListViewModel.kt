@@ -225,7 +225,7 @@ class ChainListViewModel(
     suspend fun sync(deviceAddress: String) = runCatching {
         val webSocket = WebSocket.connect(deviceAddress)
 
-        ChainApi(chainRepository, chainLinkRepository, webSocket).sync()
+        ChainApi(chainRepository, chainLinkRepository, webSocket).sync().getOrThrow()
     }
 
     private fun update() {
