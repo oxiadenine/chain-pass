@@ -142,7 +142,11 @@ fun App(
                                         modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
                                         verticalArrangement = Arrangement.spacedBy(space = 4.dp)
                                     ) {
-                                        Text(text = platform.name.lowercase().replaceFirstChar { it.uppercase() })
+                                        Text(text = System.getProperty("os.name")?.let { osName ->
+                                            if (platform == Platform.ANDROID) {
+                                                platform.name.lowercase().replaceFirstChar { it.uppercase() }
+                                            } else osName
+                                        } ?: platform.name.lowercase().replaceFirstChar { it.uppercase() })
                                         Text(
                                             text = hostAddress.ifEmpty { intl.translate("drawer.network.text") },
                                             fontSize = 14.sp
