@@ -1,6 +1,6 @@
 FROM openjdk:11
 
-RUN mkdir -p /app
+RUN mkdir -p /app/db
 
 COPY service/build/libs/chain-pass-service.jar /app
 
