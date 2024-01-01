@@ -203,6 +203,8 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                             }
                         },
                         onDisconnect = {
+                            scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+
                             settingsFactory.delete(appState.serverAddressState.value).let {
                                 appState.serverAddressState.value = ServerAddress()
                                 appState.httpClientState.value.close()
