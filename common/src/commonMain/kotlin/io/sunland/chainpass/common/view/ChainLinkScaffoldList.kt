@@ -245,7 +245,7 @@ fun ChainLinkScaffoldList(
                                     isInputDialogVisibleState.value = true
                                 }
                             },
-                            onDelete = {
+                            onRemove = {
                                 scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
 
                                 coroutineScope.launch(Dispatchers.IO) {
