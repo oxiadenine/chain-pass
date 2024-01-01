@@ -24,7 +24,7 @@ actual fun InputDialog(
     isError: Boolean,
     onDismissRequest: () -> Unit,
     onConfirmRequest: () -> Unit
-) = UndecoratedWindowAlertDialogProvider.AlertDialog(onDismissRequest) {
+) = PopupAlertDialogProvider.AlertDialog(onDismissRequest) {
     title ?: Text("")
     Column(
         modifier = Modifier.size(width = 300.dp, height = 150.dp).padding(horizontal = 16.dp).padding(top = 32.dp),
