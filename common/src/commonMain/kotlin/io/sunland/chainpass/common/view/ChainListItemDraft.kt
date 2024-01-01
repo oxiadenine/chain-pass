@@ -27,45 +27,41 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
+import io.sunland.chainpass.common.component.ValidationTextField
 import io.sunland.chainpass.common.security.GeneratorSpec
 import io.sunland.chainpass.common.security.PasswordGenerator
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
-    val keyGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
-
-    val focusManager = LocalFocusManager.current
-    val focusRequester = remember { FocusRequester() }
-
     val nameState = mutableStateOf(chain.name.value)
-    val nameErrorState = mutableStateOf(!chain.name.isValid)
+    val nameValidationState = mutableStateOf(chain.name.validation)
 
     val keyState = mutableStateOf(chain.key.value)
-    val keyErrorState = mutableStateOf(!chain.key.isValid)
+    val keyValidationState = mutableStateOf(chain.key.validation)
 
     val onNameChange = { value: String ->
         chain.name = Chain.Name(value)
 
         nameState.value = chain.name.value
-        nameErrorState.value = !chain.name.isValid
+        nameValidationState.value = chain.name.validation
     }
 
     val onKeyChange = { value: String ->
         chain.key = Chain.Key(value)
 
         keyState.value = chain.key.value
-        keyErrorState.value = !chain.key.isValid
+        keyValidationState.value = chain.key.validation
     }
 
     val onDone = {
         chain.name = Chain.Name(nameState.value)
         chain.key = Chain.Key(keyState.value)
 
-        nameErrorState.value = !chain.name.isValid
-        keyErrorState.value = !chain.key.isValid
+        nameValidationState.value = chain.name.validation
+        keyValidationState.value = chain.key.validation
 
-        if (!nameErrorState.value && !keyErrorState.value) {
+        if (nameValidationState.value.isSuccess && keyValidationState.value.isSuccess) {
             onIconDoneClick()
         }
     }
@@ -85,51 +81,60 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
                 onClick = onIconClearClick
             ) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
         }
-        TextField(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp).focusRequester(focusRequester),
-            placeholder = { Text(text = "Name") },
-            value = nameState.value,
-            onValueChange = onNameChange,
-            trailingIcon = if (nameErrorState.value) {
-                { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
-            } else null,
-            isError = nameErrorState.value,
-            singleLine = true,
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent
-            ),
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
-        )
-        TextField(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
-            placeholder = { Text(text = "Key") },
-            value = keyState.value,
-            onValueChange = onKeyChange,
-            leadingIcon = {
-                IconButton(
-                    modifier = Modifier.padding(horizontal = 2.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = { onKeyChange(keyGenerator.generate()) }
-                ) { Icon(imageVector = Icons.Default.Build, contentDescription = null) }
-            },
-            trailingIcon = if (keyErrorState.value) {
-                { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
-            } else null,
-            isError = keyErrorState.value,
-            singleLine = true,
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                errorIndicatorColor = Color.Transparent
-            ),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            keyboardActions = KeyboardActions(onDone = { onDone() })
-        )
-    }
+        Column(modifier = Modifier.padding(horizontal = 4.dp)) {
+            val focusManager = LocalFocusManager.current
+            val focusRequester = remember { FocusRequester() }
 
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
+            val keyGenerator = PasswordGenerator(GeneratorSpec.Strength(16))
+
+            ValidationTextField(
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
+                placeholder = { Text(text = "Name") },
+                value = nameState.value,
+                onValueChange = onNameChange,
+                trailingIcon = if (nameValidationState.value.isFailure) {
+                    { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
+                } else null,
+                isError = nameValidationState.value.isFailure,
+                errorMessage = nameValidationState.value.exceptionOrNull()?.message,
+                singleLine = true,
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent
+                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
+            )
+            ValidationTextField(
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(text = "Key") },
+                value = keyState.value,
+                onValueChange = onKeyChange,
+                leadingIcon = {
+                    IconButton(
+                        modifier = Modifier.padding(horizontal = 2.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        onClick = { onKeyChange(keyGenerator.generate()) }
+                    ) { Icon(imageVector = Icons.Default.Build, contentDescription = null) }
+                },
+                trailingIcon = if (keyValidationState.value.isFailure) {
+                    { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
+                } else null,
+                isError = keyValidationState.value.isFailure,
+                errorMessage = keyValidationState.value.exceptionOrNull()?.message,
+                singleLine = true,
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    errorIndicatorColor = Color.Transparent
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                keyboardActions = KeyboardActions(onDone = { onDone() })
+            )
+
+            LaunchedEffect(Unit) { focusRequester.requestFocus() }
+        }
+    }
 }

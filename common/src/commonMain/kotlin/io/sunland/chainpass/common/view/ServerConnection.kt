@@ -22,27 +22,36 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Settings
+import io.sunland.chainpass.common.component.ValidationTextField
 
 class ServerAddress : Settings {
     class Host(value: String? = null) {
         var value = value ?: ""
             private set
 
-        val isValid = value?.let {
-            value.isNotEmpty() &&
-                    (value.matches("^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\\-]*[A-Za-z0-9])$".toRegex()) ||
-                            value.matches("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$".toRegex()))
-        } ?: true
+        val validation = value?.let {
+            println(value)
+            if (value.isEmpty()) {
+                Result.failure(IllegalArgumentException("Host is empty"))
+            } else if (!value.matches("^(([a-zA-Z]|[a-zA-Z][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*([A-Za-z]|[A-Za-z][A-Za-z0-9\\-]*[A-Za-z0-9])$".toRegex()) &&
+                !value.matches("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$".toRegex())
+            ) {
+                Result.failure(IllegalArgumentException("Host is not a valid hostname or IP address"))
+            } else Result.success(value)
+        } ?: Result.success(this.value)
     }
 
     class Port(value: String? = null) {
         var value = value ?: ""
             private set
 
-        val isValid = value?.let {
-            value.isNotEmpty() &&
-                    value.matches("^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$".toRegex())
-        } ?: true
+        val validation = value?.let {
+            if (value.isEmpty()) {
+                Result.failure(IllegalArgumentException("Port is empty"))
+            } else if (!value.matches("^([1-9][0-9]{0,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$".toRegex())) {
+                Result.failure(IllegalArgumentException("Port is not a valid port number"))
+            } else Result.success(value)
+        } ?: Result.success(this.value)
     }
 
     enum class Protocol { WS, WSS }
@@ -69,13 +78,11 @@ class ServerAddress : Settings {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddress) -> Unit) {
-    val focusRequester = FocusRequester()
-
     val hostState = mutableStateOf(serverAddress.host.value)
-    val hostErrorState = mutableStateOf(!serverAddress.host.isValid)
+    val hostValidationState = mutableStateOf(serverAddress.host.validation)
 
     val portState = mutableStateOf(serverAddress.port.value)
-    val portErrorState = mutableStateOf(!serverAddress.port.isValid)
+    val portValidationState = mutableStateOf(serverAddress.port.validation)
 
     val secureState = mutableStateOf(serverAddress.protocol != ServerAddress.Protocol.WS)
 
@@ -83,14 +90,14 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
         serverAddress.host = ServerAddress.Host(host)
 
         hostState.value = serverAddress.host.value
-        hostErrorState.value = !serverAddress.host.isValid
+        hostValidationState.value = serverAddress.host.validation
     }
 
     val onPortChange = { port: String ->
         serverAddress.port = ServerAddress.Port(port)
 
         portState.value = serverAddress.port.value
-        portErrorState.value = !serverAddress.port.isValid
+        portValidationState.value = serverAddress.port.validation
     }
 
     val onSecureCheckedChange = { isSecure: Boolean ->
@@ -103,7 +110,7 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
 
     Box(modifier = Modifier.fillMaxSize()) {
         TopAppBar(
-            modifier = Modifier.align(Alignment.TopStart),
+            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
             title = { Text(text = "Chain Pass") },
             actions = {
                 IconButton(
@@ -115,28 +122,31 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
                             ServerAddress.Protocol.WS
                         } else ServerAddress.Protocol.WSS
 
-                        hostErrorState.value = !serverAddress.port.isValid
-                        portErrorState.value = !serverAddress.host.isValid
+                        hostValidationState.value = serverAddress.host.validation
+                        portValidationState.value = serverAddress.port.validation
 
-                        if (!hostErrorState.value && !portErrorState.value) {
+                        if (hostValidationState.value.isSuccess && portValidationState.value.isSuccess) {
                             onIconDoneClick(serverAddress)
                         }
                     }
                 ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
             }
         )
-        Column(modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(
+            modifier = Modifier.fillMaxWidth(fraction = 0.6f).align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val focusRequester = FocusRequester()
+
             Text(modifier = Modifier.padding(vertical = 32.dp), text = "Server Address", fontWeight = FontWeight.Bold)
-            TextField(
-                modifier = Modifier.focusRequester(focusRequester),
+            ValidationTextField(
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                 placeholder = { Text(text = "Host") },
                 value = hostState.value,
                 onValueChange = onHostChange,
                 singleLine = true,
-                trailingIcon = if (hostErrorState.value) {
-                    { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
-                } else null,
-                isError = hostErrorState.value,
+                isError = hostValidationState.value.isFailure,
+                errorMessage = hostValidationState.value.exceptionOrNull()?.message,
                 colors = TextFieldDefaults.textFieldColors(
                     backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
@@ -145,15 +155,17 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
-            TextField(
+            ValidationTextField(
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text(text = "Port") },
                 value = portState.value,
                 onValueChange = onPortChange,
                 singleLine = true,
-                trailingIcon = if (portErrorState.value) {
+                trailingIcon = if (portValidationState.value.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = portErrorState.value,
+                isError = portValidationState.value.isFailure,
+                errorMessage = portValidationState.value.exceptionOrNull()?.message,
                 colors = TextFieldDefaults.textFieldColors(
                     backgroundColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
@@ -163,6 +175,7 @@ fun ServerConnection(serverAddress: ServerAddress, onIconDoneClick: (ServerAddre
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next)
             )
             Row(
+                modifier = Modifier.padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(space = 8.dp)
             ) {

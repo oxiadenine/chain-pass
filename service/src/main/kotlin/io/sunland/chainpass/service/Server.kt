@@ -74,7 +74,7 @@ fun Application.main() {
                             PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
                         }.getOrThrow()
 
-                        Chain.Key(key).matches(chainKeyEntity.key)
+                        Chain.Key(key).matches(chainKeyEntity.key).getOrThrow()
                     }
                     .mapCatching { ChainDataRepository.delete(chainKeyEntity).getOrThrow() }
                     .fold(
@@ -119,7 +119,7 @@ fun Application.main() {
                             PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
                         }.getOrThrow()
 
-                        Chain.Key(key).matches(chainLinkEntity.chainKey.key)
+                        Chain.Key(key).matches(chainLinkEntity.chainKey.key).getOrThrow()
                     }
                     .mapCatching { ChainLinkDataRepository.create(chainLinkEntity).getOrThrow() }
                     .fold(
@@ -150,7 +150,7 @@ fun Application.main() {
                             PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
                         }.getOrThrow()
 
-                        Chain.Key(key).matches(chainKeyEntity.key)
+                        Chain.Key(key).matches(chainKeyEntity.key).getOrThrow()
                     }
                     .mapCatching { ChainLinkDataRepository.read(chainKeyEntity).getOrThrow() }
                     .fold(
@@ -177,7 +177,7 @@ fun Application.main() {
                             PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
                         }.getOrThrow()
 
-                        Chain.Key(key).matches(chainLinkEntity.chainKey.key)
+                        Chain.Key(key).matches(chainLinkEntity.chainKey.key).getOrThrow()
                     }
                     .mapCatching { ChainLinkDataRepository.update(chainLinkEntity).getOrThrow() }
                     .fold(
@@ -204,7 +204,7 @@ fun Application.main() {
                             PasswordEncoder.hash(EncoderSpec.Passphrase(chainEntity.key, key.key))
                         }.getOrThrow()
 
-                        Chain.Key(key).matches(chainLinkEntity.chainKey.key)
+                        Chain.Key(key).matches(chainLinkEntity.chainKey.key).getOrThrow()
                     }
                     .mapCatching { ChainLinkDataRepository.delete(chainLinkEntity) }
                     .fold(
