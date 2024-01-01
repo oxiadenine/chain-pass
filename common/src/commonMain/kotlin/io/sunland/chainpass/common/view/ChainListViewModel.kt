@@ -18,9 +18,11 @@ class ChainListViewModel(private val repository: ChainRepository) {
     private var chains = emptyList<Chain>()
 
     fun draft() {
-        val chain = Chain().apply {
-            id = chainListState.maxOf { chain -> chain.id } + 1
-        }
+        val chain =  if (!chainListState.isEmpty()) {
+            Chain().apply {
+                id = chainListState.maxOf { chain -> chain.id } + 1
+            }
+        } else Chain()
 
         chainListState.add(chain)
     }

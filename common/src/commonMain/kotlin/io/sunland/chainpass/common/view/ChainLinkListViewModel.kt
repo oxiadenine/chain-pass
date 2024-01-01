@@ -25,9 +25,11 @@ class ChainLinkListViewModel(
     private var chainLinks = emptyList<ChainLink>()
 
     fun draft() {
-        val chainLink = ChainLink().apply {
-            id = chainLinkListState.maxOf { chainLink -> chainLink.id } + 1
-        }
+        val chainLink = if (!chainLinkListState.isEmpty()) {
+            ChainLink().apply {
+                id = chainLinkListState.maxOf { chainLink -> chainLink.id } + 1
+            }
+        } else ChainLink()
 
         chainLinkListState.add(chainLink)
     }
