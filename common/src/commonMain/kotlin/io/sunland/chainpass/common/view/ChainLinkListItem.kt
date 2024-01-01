@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIconDefaults
@@ -27,9 +28,13 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
     val passwordVisibleState = remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name.value)
-            Row {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(all = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(modifier = Modifier.padding(start = 14.dp), text = chainLink.name.value)
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 IconButton(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = onIconEditClick
@@ -41,10 +46,18 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
             }
         }
         if (chainLink.description.value.isNotEmpty()) {
-            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.description.value, fontSize = 14.sp)
+            Text(
+                modifier = Modifier.padding(all = 18.dp),
+                text = chainLink.description.value,
+                fontSize = 14.sp
+            )
         }
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SelectionContainer(Modifier.padding(all = 16.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SelectionContainer(modifier = Modifier.padding(start = 14.dp)) {
                 if (passwordVisibleState.value) {
                     Text(text = chainLink.password.value)
                 } else DisableSelection {
