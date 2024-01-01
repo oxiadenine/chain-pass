@@ -28,9 +28,17 @@ fun Storable.toString(storageType: StorageType) = when (storageType) {
     StorageType.CSV -> buildString {
         val data = this@toString.values.flatten()
 
-        append("${data.flatMap { it.keys }.toSet().joinToString(",")}\n")
+        val header = data.flatMap { it.keys }.toSet().joinToString(",")
 
-        data.forEach { append("${it.values.joinToString(",")}\n") }
+        append("$header\n")
+
+        val records = data.map {
+            it.values.joinToString(",") { field ->
+                "\"${field.replace("\"", "\"\"")}\""
+            }
+        }
+
+        records.forEach { record -> append("$record\n") }
     }
     StorageType.TXT -> buildString { append(this@toString.values.flatten()) }
 }
