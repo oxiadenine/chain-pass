@@ -17,8 +17,8 @@ fun main(args: Array<String>) {
     val appConfig = args.joinToString { env -> "application.$env" }.ifEmpty { "application" }
         .let { name -> ConfigFactory.load(name) }
         .let { config ->
-            if (config.getString("server.discovery").isEmpty()) {
-                config.withValue("server.discovery", ConfigValueFactory.fromAnyRef(
+            if (config.getString("server.discoveryAddress").isEmpty()) {
+                config.withValue("server.discoveryAddress", ConfigValueFactory.fromAnyRef(
                     "${DiscoverySocket.getLocalHost()}:${config.getString("server.port")}")
                 )
             } else config
@@ -40,13 +40,14 @@ fun main(args: Array<String>) {
 
     if (isTraySupported) {
         application {
-            val discovery = appConfig.property("server.discovery").getString()
+            val discoveryAddress = appConfig.property("server.discoveryAddress").getString()
 
             Tray(
                 icon = painterResource("icon.png"),
                 menu = {
-                    Item(text = discovery, onClick = {
-                        Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(discovery), null)
+                    Item(text = discoveryAddress, onClick = {
+                        Toolkit.getDefaultToolkit().systemClipboard
+                            .setContents(StringSelection(discoveryAddress), null)
                     })
                     Item(text = "Exit", onClick = {
                         server.stop(0, 0)

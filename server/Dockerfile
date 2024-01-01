@@ -1,15 +1,24 @@
-FROM openjdk:11
+FROM gradle:7.4.2-jdk11-alpine AS build
 
-ARG version
-ARG buildDir
+WORKDIR /home/gradle/src
 
-ENV VERSION=$version
-ENV BUILD_DIR=$buildDir
+COPY . .
 
-RUN mkdir -p /app/db
+RUN chown -R gradle:gradle ./ && gradle server:fatJar --no-daemon
 
-COPY $BUILD_DIR/chain-pass-server-$VERSION.jar /app
+FROM eclipse-temurin:11-alpine AS  run
+
+RUN addgroup java && adduser java -DHG java
 
 WORKDIR /app
 
-ENTRYPOINT java -jar chain-pass-server-$VERSION.jar
+COPY --from=build /home/gradle/src/server/build/libs/chain-pass-server.jar ./
+
+RUN mkdir ./db && chown -R java:java /app
+
+USER java
+
+EXPOSE 8080
+EXPOSE 8888/udp
+
+ENTRYPOINT ["java", "-jar", "chain-pass-server.jar"]

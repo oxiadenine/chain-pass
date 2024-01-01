@@ -15,13 +15,7 @@ kotlin {
             }
         }
     }
-    android {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = JavaVersion.VERSION_11.toString()
-            }
-        }
-    }
+    android()
 
     sourceSets {
         commonMain {
@@ -51,7 +45,11 @@ kotlin {
             }
         }
 
-        named("desktopMain")
+        named("desktopMain") {
+            dependencies {
+                api(compose.desktop.common)
+            }
+        }
         named("desktopTest") {
             dependencies {
                 implementation(kotlin("test"))
@@ -81,8 +79,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility(JavaVersion.VERSION_11)
-        targetCompatibility(JavaVersion.VERSION_11)
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 
     sourceSets {
