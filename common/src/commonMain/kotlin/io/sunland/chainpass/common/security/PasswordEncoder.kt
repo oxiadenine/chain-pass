@@ -20,6 +20,11 @@ object EncoderSpec {
 }
 
 expect object PasswordEncoder {
+    object Base64 {
+        fun encode(text: ByteArray): String
+        fun decode(text: String): ByteArray
+    }
+
     fun hash(passphrase: EncoderSpec.Passphrase): String
 
     fun encrypt(passphrase: EncoderSpec.Passphrase, password: String): String
