@@ -56,7 +56,7 @@ class Storage(dirPath: String) {
 }
 
 @Serializable
-data class StorableOptions(val isPrivate: Boolean, val isSingle: Boolean)
+data class StorableOptions(val isPrivate: Boolean)
 
 @Serializable
 data class StorableChain(val name: String, val key: String, val chainLinks: List<StorableChainLink>)
@@ -134,31 +134,64 @@ fun Storable.toString(storageType: StorageType) = when (storageType) {
 fun String.toStorable(storageType: StorageType) = when (storageType) {
     StorageType.JSON -> Json.decodeFromString(this)
     StorageType.CSV -> {
+        val optionsHeader = StorableOptions::class.primaryConstructor!!.parameters
+            .map { parameter -> parameter.name!! }
+
+        val chainHeader = StorableChain::class.primaryConstructor!!.parameters
+            .dropLast(1).map { property -> property.name!! }
+
+        val chainLinkHeader = StorableChainLink::class.primaryConstructor!!.parameters
+            .map { property -> property.name!! }
+
         val data = split("\n")
 
-        val optionsRecord = data[1].split(",")
+        var record = data[0].split(",")
 
-        val chainRecord = data[3].split(",").map { value ->
-            value.replace("\"", "")
+        val storableOptions = if (record.size == optionsHeader.size && record[0] == optionsHeader[0]) {
+            val optionsRecord = data[1].split(",")
+
+            StorableOptions(optionsRecord[0].toBoolean())
+        } else throw IllegalArgumentException("Invalid $storageType format")
+
+        val storableChains = mutableListOf<StorableChain>()
+
+        for (i in 2 until data.size - 1) {
+            record = data[i].split(",")
+
+            if (record.size == chainHeader.size && record[0] == chainHeader[0] && record[1] == chainHeader[1]) {
+                record = data[i + 1].split(",")
+
+                val chainRecord = record.map { value ->
+                    value.replace("\"", "")
+                }
+
+                record = data[i + 2].split(",")
+
+                val storableChainLinks = mutableListOf<StorableChainLink>()
+
+                if (record.size == chainLinkHeader.size && record[0] == chainLinkHeader[0] &&
+                    record[1] == chainLinkHeader[1] && record[2] == chainLinkHeader[2]) {
+
+                    for (j in i + 3 until data.size - 1) {
+                        record = data[j].split(",")
+
+                        if (record.size == 3) {
+                            val chainLinkRecord = record.map { value ->
+                                value.replace("\"", "")
+                            }
+
+                            storableChainLinks.add(
+                                StorableChainLink(chainLinkRecord[0], chainLinkRecord[1], chainLinkRecord[2])
+                            )
+                        } else break
+                    }
+                }
+
+                storableChains.add(StorableChain(chainRecord[0], chainRecord[1], storableChainLinks))
+            } else continue
         }
 
-        val chainLinkRecords = mutableListOf<Array<String>>()
-
-        for (i in 5 until data.size - 1) {
-            val chainLinkRecord = data[i].split(",").map { value ->
-                value.replace("\"", "")
-            }
-
-            chainLinkRecords.add(chainLinkRecord.toTypedArray())
-        }
-
-        val storableOptions = StorableOptions(optionsRecord[0].toBoolean(), optionsRecord[1].toBoolean())
-        val storableChainLinks = chainLinkRecords.map { chainLinkRecord ->
-            StorableChainLink(chainLinkRecord[0], chainLinkRecord[1], chainLinkRecord[2])
-        }
-        val storableChain = StorableChain(chainRecord[0], chainRecord[1], storableChainLinks)
-
-        Storable(storableOptions, listOf(storableChain))
+        Storable(storableOptions, storableChains)
     }
     else -> throw IllegalArgumentException("Storage type $storageType is not supported")
 }

@@ -286,8 +286,7 @@ fun ChainList(
                 }
             },
             onCancel = { unstoreDialogVisible = false },
-            title = "Unstore",
-            isSingle = false
+            title = "Unstore"
         )
     }
 
