@@ -12,12 +12,10 @@ import kotlin.reflect.full.primaryConstructor
 
 enum class StorageType { JSON, CSV, TXT }
 
-class Storage(dirPath: String) {
-    val storeDirPath = "$dirPath/Chain Pass/Store"
-
+class Storage(val storeDirPath: String) {
     init {
         if (!File(storeDirPath).exists()) {
-            File(storeDirPath).mkdirs()
+            File(storeDirPath).mkdir()
         }
     }
 

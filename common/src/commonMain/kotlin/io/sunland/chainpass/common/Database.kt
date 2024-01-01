@@ -27,9 +27,9 @@ object ChainLinkTable : Table("chain_link") {
 
 class Database private constructor(private val connection: Database) {
     companion object {
-        fun create(dataDir: String): io.sunland.chainpass.common.Database {
+        fun create(dataDirPath: String): io.sunland.chainpass.common.Database {
             val connection = Database.connect(
-                url = "jdbc:h2:$dataDir/chain_pass;FILE_LOCK=FS",
+                url = "jdbc:h2:$dataDirPath/chain_pass;FILE_LOCK=FS",
                 driver = "org.h2.Driver",
                 user = "chain_pass",
                 password = "chain_pass",
