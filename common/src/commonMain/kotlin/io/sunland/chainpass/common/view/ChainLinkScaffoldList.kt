@@ -256,8 +256,8 @@ fun ChainLinkScaffoldList(
                                         actionLabel = "Undo",
                                         duration = SnackbarDuration.Short
                                     )) {
-                                        SnackbarResult.ActionPerformed -> viewModel.undoRemove(chainLink)
-                                        SnackbarResult.Dismissed -> viewModel.remove(chainLink)
+                                        SnackbarResult.ActionPerformed -> viewModel.undoRemove()
+                                        SnackbarResult.Dismissed -> viewModel.remove()
                                     }
                                 }
                             },
@@ -294,11 +294,9 @@ fun ChainLinkScaffoldList(
         if (isInputDialogVisibleState.value) {
             when (chainLinkListActionState.value) {
                 ChainLinkListAction.NEW -> {
-                    val chainLink = viewModel.draft()
-
                     ChainLinkListItemNewInput(
-                        chainLink = chainLink,
-                        onNew = {
+                        chainLink = viewModel.draft(),
+                        onNew = { chainLink ->
                             isInputDialogVisibleState.value = false
 
                             coroutineScope.launch(Dispatchers.IO) {
@@ -313,17 +311,15 @@ fun ChainLinkScaffoldList(
                     )
                 }
                 ChainLinkListAction.EDIT -> {
-                    val chainLink = viewModel.chainLinkSelected!!
-
                     ChainLinkListItemEditInput(
-                        chainLink = chainLink,
+                        chainLink = viewModel.chainLinkEdited!!,
                         onEdit = {
                             isInputDialogVisibleState.value = false
 
                             coroutineScope.launch(Dispatchers.IO) {
                                 isLoadingIndicatorVisibleState.value = true
 
-                                viewModel.edit(chainLink)
+                                viewModel.edit()
 
                                 isLoadingIndicatorVisibleState.value = false
                             }
@@ -331,7 +327,7 @@ fun ChainLinkScaffoldList(
                         onCancel = {
                             isInputDialogVisibleState.value = false
 
-                            viewModel.cancelEdit(chainLink)
+                            viewModel.cancelEdit()
                         }
                     )
                 }

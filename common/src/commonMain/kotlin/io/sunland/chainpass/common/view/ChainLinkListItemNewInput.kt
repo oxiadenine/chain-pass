@@ -31,7 +31,7 @@ import io.sunland.chainpass.common.component.ValidationTextField
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: () -> Unit, onCancel: () -> Unit) {
+fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: (ChainLink) -> Unit, onCancel: () -> Unit) {
     val nameState = remember { mutableStateOf(chainLink.name.value) }
     val nameValidationState = remember { mutableStateOf(chainLink.name.validation) }
 
@@ -74,7 +74,7 @@ fun ChainLinkListItemNewInput(chainLink: ChainLink, onNew: () -> Unit, onCancel:
         if (nameValidationState.value.isSuccess && descriptionValidationState.value.isSuccess &&
             passwordValidationState.value.isSuccess
         ) {
-            onNew()
+            onNew(chainLink)
         }
     }
 

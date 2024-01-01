@@ -24,22 +24,24 @@ class ChainListViewModel(
     var chainSelected: Chain? = null
         private set
 
-    private var chains = emptyList<Chain>()
+    private val chainsRemoved = mutableListOf<Chain>()
 
-    fun draft(): Chain {
-        chainSelected = Chain(passwordGenerator)
+    fun draft() = Chain(passwordGenerator)
 
-        return chainSelected!!
+    fun selectForKey(chain: Chain) {
+        chainSelected = Chain(chain)
     }
 
-    fun selectForKey(chain: Chain) = withSelection(chain)
-
-    fun removeLater(chainRemove: Chain) = withSelection(chainRemove) {
-        chainListState.removeIf { chain -> chain.id == chainRemove.id }
+    fun removeLater(chainKey: Chain.Key) {
+        if (chainListState.removeIf { chain -> chain.id == chainSelected!!.id }) {
+            chainsRemoved.add(Chain(chainSelected!!.apply { key = chainKey }))
+        }
     }
 
-    fun undoRemove(chainRemove: Chain) = withSelection(chainRemove) {
-        val chains = chainListState.plus(chainRemove.apply {
+    fun undoRemove() {
+        chainSelected = chainsRemoved.removeAt(0)
+
+        val chains = chainListState.plus(chainSelected!!.apply {
             key = Chain.Key()
         }).sortedBy { chain -> chain.name.value }
 
@@ -48,33 +50,38 @@ class ChainListViewModel(
     }
 
     fun getAll() {
-        chains = chainRepository.getAll().map { chainEntity ->
+        val chains = chainRepository.getAll().map { chainEntity ->
             Chain(passwordGenerator).apply {
                 id = chainEntity.id
                 name = Chain.Name(chainEntity.name)
             }
-        }
-
-        val chains = chains.map { chain -> Chain(chain) }.sortedBy { chain -> chain.name.value }
+        }.sortedBy { chain -> chain.name.value }
 
         chainListState.clear()
         chainListState.addAll(chains)
     }
 
-    fun new(chain: Chain) = withUpdate {
-        val secretKey = chain.secretKey()
-        val privateKey = chain.privateKey(secretKey)
+    fun new(chainDraft: Chain) {
+        val secretKey = chainDraft.secretKey()
+        val privateKey = chainDraft.privateKey(secretKey)
 
-        val chainEntity = ChainEntity(chain.id, chain.name.value, privateKey.value)
+        val chainEntity = ChainEntity(chainDraft.id, chainDraft.name.value, privateKey.value)
 
         chainRepository.create(chainEntity)
 
-        chain.key = Chain.Key()
+        chainDraft.key = Chain.Key()
 
-        chainListState.add(chain)
+        chainSelected = Chain(chainDraft)
+
+        val chains = chainListState.plus(chainSelected!!).sortedBy { chain -> chain.name.value }
+
+        chainListState.clear()
+        chainListState.addAll(chains)
     }
 
-    fun select(chain: Chain) = runCatching {
+    fun select(chainKey: Chain.Key) = runCatching {
+        val chain = chainSelected!!.apply { key = chainKey }
+
         val chainEntity = chainRepository.getOne(chain.id).getOrThrow()
 
         val secretKey = chain.secretKey()
@@ -87,21 +94,23 @@ class ChainListViewModel(
         }.validateKey(privateKey)
     }
 
-    fun remove(chain: Chain) = runCatching {
-        withUpdate {
-            val chainEntity = chainRepository.getOne(chain.id).getOrThrow()
+    fun remove() = runCatching {
+        val chain = chainsRemoved.first()
 
-            val secretKey = chain.secretKey()
-            val privateKey = chain.privateKey(secretKey)
+        val chainEntity = chainRepository.getOne(chain.id).getOrThrow()
 
-            Chain(passwordGenerator).apply {
-                id = chainEntity.id
-                name = Chain.Name(chainEntity.name)
-                key = Chain.Key(chainEntity.key)
-            }.validateKey(privateKey)
+        val secretKey = chain.secretKey()
+        val privateKey = chain.privateKey(secretKey)
 
-            chainRepository.delete(chain.id)
-        }
+        Chain(passwordGenerator).apply {
+            id = chainEntity.id
+            name = Chain.Name(chainEntity.name)
+            key = Chain.Key(chainEntity.key)
+        }.validateKey(privateKey)
+
+        chainRepository.delete(chain.id)
+
+        chainsRemoved.remove(chain)
     }
 
     fun store(storeOptions: StoreOptions) = runCatching {
@@ -185,26 +194,5 @@ class ChainListViewModel(
         val webSocket = WebSocket.connect(deviceAddress)
 
         ChainApi(chainRepository, chainLinkRepository, webSocket).sync().getOrThrow()
-    }
-
-    private fun withSelection(chain: Chain, action: () -> Unit = {}) {
-        chainSelected = chain
-
-        action()
-    }
-
-    private fun withUpdate(action: () -> Unit) {
-        action()
-
-        val chainsRemove = chains.filter { chain ->
-            !chainListState.any { chainToFind -> chain.id == chainToFind.id }
-        }
-
-        chains = chainListState.map { chain -> Chain(chain) }.plus(chainsRemove)
-
-        val chains = chainListState.sortedBy { chain -> chain.name.value }
-
-        chainListState.clear()
-        chainListState.addAll(chains)
     }
 }
