@@ -3,10 +3,15 @@ package io.sunland.chainpass.common
 enum class ChainStatus { ACTUAL, DRAFT }
 
 class Chain {
-    class Key(val value: String) {
+    class Key(value: String) {
+        var value: String = value
+            private set
+
         fun validate(key: String) = if (value != key) {
             throw IllegalArgumentException("Key is not valid")
         } else Unit
+
+        fun clear() = apply { value = "" }
     }
 
     var id: Int = 0

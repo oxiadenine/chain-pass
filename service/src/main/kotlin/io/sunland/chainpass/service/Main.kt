@@ -90,7 +90,14 @@ fun main() {
                             SocketMessageType.CHAIN_READ -> {
                                 ChainDataRepository.read().fold(
                                     onSuccess = { chainEntities ->
-                                        SocketMessage.success(SocketMessageType.CHAIN_READ, Json.encodeToString(chainEntities))
+                                        val chainEntitiesNoKey = chainEntities.map { chainEntity ->
+                                            Chain().apply {
+                                                id = chainEntity.id
+                                                name = chainEntity.name
+                                            }
+                                        }.map { chain -> ChainEntity(chain.id, chain.name, chain.key.value) }
+
+                                        SocketMessage.success(SocketMessageType.CHAIN_READ, Json.encodeToString(chainEntitiesNoKey))
                                     },
                                     onFailure = { exception ->
                                         SocketMessage.failure(SocketMessageType.CHAIN_READ, exception.message!!)

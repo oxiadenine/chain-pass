@@ -63,7 +63,11 @@ fun App(httpClient: HttpClient) = MaterialTheme(
             when (screenState.value) {
                 Screen.CHAIN_LIST -> ChainListTopBar(onIconAddClick = { chainListViewModel.draft() })
                 Screen.CHAIN_LINK_LIST -> ChainLinkListTopBar(
-                    onIconArrowBackClick = { screenState.value = Screen.CHAIN_LIST },
+                    onIconArrowBackClick = {
+                        chainLinkListViewModel.chain = null
+
+                        screenState.value = Screen.CHAIN_LIST
+                    },
                     onIconAddClick = { chainLinkListViewModel.draft() }
                 )
             }

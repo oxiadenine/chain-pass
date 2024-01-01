@@ -17,8 +17,6 @@ class ChainListViewModel(private val repository: ChainRepository) {
                     id = chainEntity.id
                     name = chainEntity.name
                     status = ChainStatus.ACTUAL
-
-                    setKey(chainEntity.key)
                 }
             })
         }
@@ -40,6 +38,7 @@ class ChainListViewModel(private val repository: ChainRepository) {
         return repository.create(chainEntity).map { chainId ->
             chain.id = chainId
             chain.status = ChainStatus.ACTUAL
+            chain.key.clear()
 
             val chains = chains.toList()
 
