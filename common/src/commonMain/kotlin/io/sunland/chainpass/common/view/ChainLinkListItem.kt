@@ -18,7 +18,7 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name)
+            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name.value)
             Row {
                 IconButton(onClick = onIconEditClick) {
                     Icon(imageVector = Icons.Default.Edit, contentDescription = null)
@@ -31,7 +31,7 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             if (passwordVisibleState.value) {
                 TextField(
-                    value = chainLink.password,
+                    value = chainLink.password.value,
                     onValueChange = {},
                     readOnly = true,
                     colors = TextFieldDefaults.textFieldColors(
@@ -42,7 +42,7 @@ fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconD
                 )
             } else Text(
                 modifier = Modifier.padding(all = 16.dp),
-                text = chainLink.password.toList().joinToString(separator = "") { "*" }
+                text = chainLink.password.value.toList().joinToString(separator = "") { "*" }
             )
             IconButton(onClick = { passwordVisibleState.value = !passwordVisibleState.value }) {
                 Icon(imageVector = Icons.Default.Lock, contentDescription = null)
