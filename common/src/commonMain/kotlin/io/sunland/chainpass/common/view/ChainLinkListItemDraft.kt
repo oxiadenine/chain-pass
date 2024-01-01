@@ -12,7 +12,6 @@ import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
@@ -21,14 +20,11 @@ import io.sunland.chainpass.common.ChainLink
 
 @Composable
 fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, onIconClearClick: () -> Unit) {
-    val nameState = remember { mutableStateOf("") }
-    val nameErrorState = remember { mutableStateOf(false) }
+    val nameState = mutableStateOf(chainLink.name.value)
+    val nameErrorState = mutableStateOf(!chainLink.name.isValid)
 
-    val passwordState = remember { mutableStateOf("") }
-    val passwordErrorState = remember { mutableStateOf(false) }
-
-    nameState.value = chainLink.name.value
-    passwordState.value = chainLink.password.value
+    val passwordState = mutableStateOf(chainLink.password.value)
+    val passwordErrorState = mutableStateOf(!chainLink.password.isValid)
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -43,22 +39,18 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
                     onIconDoneClick()
                 }
             }) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
-            IconButton(onClick = {
-                nameState.value = chainLink.name.value
-                passwordState.value = chainLink.password.value
-
-                onIconClearClick()
-            }) { Icon(imageVector = Icons.Default.Clear, contentDescription = null) }
+            IconButton(onClick = onIconClearClick) {
+                Icon(imageVector = Icons.Default.Clear, contentDescription = null)
+            }
         }
         TextField(
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text(text = "Name") },
             value = nameState.value,
             onValueChange = { name ->
-                nameState.value = name
+                chainLink.name = ChainLink.Name(name)
 
-                chainLink.name = ChainLink.Name(nameState.value)
-
+                nameState.value = chainLink.name.value
                 nameErrorState.value = !chainLink.name.isValid
             },
             trailingIcon = if (nameErrorState.value) {
@@ -78,10 +70,9 @@ fun ChainLinkListItemDraft(chainLink: ChainLink, onIconDoneClick: () -> Unit, on
             placeholder = { Text(text = "Password") },
             value = passwordState.value,
             onValueChange = { password ->
-                passwordState.value = password
+                chainLink.password = ChainLink.Password(password)
 
-                chainLink.password = ChainLink.Password(passwordState.value)
-
+                passwordState.value = chainLink.password.value
                 passwordErrorState.value = !chainLink.password.isValid
             },
             trailingIcon = if (passwordErrorState.value) {
