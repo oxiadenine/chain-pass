@@ -138,7 +138,7 @@ fun ChainList(
                 Column(modifier = Modifier.verticalScroll(scrollState)) {
                     viewModel.chains.forEach { chain ->
                         when (chain.status) {
-                            Chain.Status.ACTUAL, Chain.Status.REMOVE, Chain.Status.SELECT -> {
+                            Chain.Status.ACTUAL -> {
                                 val keyInputDialogVisible = remember { mutableStateOf(false) }
 
                                 if (keyInputDialogVisible.value) {
@@ -149,8 +149,8 @@ fun ChainList(
                                         title = null,
                                         placeholder = "Key",
                                         value = keyState.value,
-                                        ontValueChange = { key ->
-                                            chain.key = Chain.Key(key)
+                                        ontValueChange = { value ->
+                                            chain.key = Chain.Key(value)
 
                                             keyState.value = chain.key.value
                                             keyErrorState.value = !chain.key.isValid
@@ -161,6 +161,9 @@ fun ChainList(
                                         onDismissRequest = {
                                             chain.key = Chain.Key()
 
+                                            viewModel.chainToRemove.value = null
+                                            viewModel.chainToSelect.value = null
+
                                             keyInputDialogVisible.value = false
                                         },
                                         onConfirmRequest = {
@@ -169,11 +172,13 @@ fun ChainList(
                                             keyErrorState.value = !chain.key.isValid
 
                                             if (!keyErrorState.value) {
-                                                when (chain.status) {
-                                                    Chain.Status.REMOVE -> viewModel.remove(chain, onItemRemove)
-                                                    Chain.Status.SELECT -> viewModel.select(chain, onItemSelect)
-                                                    else -> keyInputDialogVisible.value = false
-                                                }
+                                                viewModel.remove()?.let(onItemRemove)
+                                                viewModel.select()?.let(onItemSelect)
+
+                                                chain.key = Chain.Key()
+
+                                                viewModel.chainToRemove.value = null
+                                                viewModel.chainToSelect.value = null
 
                                                 keyInputDialogVisible.value = false
                                             }
@@ -181,15 +186,17 @@ fun ChainList(
                                     )
                                 }
 
+                                println("Key: ${chain.key.value}")
+
                                 ChainListItem(
                                     chain = chain,
                                     onClick = {
-                                        chain.status = Chain.Status.SELECT
+                                        viewModel.chainToSelect.value = chain
 
                                         keyInputDialogVisible.value = true
                                     },
                                     onIconDeleteClick = {
-                                        chain.status = Chain.Status.REMOVE
+                                        viewModel.chainToRemove.value = chain
 
                                         keyInputDialogVisible.value = true
                                     }
