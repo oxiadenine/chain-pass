@@ -1,6 +1,6 @@
 package io.sunland.chainpass.service.repository
 
-import io.sunland.chainpass.common.repository.ChainEntity
+import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 import io.sunland.chainpass.service.ChainLinkTable
@@ -13,19 +13,19 @@ object ChainLinkDataRepository : ChainLinkRepository {
             ChainLinkTable.insertAndGetId { statement ->
                 statement[name] = chainLinkEntity.name
                 statement[password] = chainLinkEntity.password
-                statement[chainId] = chainLinkEntity.chainId
+                statement[chainId] = chainLinkEntity.chainKey.id
             }.value
         }
     }
 
-    override suspend fun read(chainEntity: ChainEntity) = runCatching {
+    override suspend fun read(chainKeyEntity: ChainKeyEntity) = runCatching {
         Database.execute {
-            ChainLinkTable.select { ChainLinkTable.chainId eq chainEntity.id }.map { record ->
+            ChainLinkTable.select { ChainLinkTable.chainId eq chainKeyEntity.id }.map { record ->
                 ChainLinkEntity(
                     record[ChainLinkTable.id].value,
                     record[ChainLinkTable.name],
                     record[ChainLinkTable.password],
-                    record[ChainLinkTable.chainId].value
+                    chainKeyEntity
                 )
             }
         }
@@ -33,15 +33,17 @@ object ChainLinkDataRepository : ChainLinkRepository {
 
     override suspend fun update(chainLinkEntity: ChainLinkEntity) = runCatching {
         Database.execute<Unit> {
-            ChainLinkTable.update({ ChainLinkTable.id eq chainLinkEntity.id }) { statement ->
-                statement[password] = chainLinkEntity.password
-            }
+            ChainLinkTable.update({
+                (ChainLinkTable.id eq chainLinkEntity.id) and (ChainLinkTable.chainId eq chainLinkEntity.chainKey.id)
+            }) { statement -> statement[password] = chainLinkEntity.password }
         }
     }
 
     override suspend fun delete(chainLinkEntity: ChainLinkEntity) = runCatching {
         Database.execute<Unit> {
-            ChainLinkTable.deleteWhere { ChainLinkTable.id eq chainLinkEntity.id }
+            ChainLinkTable.deleteWhere {
+                (ChainLinkTable.id eq chainLinkEntity.id) and (ChainLinkTable.chainId eq chainLinkEntity.chainKey.id)
+            }
         }
     }
 }

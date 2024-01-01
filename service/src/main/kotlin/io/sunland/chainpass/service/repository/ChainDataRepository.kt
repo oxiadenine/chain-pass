@@ -6,6 +6,7 @@ import io.sunland.chainpass.service.ChainTable
 import io.sunland.chainpass.service.Database
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 
 object ChainDataRepository : ChainRepository {
@@ -23,6 +24,14 @@ object ChainDataRepository : ChainRepository {
             ChainTable.selectAll().map { record ->
                 ChainEntity(record[ChainTable.id].value, record[ChainTable.name], record[ChainTable.key])
             }
+        }
+    }
+
+    override suspend fun read(id: Int) = runCatching {
+        Database.execute {
+            val record = ChainTable.select { ChainTable.id eq id }.first()
+
+            ChainEntity(record[ChainTable.id].value, record[ChainTable.name], record[ChainTable.key])
         }
     }
 

@@ -30,11 +30,11 @@ class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepo
         chainLinkEntity.id
     }
 
-    override suspend fun read(chainEntity: ChainEntity) = runCatching {
+    override suspend fun read(chainKeyEntity: ChainKeyEntity) = runCatching {
         val chainLinkEntities = mutableListOf<ChainLinkEntity>()
 
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chainEntity)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chainKeyEntity)).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue

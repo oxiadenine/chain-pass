@@ -4,7 +4,7 @@ import androidx.compose.runtime.mutableStateListOf
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
 import io.sunland.chainpass.common.ChainLinkStatus
-import io.sunland.chainpass.common.repository.ChainEntity
+import io.sunland.chainpass.common.repository.ChainKeyEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 
@@ -14,9 +14,9 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     val chainLinks = mutableStateListOf<ChainLink>()
 
     suspend fun getAll(): Result<Unit> {
-        val chainEntity = ChainEntity(chain!!.id, chain!!.name, chain!!.key)
+        val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
 
-        return repository.read(chainEntity).map { chainLinkEntities ->
+        return repository.read(chainKeyEntity).map { chainLinkEntities ->
             this.chainLinks.clear()
             this.chainLinks.addAll(chainLinkEntities.map { chainLinkEntity ->
                 ChainLink().apply {
@@ -24,16 +24,13 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
                     name = chainLinkEntity.name
                     password = chainLinkEntity.password
                     status = ChainLinkStatus.ACTUAL
-                    chainId = chainLinkEntity.chainId
                 }
             })
         }
     }
 
     fun draft() {
-        val chainLink = ChainLink().apply {
-            chainId = chain!!.id
-        }
+        val chainLink = ChainLink()
 
         chainLinks.add(chainLink)
     }
@@ -43,10 +40,12 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     }
 
     suspend fun new(chainLink: ChainLink): Result<Unit> {
-        val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name, chainLink.password, chainLink.chainId)
+        val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
 
-        return repository.create(chainLinkEntity).map { id ->
-            chainLink.id = id
+        val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name, chainLink.password, chainKeyEntity)
+
+        return repository.create(chainLinkEntity).map { chainLinkId ->
+            chainLink.id = chainLinkId
             chainLink.status = ChainLinkStatus.ACTUAL
 
             val chainLinks = chainLinks.toList()
@@ -75,7 +74,9 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     }
 
     suspend fun edit(chainLink: ChainLink): Result<Unit> {
-        val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name, chainLink.password, chainLink.chainId)
+        val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
+
+        val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name, chainLink.password, chainKeyEntity)
 
         return repository.update(chainLinkEntity).onSuccess {
             this.endEdit(chainLink)
@@ -93,7 +94,9 @@ class ChainLinkListViewModel(private val repository: ChainLinkRepository) {
     }
 
     suspend fun remove(chainLink: ChainLink): Result<Unit> {
-        val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name, chainLink.password, chainLink.chainId)
+        val chainKeyEntity = ChainKeyEntity(chain!!.id, chain!!.key.value)
+
+        val chainLinkEntity = ChainLinkEntity(chainLink.id, chainLink.name, chainLink.password, chainKeyEntity)
 
         return repository.delete(chainLinkEntity)
     }
