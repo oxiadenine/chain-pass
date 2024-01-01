@@ -29,7 +29,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Settings
 import io.sunland.chainpass.common.component.ValidationTextField
-import io.sunland.chainpass.common.component.VerticalScrollbar
 
 class DeviceAddress(value: String? = null) {
     var value = value ?: ""
@@ -45,8 +44,6 @@ class DeviceAddress(value: String? = null) {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun Settings(settings: Settings, onBack: (Settings) -> Unit) {
-    val scrollState = rememberScrollState()
-
     val isDeviceAddressEditState = remember { mutableStateOf(false) }
 
     val deviceAddressState = remember { mutableStateOf(settings.deviceAddress) }
@@ -106,6 +103,8 @@ fun Settings(settings: Settings, onBack: (Settings) -> Unit) {
             }
         )
         Box(modifier = Modifier.fillMaxSize()) {
+            val scrollState = rememberScrollState(0)
+
             Column(
                 modifier = Modifier
                     .fillMaxWidth(fraction = 0.8f)
@@ -225,10 +224,6 @@ fun Settings(settings: Settings, onBack: (Settings) -> Unit) {
                     )
                 }
             }
-            VerticalScrollbar(
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                scrollState = scrollState
-            )
         }
     }
 }
