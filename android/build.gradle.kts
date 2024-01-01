@@ -11,11 +11,14 @@ kotlin {
 
     sourceSets {
         named("androidMain") {
+            val exposedVersion = properties["exposed.version"] as String
+            val h2databaseVersion = properties["h2database.version"] as String
+
             dependencies {
                 implementation(project(":common"))
 
-                implementation(exposedDependency("jdbc"))
-                implementation(h2databaseDependency())
+                implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+                implementation("com.h2database:h2:$h2databaseVersion")
             }
         }
         named("androidUnitTest") {

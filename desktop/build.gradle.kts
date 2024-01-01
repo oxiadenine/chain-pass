@@ -18,19 +18,25 @@ kotlin {
 
     sourceSets {
         named("jvmMain") {
+            val exposedVersion = properties["exposed.version"] as String
+            val h2databaseVersion = properties["h2database.version"] as String
+
             dependencies {
                 implementation(project(":common"))
 
                 implementation(compose.desktop.currentOs)
 
-                implementation(exposedDependency("jdbc"))
-                implementation(h2databaseDependency())
+                implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+                implementation("com.h2database:h2:$h2databaseVersion")
             }
         }
         named("jvmTest") {
+            val junitVersion = properties["junit.version"] as String
+
             dependencies {
                 implementation(kotlin("test"))
-                implementation(junitDependency("jupiter-api"))
+
+                implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
             }
         }
     }
