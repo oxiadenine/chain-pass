@@ -51,8 +51,8 @@ To manage services run the following commands:
 
 To package applications run the following commands with Gradle:
 
-- Create Desktop binaries with `desktop:package`
-- Create Android APKs with `android:build`
-- Create Server binaries with `server:package`
+- Create Desktop binaries with `gradlew desktop:package`
+- Create Android APKs with `gradlew android:build`
+- Create Server binaries with `gradlew server:package`
 
-**Packaging requires JDK 17 to be installed.**
+**Packaging requires JDK 15 or later to be installed.**
