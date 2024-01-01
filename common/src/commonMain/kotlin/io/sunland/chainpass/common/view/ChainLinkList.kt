@@ -7,6 +7,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,7 +36,7 @@ fun ChainLinkList(viewModel: ChainLinkListViewModel, onItemNew: (ChainLink) -> U
                     when (chainLink.status) {
                         ChainLinkStatus.ACTUAL -> ChainLinkListItem(
                             chainLink = chainLink,
-                            onIconEditClick = { viewModel.startEdit(chainLink) },
+                            onIconEditClick = { viewModel.startEdit(chainLink.id) },
                             onIconDeleteClick = { viewModel.remove(chainLink, onItemRemove) }
                         )
                         ChainLinkStatus.DRAFT -> ChainLinkListItemDraft(
@@ -43,11 +44,13 @@ fun ChainLinkList(viewModel: ChainLinkListViewModel, onItemNew: (ChainLink) -> U
                             onIconDoneClick = { onItemNew(chainLink) },
                             onIconClearClick = { viewModel.rejectDraft(chainLink) }
                         )
-                        ChainLinkStatus.EDIT -> ChainLinkListItemEdit(
-                            chainLink = chainLink,
-                            onIconDoneClick = { onItemEdit(chainLink) },
-                            onIconClearClick = { viewModel.endEdit(chainLink)}
-                        )
+                        ChainLinkStatus.EDIT -> key(chainLink.id) {
+                            ChainLinkListItemEdit(
+                                chainLink = chainLink,
+                                onIconDoneClick = { onItemEdit(chainLink) },
+                                onIconClearClick = { viewModel.endEdit(chainLink)}
+                            )
+                        }
                     }
                 }
             }
