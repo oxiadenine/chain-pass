@@ -7,9 +7,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -33,7 +31,7 @@ import io.sunland.chainpass.common.Settings
 import io.sunland.chainpass.common.component.ValidationTextField
 import io.sunland.chainpass.common.component.VerticalScrollbar
 
-class DeviceIp(value: String? = null) {
+class DeviceAddress(value: String? = null) {
     var value = value ?: ""
         private set
 
@@ -46,16 +44,18 @@ class DeviceIp(value: String? = null) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit) {
+fun Settings(settings: Settings, onBack: (Settings) -> Unit) {
     val focusRequester = remember { FocusRequester() }
 
     val scrollState = rememberScrollState()
+
+    val isDeviceAddressEditState = remember { mutableStateOf(false) }
 
     val deviceAddressState = remember { mutableStateOf(settings.deviceAddress) }
     val deviceAddressErrorState = remember { mutableStateOf(false) }
 
     val onDeviceAddressChange = { value: String ->
-        val deviceAddress = DeviceIp(value)
+        val deviceAddress = DeviceAddress(value)
 
         deviceAddressState.value = deviceAddress.value
         deviceAddressErrorState.value = deviceAddress.validation.isFailure
@@ -73,24 +73,21 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
     }
 
     val onDone = {
-        deviceAddressErrorState.value = DeviceIp(deviceAddressState.value).validation.isFailure
+        deviceAddressErrorState.value = DeviceAddress(deviceAddressState.value).validation.isFailure
 
-        if (!deviceAddressErrorState.value) {
-            onSave(Settings(
-                hostAddress = settings.hostAddress,
-                deviceAddress = deviceAddressState.value,
-                passwordLength = passwordLengthState.value.toInt(),
-                passwordIsAlphanumeric = passwordIsAlphanumericState.value
-            ))
+        if (deviceAddressErrorState.value) {
+            deviceAddressState.value = settings.deviceAddress
+            deviceAddressErrorState.value = false
         }
-    }
 
-    val onKeyEvent = { keyEvent: KeyEvent ->
-        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-            onDone()
+        isDeviceAddressEditState.value = false
 
-            true
-        } else false
+        onBack(Settings(
+            hostAddress = settings.hostAddress,
+            deviceAddress = deviceAddressState.value,
+            passwordLength = passwordLengthState.value.toInt(),
+            passwordIsAlphanumeric = passwordIsAlphanumericState.value
+        ))
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -105,20 +102,14 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
             navigationIcon = {
                 IconButton(
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                    onClick = { onBack() }
-                ) { Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null) }
-            },
-            actions = {
-                IconButton(
-                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                     onClick = { onDone() }
-                ) { Icon(imageVector = Icons.Default.Done, contentDescription = null) }
+                ) { Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null) }
             }
         )
         Box(modifier = Modifier.fillMaxSize()) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth(fraction = 0.6f)
+                    .fillMaxWidth(fraction = 0.8f)
                     .align(Alignment.Center)
                     .verticalScroll(state = scrollState),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -141,25 +132,48 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
                             textAlign = TextAlign.Center
                         )
                     }
-                    ValidationTextField(
-                        modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
-                        placeholder = { Text(text = "Device Address") },
-                        value = deviceAddressState.value,
-                        onValueChange = onDeviceAddressChange,
-                        singleLine = true,
-                        trailingIcon = if (deviceAddressErrorState.value) {
-                            { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
-                        } else null,
-                        isError = deviceAddressErrorState.value,
-                        errorMessage = DeviceIp(deviceAddressState.value).validation.exceptionOrNull()?.message,
-                        colors = TextFieldDefaults.textFieldColors(
-                            backgroundColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            errorIndicatorColor = Color.Transparent
-                        ),
-                        keyboardActions = KeyboardActions(onDone = { onDone() })
-                    )
+                    if (isDeviceAddressEditState.value) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            ValidationTextField(
+                                modifier = Modifier.focusRequester(focusRequester),
+                                placeholder = { Text(text = "Device Address") },
+                                value = deviceAddressState.value,
+                                onValueChange = onDeviceAddressChange,
+                                singleLine = true,
+                                trailingIcon = if (deviceAddressErrorState.value) {
+                                    { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
+                                } else null,
+                                isError = deviceAddressErrorState.value,
+                                errorMessage = DeviceAddress(deviceAddressState.value).validation.exceptionOrNull()?.message,
+                                colors = TextFieldDefaults.textFieldColors(
+                                    backgroundColor = Color.Transparent,
+                                    focusedIndicatorColor = Color.Transparent,
+                                    unfocusedIndicatorColor = Color.Transparent,
+                                    errorIndicatorColor = Color.Transparent
+                                ),
+                                keyboardActions = KeyboardActions(onDone = { onDone() })
+                            )
+                        }
+
+                        LaunchedEffect(isDeviceAddressEditState.value) { focusRequester.requestFocus() }
+                    } else {
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (settings.deviceAddress.isEmpty()) {
+                                Text(text = "Device Address", fontWeight = FontWeight.ExtraLight)
+                            } else Text(text = deviceAddressState.value)
+
+                            IconButton(
+                                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                                onClick = { isDeviceAddressEditState.value = true }
+                            ) { Icon(imageVector = Icons.Default.Edit, contentDescription = null) }
+                        }
+                    }
                 }
                 Text(text = "Password", fontWeight = FontWeight.Bold)
                 Column(
@@ -198,6 +212,4 @@ fun Settings(settings: Settings, onSave: (Settings) -> Unit, onBack: () -> Unit)
             )
         }
     }
-
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }
