@@ -21,6 +21,7 @@ class ChainLinkListViewModel(
     val chainLinkSearchListState = mutableStateListOf<ChainLink>()
 
     val isSearchState = mutableStateOf(false)
+    val searchKeywordState = mutableStateOf("")
 
     private var chainLinks = emptyList<ChainLink>()
 
@@ -128,6 +129,7 @@ class ChainLinkListViewModel(
 
     fun startSearch() {
         isSearchState.value = true
+        searchKeywordState.value = ""
 
         val chainLinks = chainLinkListState
             .filter { chainLink -> chainLink.status == ChainLink.Status.ACTUAL }
@@ -139,6 +141,8 @@ class ChainLinkListViewModel(
     }
 
     fun search(keyword: String) {
+        searchKeywordState.value = keyword
+
         val chainLinks = chainLinkListState
             .filter { chainLink -> chainLink.status == ChainLink.Status.ACTUAL }
             .filter { chainLink -> chainLink.name.value.lowercase().contains(keyword.lowercase()) }
@@ -150,6 +154,7 @@ class ChainLinkListViewModel(
 
     fun endSearch() {
         isSearchState.value = false
+        searchKeywordState.value = ""
 
         chainLinkSearchListState.clear()
     }

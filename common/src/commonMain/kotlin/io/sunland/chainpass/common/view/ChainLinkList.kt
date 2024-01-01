@@ -24,6 +24,7 @@ fun ChainLinkList(
     onNew: (ChainLink) -> Unit,
     onEdit: (ChainLink) -> Unit,
     onRemove: (ChainLink) -> Unit,
+    onSearch: () -> Unit,
     onPasswordCopy: (ChainLink) -> Unit,
     onSync: () -> Unit,
     onBack: () -> Unit
@@ -35,6 +36,7 @@ fun ChainLinkList(
     Column(modifier = Modifier.fillMaxSize()) {
         if (viewModel.isSearchState.value) {
             ChainLinkSearchListTopBar(
+                keywordState = viewModel.searchKeywordState,
                 onBack = { viewModel.endSearch() },
                 onSearch = { keyword -> viewModel.search(keyword) }
             )
@@ -57,6 +59,8 @@ fun ChainLinkList(
                     viewModel.rejectDrafts()
                     viewModel.cancelEdit()
                     viewModel.startSearch()
+
+                    onSearch()
                 }
             )
         }
