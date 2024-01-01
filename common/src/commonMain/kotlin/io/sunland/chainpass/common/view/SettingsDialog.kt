@@ -1,5 +1,6 @@
 package io.sunland.chainpass.common.view
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -28,19 +29,25 @@ import io.sunland.chainpass.common.component.Dialog
 import io.sunland.chainpass.common.component.ValidationTextField
 
 class DeviceAddress(value: String? = null) {
+    object InvalidIPv4Error : Error()
+
     var value = value ?: ""
         private set
 
     val validation = value?.let {
         if (value.isNotEmpty() && !value.matches("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\$".toRegex())) {
-            Result.failure(IllegalArgumentException("Device Address is not a valid IPv4 address"))
+            Result.failure(InvalidIPv4Error)
         } else Result.success(value)
     } ?: Result.success(this.value)
 }
 
+data class Language(val name: String, val locale: String)
+
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath: String) {
+    val intl = LocalIntl.current
+
     var deviceAddress by remember { mutableStateOf(DeviceAddress(settingsState.deviceAddressState.value)) }
 
     val onDeviceAddressTextFieldValueChange = { address: String ->
@@ -62,6 +69,19 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
         passwordIsAlphanumeric = isAlphanumeric
     }
 
+    val languages = listOf(
+        Language(intl.translate("dialog.settings.item.language.item.en.text"), "en"),
+        Language(intl.translate("dialog.settings.item.language.item.es.text"), "es")
+    )
+
+    var selectedLanguage by remember {
+        mutableStateOf(languages.first { language -> language.locale == settingsState.languageState.value })
+    }
+
+    val onLanguageListItemClick = { language: Language ->
+        selectedLanguage = language
+    }
+
     val onInputDialogConfirmRequest = {
         deviceAddress = DeviceAddress(deviceAddress.value)
 
@@ -69,8 +89,11 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
             settingsState.deviceAddressState.value = deviceAddress.value
             settingsState.passwordLengthState.value = passwordLength.toInt()
             settingsState.passwordIsAlphanumericState.value = passwordIsAlphanumeric
+            settingsState.languageState.value = selectedLanguage.locale
 
             settingsState.save()
+
+            LocalIntl.provides(Intl(settingsState.languageState.value))
 
             onClose()
         }
@@ -84,7 +107,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Settings")
+                Text(text = intl.translate("dialog.settings.title"))
                 IconButton(
                     onClick = onClose,
                     modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
@@ -95,7 +118,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
             TextButton(
                 onClick = onInputDialogConfirmRequest,
                 modifier = Modifier.align(alignment = Alignment.End).pointerHoverIcon(icon = PointerIconDefaults.Hand)
-            ) { Text(text = "Save") }
+            ) { Text(text = intl.translate("dialog.settings.button.save.text")) }
         }
     ) {
         val scrollState = rememberScrollState(initial = 0)
@@ -106,7 +129,11 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
-                Text(text = "Sync", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = intl.translate("dialog.settings.item.sync.title"),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 14.sp
+                )
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
@@ -126,14 +153,23 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
                                 } else false
                             }
                         ,
-                        placeholder = { Text(text = "Device Address", fontSize = 14.sp) },
+                        placeholder = {
+                            Text(
+                                text = intl.translate("dialog.settings.item.sync.textField.device.placeholder"),
+                                fontSize = 14.sp
+                            )
+                        },
                         singleLine = true,
                         leadingIcon = { Icon(imageVector = Icons.Default.Devices, contentDescription = null) },
                         trailingIcon = if (deviceAddress.validation.isFailure) {
                             { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                         } else null,
                         isError = deviceAddress.validation.isFailure,
-                        errorMessage = deviceAddress.validation.exceptionOrNull()?.message,
+                        errorMessage = deviceAddress.validation.exceptionOrNull()?.let { error ->
+                            if (error is DeviceAddress.InvalidIPv4Error) {
+                                intl.translate("dialog.settings.item.sync.textFiled.device.error")
+                            } else null
+                        },
                         colors = TextFieldDefaults.textFieldColors(
                             containerColor = Color.Transparent,
                             focusedIndicatorColor = Color.Transparent,
@@ -149,13 +185,17 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
-                Text(text = "Password", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = intl.translate("dialog.settings.item.password.title"),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 14.sp
+                )
                 Column {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "Length")
+                        Text(text = intl.translate("dialog.settings.item.password.length.text"))
                         Slider(
                             value = passwordLength,
                             onValueChange = onPasswordLengthChange,
@@ -182,7 +222,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
                         horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = "Alphanumeric")
+                        Text(text = intl.translate("dialog.settings.item.password.alphanumeric.text"))
                         Switch(
                             checked = passwordIsAlphanumeric,
                             onCheckedChange = onPasswordIsAlphanumericChange,
@@ -192,16 +232,50 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storePath:
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
-                Text(text = "Store", fontSize = 14.sp, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    text = intl.translate("dialog.settings.item.storage.title"),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 14.sp,
+                )
                 Text(
                     text = buildAnnotatedString {
-                        append("Files are stored at ")
+                        append(intl.translate("dialog.settings.item.storage.text"))
                         withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
                             append(storePath)
                         }
-                        append(" directory.")
                     }
                 )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
+                Text(
+                    text = intl.translate("dialog.settings.item.language.title"),
+                    color = MaterialTheme.colorScheme.primary,
+                    fontSize = 14.sp
+                )
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    languages.forEach { language ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onLanguageListItemClick(language) }
+                                .padding(all = 8.dp)
+                                .pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (selectedLanguage.locale == language.locale) {
+                                Icon(imageVector = Icons.Default.RadioButtonChecked, contentDescription = null)
+                            } else Icon(imageVector = Icons.Default.RadioButtonUnchecked, contentDescription = null)
+                            Column {
+                                Text(text = language.name)
+                                Text(
+                                    text = language.locale,
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

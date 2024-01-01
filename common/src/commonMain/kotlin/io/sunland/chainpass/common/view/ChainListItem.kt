@@ -14,11 +14,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.sunland.chainpass.common.LocalIntl
+
 enum class ChainListItemMenuItem { OPEN, DELETE }
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListItem(onMenuItemClick: (ChainListItemMenuItem) -> Unit, name: String) {
+    val intl = LocalIntl.current
+
     var dropdownMenuExpanded by remember {  mutableStateOf(false) }
     var dropdownMenuOffset by remember { mutableStateOf(DpOffset.Zero) }
 
@@ -60,7 +64,7 @@ fun ChainListItem(onMenuItemClick: (ChainListItemMenuItem) -> Unit, name: String
                 offset = dropdownMenuOffset
             ) {
                 DropdownMenuItem(
-                    text = { Text(text = "Open", fontSize = 14.sp) },
+                    text = { Text(text = intl.translate("list.chain.menu.item.open.text"), fontSize = 14.sp) },
                     onClick = {
                         dropdownMenuExpanded = false
 
@@ -72,7 +76,7 @@ fun ChainListItem(onMenuItemClick: (ChainListItemMenuItem) -> Unit, name: String
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
                 DropdownMenuItem(
-                    text = { Text(text = "Delete", fontSize = 14.sp) },
+                    text = { Text(text = intl.translate("list.chain.menu.item.delete.text"), fontSize = 14.sp) },
                     onClick = {
                         dropdownMenuExpanded = false
 

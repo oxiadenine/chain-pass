@@ -16,6 +16,10 @@ class ChainListViewModel(
     private val chainRepository: ChainRepository,
     private val chainLinkRepository: ChainLinkRepository
 ) {
+    object StorableFormatError : Error()
+    object StorablePrivateError : Error()
+    object SyncNetworkError : Error()
+
     val chainListState = mutableStateListOf<Chain>()
 
     val chainSelectedIndex: Int
@@ -128,7 +132,7 @@ class ChainListViewModel(
         chainRemovedListState.remove(chain)
     }
 
-    fun store(storageType: StorageType, storeIsPrivate: Boolean) = runCatching {
+    fun store(storageType: StorageType, storeIsPrivate: Boolean): String {
         val storableOptions = StorableOptions(storeIsPrivate)
         val storableChains = chainRepository.getAll().map { chainEntity ->
             val storableChainLinks = chainLinkRepository.getBy(chainEntity.id).map { chainLink ->
@@ -140,18 +144,22 @@ class ChainListViewModel(
 
         val storable = Storable(storableOptions, storableChains)
 
-        chainRepository.store(storageType, storable)
+        return chainRepository.store(storageType, storable)
     }
 
     fun unstore(filePath: FilePath) = runCatching {
-        val storable = chainRepository.unstore(filePath.value)
+        val storable = try {
+            chainRepository.unstore(filePath.value)
+        } catch (e: IllegalStateException) {
+            throw StorableFormatError
+        }
 
         if (!storable.options.isPrivate) {
-            throw IllegalStateException("Invalid not private store file")
+            throw StorablePrivateError
         }
 
         if (storable.chains.isEmpty()) {
-            throw IllegalStateException("Invalid empty store file")
+            return@runCatching
         }
 
         val chains = mutableStateListOf<Chain>()
@@ -194,9 +202,13 @@ class ChainListViewModel(
     }
 
     suspend fun sync(deviceAddress: String) = runCatching {
-        val webSocket = WebSocket.connect(deviceAddress)
+        try {
+            val webSocket = WebSocket.connect(deviceAddress)
 
-        ChainApi(chainRepository, chainLinkRepository, webSocket).sync().getOrThrow()
+            ChainApi(chainRepository, chainLinkRepository, webSocket).sync().getOrThrow()
+        } catch (e: Exception) {
+            throw SyncNetworkError
+        }
     }
 }
 

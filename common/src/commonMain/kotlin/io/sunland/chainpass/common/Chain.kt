@@ -5,6 +5,8 @@ import io.sunland.chainpass.common.security.PasswordEncoder
 import io.sunland.chainpass.common.security.Random
 
 class Chain constructor() {
+    object KeyInvalidError : Error()
+
     constructor(chain: Chain) : this() {
         id = chain.id
         name = chain.name
@@ -13,27 +15,33 @@ class Chain constructor() {
     }
 
     class Name(value: String? = null) {
+        object EmptyError : Error()
+        object LengthError : Error()
+
         var value = value ?: ""
             private set
 
         val validation = value?.let {
             if (value.isEmpty()) {
-                Result.failure(IllegalArgumentException("Name is empty"))
+                Result.failure(EmptyError)
             } else if (value.length > 16) {
-                Result.failure(IllegalArgumentException("Name is too long"))
+                Result.failure(LengthError)
             } else Result.success(value)
         } ?: Result.success(this.value)
     }
 
     class Key(value: String? = null) {
+        object EmptyError : Error()
+        object LengthError : Error()
+
         var value = value ?: ""
             private set
 
         val validation = value?.let {
             if (value.isEmpty()) {
-                Result.failure(IllegalArgumentException("Key is empty"))
+                Result.failure(EmptyError)
             } else if (value.length > 32) {
-                Result.failure(IllegalArgumentException("Key is too long"))
+                Result.failure(LengthError)
             } else Result.success(value)
         } ?: Result.success(this.value)
     }
@@ -54,6 +62,6 @@ class Chain constructor() {
     ))
 
     fun validateKey(key: Key) = if (key.value != this.key.value) {
-        throw IllegalArgumentException("Key is not valid")
+        throw KeyInvalidError
     } else Unit
 }

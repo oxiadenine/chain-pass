@@ -20,6 +20,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
+import io.sunland.chainpass.common.LocalIntl
 import io.sunland.chainpass.common.component.InputDialog
 import io.sunland.chainpass.common.component.ValidationTextField
 import io.sunland.chainpass.common.security.PasswordGenerator
@@ -31,6 +32,8 @@ fun ChainListItemNewDialog(
     onCancel: () -> Unit,
     passwordGenerator: PasswordGenerator
 ) {
+    val intl = LocalIntl.current
+
     var chainName by remember { mutableStateOf(Chain.Name()) }
     var chainKey by remember { mutableStateOf(Chain.Key()) }
 
@@ -69,12 +72,22 @@ fun ChainListItemNewDialog(
                 value = chainName.value,
                 onValueChange = onNameTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                placeholder = { Text(text = "Name") },
+                placeholder = { Text(text = intl.translate("dialog.chain.textField.name.placeholder")) },
                 trailingIcon = if (chainName.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
                 isError = chainName.validation.isFailure,
-                errorMessage = chainName.validation.exceptionOrNull()?.message,
+                errorMessage = chainName.validation.exceptionOrNull()?.let { error ->
+                    when (error) {
+                        is Chain.Name.EmptyError -> {
+                            intl.translate("dialog.chain.textField.name.empty.error")
+                        }
+                        is Chain.Name.LengthError -> {
+                            intl.translate("dialog.chain.textField.name.length.error")
+                        }
+                        else -> null
+                    }
+                },
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,
@@ -87,7 +100,7 @@ fun ChainListItemNewDialog(
             ValidationTextField(
                 value = chainKey.value,
                 onValueChange = onKeyTextFieldValueChange,
-                placeholder = { Text(text = "Key") },
+                placeholder = { Text(text = intl.translate("dialog.chain.textField.key.placeholder")) },
                 leadingIcon = {
                     IconButton(
                         onClick = { onKeyTextFieldValueChange(passwordGenerator.generate()) },
@@ -107,7 +120,17 @@ fun ChainListItemNewDialog(
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
                 isError = chainKey.validation.isFailure,
-                errorMessage = chainKey.validation.exceptionOrNull()?.message,
+                errorMessage = chainKey.validation.exceptionOrNull()?.let { error ->
+                    when (error) {
+                        is Chain.Key.EmptyError -> {
+                            intl.translate("dialog.chain.textField.key.empty.error")
+                        }
+                        is Chain.Key.LengthError -> {
+                            intl.translate("dialog.chain.textField.key.length.error")
+                        }
+                        else -> null
+                    }
+                },
                 singleLine = true,
                 colors = TextFieldDefaults.textFieldColors(
                     focusedIndicatorColor = Color.Transparent,

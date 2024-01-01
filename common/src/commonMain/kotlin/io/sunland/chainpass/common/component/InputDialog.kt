@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import io.sunland.chainpass.common.LocalIntl
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -20,23 +21,27 @@ fun InputDialog(
     onConfirmRequest: () -> Unit,
     title: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
-) = Dialog(
-    onDismissRequest = onDismissRequest,
-    title = title,
-    buttons = {
-        Row(
-            modifier = Modifier.align(alignment = Alignment.End),
-            horizontalArrangement = Arrangement.spacedBy(space = 4.dp)
-        ) {
-            TextButton(
-                onClick = onDismissRequest,
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
-            ) { Text(text = "Cancel") }
-            TextButton(
-                onClick = onConfirmRequest,
-                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
-            ) { Text(text = "Ok") }
-        }
-    },
-    content = content
-)
+) {
+    val intl = LocalIntl.current
+
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        title = title,
+        buttons = {
+            Row(
+                modifier = Modifier.align(alignment = Alignment.End),
+                horizontalArrangement = Arrangement.spacedBy(space = 4.dp)
+            ) {
+                TextButton(
+                    onClick = onDismissRequest,
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                ) { Text(text = intl.translate("inputDialog.button.cancel.text")) }
+                TextButton(
+                    onClick = onConfirmRequest,
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand)
+                ) { Text(text = intl.translate("inputDialog.button.confirm.text")) }
+            }
+        },
+        content = content
+    )
+}

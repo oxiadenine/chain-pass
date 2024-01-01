@@ -14,38 +14,46 @@ class ChainLink(val chain: Chain) {
     }
 
     class Name(value: String? = null) {
+        object EmptyError : Error()
+        object LengthError : Error()
+
         var value = value ?: ""
             private set
 
         val validation = value?.let {
             if (value.isEmpty()) {
-                Result.failure(IllegalArgumentException("Name is empty"))
+                Result.failure(EmptyError)
             } else if (value.length > 16) {
-                Result.failure(IllegalArgumentException("Name is too long"))
+                Result.failure(LengthError)
             } else Result.success(value)
         } ?: Result.success(this.value)
     }
 
     class Description(value: String? = null) {
+        object LengthError : Error()
+
         var value = value ?: ""
             private set
 
         val validation = value?.let {
             if (value.length > 24) {
-                Result.failure(IllegalArgumentException("Description is too long"))
+                Result.failure(LengthError)
             } else Result.success(value)
         } ?: Result.success(this.value)
     }
 
     class Password(value: String? = null) {
+        object EmptyError : Error()
+        object LengthError : Error()
+
         var value = value ?: ""
             private set
 
         val validation = value?.let {
             if (value.isEmpty()) {
-                Result.failure(IllegalArgumentException("Password is empty"))
+                Result.failure(EmptyError)
             } else if (value.length > 32) {
-                Result.failure(IllegalArgumentException("Password is too long"))
+                Result.failure(LengthError)
             } else Result.success(value)
         } ?: Result.success(this.value)
     }

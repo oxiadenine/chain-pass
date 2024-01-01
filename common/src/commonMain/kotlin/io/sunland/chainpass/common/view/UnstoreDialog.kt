@@ -13,6 +13,7 @@ import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.sunland.chainpass.common.LocalIntl
 import io.sunland.chainpass.common.Platform
 import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.common.component.FileChooserDialog
@@ -28,7 +29,9 @@ class FilePath(value: String? = null) {
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun UnstoreDialog(onConfirm: (FilePath) -> Unit, onCancel: () -> Unit, title: String, ) {
+fun UnstoreDialog(onConfirm: (FilePath) -> Unit, onCancel: () -> Unit) {
+    val intl = LocalIntl.current
+
     var fileChooserDialogOpened by remember { mutableStateOf(false) }
 
     var filePath by remember { mutableStateOf(FilePath()) }
@@ -57,7 +60,7 @@ fun UnstoreDialog(onConfirm: (FilePath) -> Unit, onCancel: () -> Unit, title: St
     InputDialog(
         onDismissRequest = onCancel,
         onConfirmRequest = onInputDialogConfirmRequest,
-        title = { Text(text = title, modifier = Modifier.padding(all = 16.dp)) }
+        title = { Text(text = intl.translate("dialog.unstore.title"), modifier = Modifier.padding(all = 16.dp)) }
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
@@ -72,13 +75,17 @@ fun UnstoreDialog(onConfirm: (FilePath) -> Unit, onCancel: () -> Unit, title: St
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = "Select File")
+                    Text(text = intl.translate("dialog.unstore.item.button.file.text"))
                     Icon(imageVector = Icons.Default.FileOpen, contentDescription = null)
                 }
             }
 
             if (filePathError) {
-                Text(text = "File is not selected", color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
+                Text(
+                    text = intl.translate("dialog.unstore.item.file.error"),
+                    color = MaterialTheme.colorScheme.error,
+                    fontSize = 14.sp
+                )
             } else Text(text = filePath.fileName, fontSize = 14.sp)
         }
     }
