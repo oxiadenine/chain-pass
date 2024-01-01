@@ -49,8 +49,4 @@ tasks {
     named<CreateStartScripts>("startScripts") {
         applicationName = "${rootProject.name}-${project.name}"
     }
-
-    withType<Test> {
-        useJUnitPlatform()
-    }
 }
