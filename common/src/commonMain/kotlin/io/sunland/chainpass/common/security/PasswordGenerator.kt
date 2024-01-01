@@ -1,9 +1,8 @@
 package io.sunland.chainpass.common.security
 
 class PasswordGenerator(private val strength: Strength) {
-    enum class CharCodeRanges(val ranges: Array<Pair<Int, Int>>) {
-        ALPHABET(arrayOf(65 to 90, 97 to 122)),
-        NUMERIC(arrayOf(48 to 57)),
+    enum class CharCodes(val ranges: Array<Pair<Int, Int>>) {
+        ALPHANUMERIC(arrayOf(48 to 57, 65 to 90, 97 to 122)),
         SYMBOL(arrayOf(33 to 47, 58 to 64, 91 to 96, 123 to 126))
     }
 
@@ -14,42 +13,22 @@ class PasswordGenerator(private val strength: Strength) {
             return ""
         }
 
-        val charNumbers = mutableListOf<Int>()
+        val charCodeNumbers = mutableListOf<Int>()
 
-        var charCount = strength.length
+        var charCodesSymbolCount = 0
 
-        while (charCount > 0) {
-            charCount /= 2
-
-            val charCodeRanges = if (charCount > (strength.length / 2) - (charCount * 2)) {
-                if (charCount > (strength.length / 2) - (charCount / 2) || strength.isAlphanumeric) {
-                    CharCodeRanges.ALPHABET
-                } else {
-                    CharCodeRanges.SYMBOL
-                }
+        repeat(strength.length) {
+            val charCodeRange = if (charCodesSymbolCount == strength.length / 4 || strength.isAlphanumeric) {
+                 CharCodes.ALPHANUMERIC.ranges.random()
             } else {
-                if (charCount < 2 || strength.isAlphanumeric) {
-                    CharCodeRanges.NUMERIC
-                } else {
-                    CharCodeRanges.SYMBOL
-                }
+                charCodesSymbolCount += 1
+
+                CharCodes.SYMBOL.ranges .random()
             }
 
-            repeat(if (charCount % 2 == 0) charCount else charCount + 1) { count ->
-                val charCodeRange = when (charCodeRanges) {
-                    CharCodeRanges.ALPHABET -> charCodeRanges.ranges[count % 2]
-                    CharCodeRanges.NUMERIC -> charCodeRanges.ranges[0]
-                    CharCodeRanges.SYMBOL -> charCodeRanges.ranges[count % 2]
-                }
-
-                charNumbers.add(Random.nextInt(charCodeRange))
-            }
-
-            if (strength.length % 2 != 0 && charCount == 0) {
-                charNumbers.add(Random.nextInt(charCodeRanges.ranges[0]))
-            }
+            charCodeNumbers.add(Random.nextInt(charCodeRange))
         }
 
-        return charNumbers.map { charNumber -> charNumber.toChar() }.shuffled().toCharArray().concatToString()
+        return charCodeNumbers.map { charNumber -> charNumber.toChar() }.shuffled().toCharArray().concatToString()
     }
 }
