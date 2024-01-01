@@ -36,9 +36,10 @@ class ChainLinkListViewModel(
 
     fun startEdit(chainLinkId: Int) {
         val draftChainLinks = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
+        val editChainLinks = chainLinkListState.filter { chainLink -> chainLink.status != ChainLink.Status.DRAFT }
 
         chainLinkListState.clear()
-        chainLinkListState.addAll(chainLinks.map { chainLink ->
+        chainLinkListState.addAll(editChainLinks.map { chainLink ->
             if (chainLink.status == ChainLink.Status.EDIT) {
                 lockPassword(chainLink)
 
