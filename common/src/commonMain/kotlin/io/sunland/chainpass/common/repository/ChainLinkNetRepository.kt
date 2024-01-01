@@ -10,9 +10,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepository {
-    override suspend fun create(chainLink: ChainLink) = runCatching {
+    override suspend fun create(chainLinkEntity: ChainLinkEntity) = runCatching {
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_CREATE, Json.encodeToString(chainLink)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_LINK_CREATE, Json.encodeToString(chainLinkEntity)).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue
@@ -20,21 +20,21 @@ class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepo
                 val message = SocketMessage.from(frame)
 
                 if (message.type == SocketMessageType.CHAIN_LINK_CREATE) {
-                    chainLink.id = Json.decodeFromString<ChainLink>(message.text).id
+                    chainLinkEntity.id = Json.decodeFromString<ChainLinkEntity>(message.text).id
                 }
 
                 break
             }
         }
 
-        chainLink.id
+        chainLinkEntity.id
     }
 
-    override suspend fun read(chain: Chain) = runCatching {
-        val chainLinks = mutableListOf<ChainLink>()
+    override suspend fun read(chainEntity: ChainEntity) = runCatching {
+        val chainLinkEntities = mutableListOf<ChainLinkEntity>()
 
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chain)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_LINK_READ, Json.encodeToString(chainEntity)).toFrame())
 
             while (true) {
                 val frame = incoming.receive() as? Frame.Text ?: continue
@@ -42,25 +42,25 @@ class ChainLinkNetRepository(private val httpClient: HttpClient) : ChainLinkRepo
                 val message = SocketMessage.from(frame)
 
                 if (message.type == SocketMessageType.CHAIN_LINK_READ) {
-                    chainLinks.addAll(Json.decodeFromString<List<ChainLink>>(message.text))
+                    chainLinkEntities.addAll(Json.decodeFromString<List<ChainLinkEntity>>(message.text))
                 }
 
                 break
             }
         }
 
-        chainLinks.toList()
+        chainLinkEntities.toList()
     }
 
-    override suspend fun update(chainLink: ChainLink) = runCatching {
+    override suspend fun update(chainLinkEntity: ChainLinkEntity) = runCatching {
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_UPDATE, Json.encodeToString(chainLink)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_LINK_UPDATE, Json.encodeToString(chainLinkEntity)).toFrame())
         }
     }
 
-    override suspend fun delete(chainLink: ChainLink) = runCatching {
+    override suspend fun delete(chainLinkEntity: ChainLinkEntity) = runCatching {
         httpClient.webSocket {
-            send(SocketMessage(SocketMessageType.CHAIN_LINK_DELETE, Json.encodeToString(chainLink)).toFrame())
+            send(SocketMessage(SocketMessageType.CHAIN_LINK_DELETE, Json.encodeToString(chainLinkEntity)).toFrame())
         }
     }
 }

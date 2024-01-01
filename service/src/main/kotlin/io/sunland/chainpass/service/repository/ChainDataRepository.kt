@@ -1,6 +1,6 @@
 package io.sunland.chainpass.service.repository
 
-import io.sunland.chainpass.common.repository.Chain
+import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainRepository
 import io.sunland.chainpass.service.ChainTable
 import io.sunland.chainpass.service.Database
@@ -9,11 +9,11 @@ import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.selectAll
 
 object ChainDataRepository : ChainRepository {
-    override suspend fun create(chain: Chain) = runCatching {
+    override suspend fun create(chainEntity: ChainEntity) = runCatching {
         Database.execute {
             ChainTable.insertAndGetId { statement ->
-                statement[name] = chain.name
-                statement[key] = chain.key
+                statement[name] = chainEntity.name
+                statement[key] = chainEntity.key
             }.value
         }
     }
@@ -21,14 +21,14 @@ object ChainDataRepository : ChainRepository {
     override suspend fun read() = runCatching {
         Database.execute {
             ChainTable.selectAll().map { record ->
-                Chain(record[ChainTable.id].value, record[ChainTable.name], record[ChainTable.key])
+                ChainEntity(record[ChainTable.id].value, record[ChainTable.name], record[ChainTable.key])
             }
         }
     }
 
-    override suspend fun delete(chain: Chain) = runCatching {
+    override suspend fun delete(chainEntity: ChainEntity) = runCatching {
         Database.execute<Unit> {
-            ChainTable.deleteWhere { ChainTable.id eq chain.id }
+            ChainTable.deleteWhere { ChainTable.id eq chainEntity.id }
         }
     }
 }

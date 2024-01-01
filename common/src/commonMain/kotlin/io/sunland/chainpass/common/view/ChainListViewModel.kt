@@ -1,33 +1,65 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.runtime.mutableStateListOf
-import io.sunland.chainpass.common.repository.Chain
+import io.sunland.chainpass.common.Chain
+import io.sunland.chainpass.common.ChainStatus
+import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainRepository
 
-class ChainListViewModel(private val repository: ChainRepository) : ViewModel {
-    val chains = mutableStateListOf<ChainListItem>()
-
-    override fun refresh() {
-        val chains = chains.toList()
-
-        this.chains.clear()
-        this.chains.addAll(chains)
-    }
-
-    suspend fun new(chain: ChainListItem): Result<Unit> {
-        return repository.create(Chain(chain.id, chain.name, chain.key)).map { chainId -> chain.id = chainId }
-    }
+class ChainListViewModel(private val repository: ChainRepository) {
+    val chains = mutableStateListOf<Chain>()
 
     suspend fun getAll(): Result<Unit> {
-        return repository.read().map { chains ->
+        return repository.read().map { chainEntities ->
             this.chains.clear()
-            this.chains.addAll(chains.map { chain ->
-                ChainListItem(chain.id, chain.name, chain.key, ChainListItemStatus.ACTUAL)
+            this.chains.addAll(chainEntities.map { chainEntity ->
+                Chain().apply {
+                    id = chainEntity.id
+                    name = chainEntity.name
+                    key = chainEntity.key
+                    status = ChainStatus.ACTUAL
+                }
             })
         }
     }
 
-    suspend fun remove(chain: ChainListItem): Result<Unit> {
-        return repository.delete(Chain(chain.id, chain.name, chain.key))
+    fun draft() {
+        val chain = Chain()
+
+        chains.add(chain)
+    }
+
+    fun rejectDraft(chain: Chain) {
+        chains.remove(chain)
+    }
+
+    suspend fun new(chain: Chain): Result<Unit> {
+        val chainEntity = ChainEntity(chain.id, chain.name, chain.key)
+
+        return repository.create(chainEntity).map { id ->
+            chain.id = id
+            chain.status = ChainStatus.ACTUAL
+
+            val chains = chains.toList()
+
+            this.chains.clear()
+            this.chains.addAll(chains)
+        }
+    }
+
+    fun remove(chain: Chain, onRemove: (Chain) -> Unit) {
+        chains.remove(chain)
+
+        onRemove(chain)
+    }
+
+    fun undoRemove(chain: Chain) {
+        chains.add(chain)
+    }
+
+    suspend fun remove(chain: Chain): Result<Unit> {
+        val chainEntity = ChainEntity(chain.id, chain.name, chain.key)
+
+        return repository.delete(chainEntity)
     }
 }

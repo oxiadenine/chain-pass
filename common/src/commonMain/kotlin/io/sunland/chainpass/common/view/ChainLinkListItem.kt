@@ -10,19 +10,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import io.sunland.chainpass.common.ChainLink
 
 @Composable
-fun ChainLinkListItem(
-    name: String,
-    password: String,
-    onIconEditClick: () -> Unit,
-    onIconDeleteClick: () -> Unit
-) {
+fun ChainLinkListItem(chainLink: ChainLink, onIconEditClick: () -> Unit, onIconDeleteClick: () -> Unit) {
     val passwordVisibleState = remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(modifier = Modifier.padding(all = 16.dp), text = name)
+            Text(modifier = Modifier.padding(all = 16.dp), text = chainLink.name)
             Row {
                 IconButton(onClick = onIconEditClick) {
                     Icon(imageVector = Icons.Default.Edit, contentDescription = null)
@@ -35,7 +31,7 @@ fun ChainLinkListItem(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
             if (passwordVisibleState.value) {
                 TextField(
-                    value = password,
+                    value = chainLink.password,
                     onValueChange = {},
                     readOnly = true,
                     colors = TextFieldDefaults.textFieldColors(
@@ -46,7 +42,7 @@ fun ChainLinkListItem(
                 )
             } else Text(
                 modifier = Modifier.padding(all = 16.dp),
-                text = password.toList().joinToString(separator = "") { "*" }
+                text = chainLink.password.toList().joinToString(separator = "") { "*" }
             )
             IconButton(onClick = { passwordVisibleState.value = !passwordVisibleState.value }) {
                 Icon(imageVector = Icons.Default.Lock, contentDescription = null)
