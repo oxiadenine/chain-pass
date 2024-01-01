@@ -8,14 +8,14 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 
 object ChainLinkRepository {
-    suspend fun create(chainLinkEntity: ChainLinkEntity) = runCatching {
+    suspend fun create(chainLinkEntities: List<ChainLinkEntity>) = runCatching {
         Database.execute<Unit> {
-            ChainLinkTable.insert { statement ->
-                statement[id] = chainLinkEntity.id
-                statement[name] = chainLinkEntity.name
-                statement[description] = chainLinkEntity.description
-                statement[password] = chainLinkEntity.password
-                statement[chainId] = chainLinkEntity.chainKey.id
+            ChainLinkTable.batchInsert(chainLinkEntities) { chainLinkEntity ->
+                this[ChainLinkTable.id] = chainLinkEntity.id
+                this[ChainLinkTable.name] = chainLinkEntity.name
+                this[ChainLinkTable.description] = chainLinkEntity.description
+                this[ChainLinkTable.password] = chainLinkEntity.password
+                this[ChainLinkTable.chainId] = chainLinkEntity.chainKey.id
             }
         }
     }

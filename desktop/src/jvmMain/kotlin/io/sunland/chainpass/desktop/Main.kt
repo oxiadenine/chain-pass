@@ -34,7 +34,7 @@ fun main() = application {
         }
     }
 
-    val appState = rememberAppState(Settings(), Storage(settingsManager.dirPath), Screen.SERVER_CONNECTION)
+    val appState = rememberAppState(Settings(), Screen.SERVER_CONNECTION)
 
     Window(
         icon = painterResource("icon.png"),

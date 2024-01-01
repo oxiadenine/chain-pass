@@ -24,7 +24,7 @@ actual class Storage actual constructor(
             applyPattern("yyyy.MM.dd-HH.mm.ss")
         }.format(Date())
 
-        val fileName = "${storable.id}_$date"
+        val fileName = "${storable.chain["name"]}_$date"
 
         val filePath = when (options.type) {
             StorageType.JSON -> Path.of("$dirPath/store/$fileName.json")
@@ -43,7 +43,7 @@ actual class Storage actual constructor(
 
     actual fun unstore(filePath: String): Storable {
         if (!Files.exists(Path.of(filePath))) {
-            throw IllegalArgumentException("File $filePath does not exists")
+            error("File $filePath does not exists")
         }
 
         val storageType = StorageType.valueOf(Path.of(filePath).extension.uppercase())

@@ -27,6 +27,7 @@ fun ChainListTopBar(
     serverAddress: ServerAddress,
     onSync: () -> Unit,
     onAdd: () -> Unit,
+    onUnstore: () -> Unit,
     onDisconnect: () -> Unit
 ) {
     val actionMenuExpandedState = remember { mutableStateOf(false) }
@@ -85,6 +86,23 @@ fun ChainListTopBar(
                     ) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = null)
                         Text(text = "Add", fontSize = 12.sp)
+                    }
+                }
+                DropdownMenuItem(
+                    modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                    onClick = {
+                        actionMenuExpandedState.value = false
+
+                        onUnstore()
+                    },
+                    contentPadding = PaddingValues(horizontal = 16.dp)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(imageVector = Icons.Default.Unarchive, contentDescription = null)
+                        Text(text = "Unstore", fontSize = 12.sp)
                     }
                 }
                 DropdownMenuItem(
