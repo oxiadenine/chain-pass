@@ -18,6 +18,9 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.component.PopupText
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -28,8 +31,12 @@ fun ChainLinkListItem(
     onPasswordLock: (Boolean) -> Unit,
     onPasswordCopy: () -> Unit
 ) {
-    val passwordLockState = mutableStateOf(chainLink.password.isPrivate)
-    val passwordLockIconState = mutableStateOf(Icons.Default.Lock)
+    val coroutineScope = rememberCoroutineScope()
+
+    val passwordCopiedTextVisibleState = remember { mutableStateOf(false) }
+
+    val passwordLockState = remember { mutableStateOf(chainLink.password.isPrivate) }
+    val passwordLockIconState = remember { mutableStateOf(Icons.Default.Lock) }
 
     if (passwordLockState.value) {
         passwordLockIconState.value = Icons.Default.Lock
@@ -75,6 +82,7 @@ fun ChainLinkListItem(
                 ) { Icon(imageVector = Icons.Default.Delete, contentDescription = null) }
             }
         }
+
         if (chainLink.description.value.isNotEmpty()) {
             Text(
                 modifier = Modifier.padding(all = 16.dp),
@@ -82,6 +90,11 @@ fun ChainLinkListItem(
                 fontSize = 14.sp
             )
         }
+
+        if (passwordCopiedTextVisibleState.value) {
+            PopupText(alignment = Alignment.Center, text = "Copied")
+        }
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -105,7 +118,17 @@ fun ChainLinkListItem(
                             modifier = Modifier
                                 .padding(horizontal = 4.dp)
                                 .pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                            onClick = onPasswordCopy
+                            onClick = {
+                                coroutineScope.launch {
+                                    passwordCopiedTextVisibleState.value = true
+
+                                    delay(1000)
+
+                                    passwordCopiedTextVisibleState.value = false
+                                }
+
+                                onPasswordCopy()
+                            }
                         ) { Icon(imageVector = Icons.Default.ContentCopy, contentDescription = null) }
                         Text(text = chainLink.password.value)
                     }

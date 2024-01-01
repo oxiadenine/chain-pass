@@ -11,8 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.ktor.client.*
@@ -243,8 +241,6 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                     )
                 }
                 Screen.CHAIN_LINK_LIST -> {
-                    val clipboardManager = LocalClipboardManager.current
-
                     ChainLinkList(
                         viewModel = chainLinkListViewModel,
                         onNew = { chainLink ->
@@ -282,18 +278,6 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                             }
                         },
                         onSearch = { scaffoldState.snackbarHostState.currentSnackbarData?.performAction() },
-                        onPasswordCopy = { chainLink ->
-                            clipboardManager.setText(AnnotatedString(chainLink.password.value))
-
-                            coroutineScope.launch {
-                                scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
-
-                                scaffoldState.snackbarHostState.showSnackbar(
-                                    message = "${chainLink.name.value} password copied",
-                                    duration = SnackbarDuration.Short
-                                )
-                            }
-                        },
                         onSync = {
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
