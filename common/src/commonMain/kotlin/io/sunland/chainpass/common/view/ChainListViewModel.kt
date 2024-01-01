@@ -18,7 +18,11 @@ class ChainListViewModel(private val repository: ChainRepository) {
     private var chains = emptyList<Chain>()
 
     fun draft() {
-        chainListState.add(Chain())
+        val chain = Chain().apply {
+            id = chainListState.maxOf { chain -> chain.id } + 1
+        }
+
+        chainListState.add(chain)
     }
 
     fun rejectDraft(chain: Chain) {

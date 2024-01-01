@@ -1,8 +1,8 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
-import io.sunland.chainpass.common.component.VerticalScrollbar
 
 @Composable
 fun ChainList(
@@ -44,10 +43,8 @@ fun ChainList(
                     Icon(imageVector = Icons.Default.Add, contentDescription = null)
                 }
             } else {
-                val scrollState = rememberScrollState()
-
-                Column(modifier = Modifier.verticalScroll(scrollState)) {
-                    viewModel.chainListState.forEach { chain ->
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(viewModel.chainListState.toTypedArray(), key = { chain -> chain.id }) { chain ->
                         when (chain.status) {
                             Chain.Status.ACTUAL -> {
                                 val keyInputDialogVisible = remember { mutableStateOf(false) }
@@ -94,10 +91,6 @@ fun ChainList(
                         }
                     }
                 }
-                VerticalScrollbar(
-                    modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
-                    scrollState = scrollState
-                )
             }
         }
     }

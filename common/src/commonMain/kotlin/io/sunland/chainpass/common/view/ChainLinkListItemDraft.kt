@@ -37,48 +37,52 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkListItemDraft(chainLink: ChainLink, onNew: () -> Unit, onCancel: () -> Unit) {
-    val nameState = mutableStateOf(chainLink.name.value)
-    val nameValidationState = mutableStateOf(chainLink.name.validation)
+    val nameState = remember { mutableStateOf(chainLink.name.value) }
+    val nameValidationState = remember { mutableStateOf(chainLink.name.validation) }
 
-    val descriptionState = mutableStateOf(chainLink.description.value)
-    val descriptionValidationState = mutableStateOf(chainLink.description.validation)
+    val descriptionState = remember { mutableStateOf(chainLink.description.value) }
+    val descriptionValidationState = remember { mutableStateOf(chainLink.description.validation) }
 
-    val passwordState = mutableStateOf(chainLink.password.value)
-    val passwordValidationState = mutableStateOf(chainLink.password.validation)
+    val passwordState = remember { mutableStateOf(chainLink.password.value) }
+    val passwordValidationState = remember { mutableStateOf(chainLink.password.validation)}
 
     val onNameChange = { value: String ->
-        chainLink.name = ChainLink.Name(value)
+        val chainLinkName = ChainLink.Name(value)
 
-        nameState.value = chainLink.name.value
-        nameValidationState.value = chainLink.name.validation
+        nameState.value = chainLinkName.value
+        nameValidationState.value = chainLinkName.validation
     }
 
     val onDescriptionChange = { value: String ->
-        chainLink.description = ChainLink.Description(value)
+        val chainLinkDescription = ChainLink.Description(value)
 
-        descriptionState.value = chainLink.description.value
-        descriptionValidationState.value = chainLink.description.validation
+        descriptionState.value = chainLinkDescription.value
+        descriptionValidationState.value = chainLinkDescription.validation
     }
 
     val onPasswordChange = { value: String ->
-        chainLink.password = ChainLink.Password(value)
+        val chainLinkpPassword = ChainLink.Password(value)
 
-        passwordState.value = chainLink.password.value
-        passwordValidationState.value = chainLink.password.validation
+        passwordState.value = chainLinkpPassword.value
+        passwordValidationState.value = chainLinkpPassword.validation
     }
 
     val onDone = {
-        chainLink.name = ChainLink.Name(nameState.value)
-        chainLink.description = ChainLink.Description(descriptionState.value)
-        chainLink.password = ChainLink.Password(passwordState.value)
+        val chainLinkName = ChainLink.Name(nameState.value)
+        val chainLinkDescription = ChainLink.Description(descriptionState.value)
+        val chainLinkPassword = ChainLink.Password(passwordState.value)
 
-        nameValidationState.value = chainLink.name.validation
-        descriptionValidationState.value = chainLink.description.validation
-        passwordValidationState.value = chainLink.password.validation
+        nameValidationState.value = chainLinkName.validation
+        descriptionValidationState.value = chainLinkDescription.validation
+        passwordValidationState.value = chainLinkPassword.validation
 
         if (nameValidationState.value.isSuccess && descriptionValidationState.value.isSuccess &&
             passwordValidationState.value.isSuccess
         ) {
+            chainLink.name = chainLinkName
+            chainLink.description = chainLinkDescription
+            chainLink.password = chainLinkPassword
+
             onNew()
         }
     }

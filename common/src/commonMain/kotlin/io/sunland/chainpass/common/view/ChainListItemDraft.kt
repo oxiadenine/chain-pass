@@ -35,34 +35,37 @@ import io.sunland.chainpass.common.security.PasswordGenerator
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainListItemDraft(chain: Chain, onNew: () -> Unit, onCancel: () -> Unit) {
-    val nameState = mutableStateOf(chain.name.value)
-    val nameValidationState = mutableStateOf(chain.name.validation)
+    val nameState = remember { mutableStateOf(chain.name.value) }
+    val nameValidationState = remember { mutableStateOf(chain.name.validation) }
 
-    val keyState = mutableStateOf(chain.key.value)
-    val keyValidationState = mutableStateOf(chain.key.validation)
+    val keyState = remember { mutableStateOf(chain.key.value) }
+    val keyValidationState = remember { mutableStateOf(chain.key.validation) }
 
     val onNameChange = { value: String ->
-        chain.name = Chain.Name(value)
+        val chainName = Chain.Name(value)
 
-        nameState.value = chain.name.value
-        nameValidationState.value = chain.name.validation
+        nameState.value = chainName.value
+        nameValidationState.value = chainName.validation
     }
 
     val onKeyChange = { value: String ->
-        chain.key = Chain.Key(value)
+        val chainKey = Chain.Key(value)
 
-        keyState.value = chain.key.value
-        keyValidationState.value = chain.key.validation
+        keyState.value = chainKey.value
+        keyValidationState.value = chainKey.validation
     }
 
     val onDone = {
-        chain.name = Chain.Name(nameState.value)
-        chain.key = Chain.Key(keyState.value)
+        val chainName = Chain.Name(nameState.value)
+        val chainKey = Chain.Key(keyState.value)
 
-        nameValidationState.value = chain.name.validation
-        keyValidationState.value = chain.key.validation
+        nameValidationState.value = chainName.validation
+        keyValidationState.value = chainKey.validation
 
         if (nameValidationState.value.isSuccess && keyValidationState.value.isSuccess) {
+            chain.name = chainName
+            chain.key = chainKey
+
             onNew()
         }
     }

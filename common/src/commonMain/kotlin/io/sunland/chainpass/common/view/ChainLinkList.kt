@@ -1,8 +1,8 @@
 package io.sunland.chainpass.common.view
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.ChainLink
-import io.sunland.chainpass.common.component.VerticalScrollbar
 
 @Composable
 fun ChainLinkList(
@@ -46,8 +45,8 @@ fun ChainLinkList(
         }
         Box(modifier = Modifier.fillMaxSize()) {
             val chainLinks = if (viewModel.isSearchState.value) {
-                viewModel.chainLinkSearchListState.toList()
-            } else viewModel.chainLinkListState.toList()
+                viewModel.chainLinkSearchListState.toTypedArray()
+            } else viewModel.chainLinkListState.toTypedArray()
 
             if (chainLinks.isEmpty()) {
                 Row(
@@ -64,10 +63,8 @@ fun ChainLinkList(
                     }
                 }
             } else {
-                val scrollState = rememberScrollState()
-
-                Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
-                    chainLinks.forEach { chainLink ->
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(chainLinks, key = { chainLink -> chainLink.id }) { chainLink ->
                         if (viewModel.isSearchState.value) {
                             ChainLinkSearchListItem(
                                 chainLink = chainLink,
@@ -114,10 +111,6 @@ fun ChainLinkList(
                         }
                     }
                 }
-                VerticalScrollbar(
-                    modifier = Modifier.fillMaxHeight().align(Alignment.CenterEnd),
-                    scrollState = scrollState
-                )
             }
         }
     }
