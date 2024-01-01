@@ -1,8 +1,8 @@
 package io.sunland.chainpass.common
 
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.*
 
 expect class Storage(dirPath: String, options: StorageOptions) {
     val dirPath: String
@@ -15,30 +15,34 @@ enum class StorageType { JSON, CSV, TXT }
 
 data class StorageOptions(val isPrivate: Boolean = true, val type: StorageType = StorageType.JSON)
 
-typealias Storable = Map<Map<String, String>, List<Map<String, String>>>
+@Serializable
+data class Storable(val id: String, val options: Map<String, String>, val items: List<Map<String, String>>)
 
-fun Storable.toString(storageType: StorageType) = when (storageType) {
-    StorageType.JSON -> JsonArray(this.values.flatMap { value ->
-        value.map {
-            JsonObject(it.map { entry ->
-                entry.key to JsonPrimitive(entry.value)
-            }.toMap())
-        }
-    }).toString()
+fun Storable.toString(options: StorageOptions) = when (options.type) {
+    StorageType.JSON -> Json.encodeToString(value = this)
     StorageType.CSV -> buildString {
-        val data = this@toString.values.flatten()
+        val optionsHeader = this@toString.options.keys.toSet().joinToString(",")
 
-        val header = data.flatMap { it.keys }.toSet().joinToString(",")
+        append("$optionsHeader\n")
 
-        append("$header\n")
+        val optionsRecord = this@toString.options.values.joinToString(",")
 
-        val records = data.map {
+        append("$optionsRecord\n")
+
+        val itemsHeader = this@toString.items.flatMap { it.keys }.toSet().joinToString(",")
+
+        append("$itemsHeader\n")
+
+        val itemsRecords = this@toString.items.map {
             it.values.joinToString(",") { field ->
                 "\"${field.replace("\"", "\"\"")}\""
             }
         }
 
-        records.forEach { record -> append("$record\n") }
+        itemsRecords.forEach { record -> append("$record\n") }
     }
-    StorageType.TXT -> buildString { append(this@toString.values.flatten()) }
+    StorageType.TXT -> buildString {
+        append(this@toString.options)
+        append(this@toString.items)
+    }
 }
