@@ -6,8 +6,12 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,9 +34,17 @@ actual fun ValidationTextField(
     singleLine: Boolean,
     colors: TextFieldColors?
 ) = Column {
+    val textFieldValueState = remember {
+        mutableStateOf(TextFieldValue(text = value, selection = TextRange(value.length)))
+    }
+
     TextField(
-        value = value,
-        onValueChange = onValueChange,
+        value = textFieldValueState.value,
+        onValueChange = { textFieldValue ->
+            textFieldValueState.value = textFieldValue
+
+            onValueChange(textFieldValue.text)
+        },
         modifier = modifier,
         textStyle = textStyle ?: LocalTextStyle.current,
         placeholder = placeholder,
