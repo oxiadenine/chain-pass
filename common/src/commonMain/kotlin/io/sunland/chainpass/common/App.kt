@@ -138,7 +138,8 @@ fun App(settingsManager: SettingsManager, database: Database, storage: Storage) 
                         viewModel = chainListViewModel,
                         settingsState = settingsState,
                         navigationState = navigationState,
-                        snackbarHostState = SnackbarHostState()
+                        snackbarHostState = SnackbarHostState(),
+                        popupHostState = PopupHostState()
                     )
                 }
                 Screen.CHAIN_LINK_LIST -> {
