@@ -1,5 +1,7 @@
 package io.sunland.chainpass.common.view
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +27,7 @@ import kotlinx.coroutines.launch
 
 enum class ChainLinkListAction { NONE, STORE, UNSTORE }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
@@ -38,9 +41,11 @@ fun ChainLinkList(
 
     val isWorkInProgressState = remember { mutableStateOf(false) }
     val isInputDialogVisibleState = remember { mutableStateOf(false) }
+    val isPopupVisibleState = remember { MutableTransitionState(false) }
 
-    val popupMessageState = remember { mutableStateOf("") }
-    val isPopupVisibleState = remember { mutableStateOf(false) }
+    val isSnackbarVisibleState = remember {
+        snapshotFlow { snackbarHostState.currentSnackbarData != null }
+    }.collectAsState(false)
 
     if (isWorkInProgressState.value) {
         LoadingIndicator()
@@ -97,26 +102,6 @@ fun ChainLinkList(
                 onCancel = { isInputDialogVisibleState.value = false }
             )
             ChainLinkListAction.NONE -> Unit
-        }
-    }
-
-    if (isPopupVisibleState.value) {
-        Popup(
-            alignment = Alignment.BottomCenter,
-            offset = IntOffset(
-                x = 0,
-                y = if (snackbarHostState.currentSnackbarData != null) {
-                    -(80 * LocalDensity.current.density).toInt()
-                } else -(16 * LocalDensity.current.density).toInt()
-            )
-        ) {
-            Surface(elevation = 2.dp) {
-                Text(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    text = popupMessageState.value,
-                    fontSize = 14.sp
-                )
-            }
         }
     }
 
@@ -251,13 +236,11 @@ fun ChainLinkList(
                                             clipboardManager.setText(AnnotatedString(password))
 
                                             coroutineScope.launch(Dispatchers.IO) {
-                                                popupMessageState.value = "Password copied"
-                                                isPopupVisibleState.value = true
+                                                isPopupVisibleState.targetState = true
 
                                                 delay(1000L)
 
-                                                popupMessageState.value = ""
-                                                isPopupVisibleState.value = false
+                                                isPopupVisibleState.targetState = false
                                             }
                                         }
                                     )
@@ -306,6 +289,47 @@ fun ChainLinkList(
                 viewModel.chainLinkLatestIndex.takeIf { index -> index != -1 }?.let { index ->
                     LaunchedEffect(index) {
                         lazyListState.scrollToItem(index)
+                    }
+                }
+            }
+        }
+
+        val density = LocalDensity.current
+
+        AnimatedContent(
+            modifier = Modifier.align(alignment = Alignment.CenterHorizontally),
+            targetState = isSnackbarVisibleState.value,
+            transitionSpec = {
+                slideInVertically(animationSpec = tween(easing = LinearEasing, durationMillis = 150)) {
+                    with(density) {
+                        if (targetState && !initialState) {
+                            16.dp.roundToPx()
+                        } else -16.dp.roundToPx()
+                    }
+                } with ExitTransition.None
+            }
+        ) { isSnackbarVisible ->
+            if (isPopupVisibleState.targetState) {
+                Popup(
+                    alignment = Alignment.BottomCenter,
+                    offset = with(density) {
+                        if (isSnackbarVisible)
+                            IntOffset(x = 0, y = -80.dp.roundToPx())
+                        else IntOffset(x = 0, y = -16.dp.roundToPx())
+                    }
+                ) {
+                    AnimatedVisibility(
+                        visibleState = isPopupVisibleState,
+                        enter = fadeIn(animationSpec = tween(easing = LinearEasing, durationMillis = 150)),
+                        exit = fadeOut(animationSpec = tween(easing = LinearEasing, durationMillis = 75))
+                    ) {
+                        Surface(elevation = 2.dp) {
+                            Text(
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                text = "Password copied",
+                                fontSize = 14.sp
+                            )
+                        }
                     }
                 }
             }
