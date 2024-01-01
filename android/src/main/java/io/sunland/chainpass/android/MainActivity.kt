@@ -13,7 +13,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.sunland.chainpass.common.App
 import io.sunland.chainpass.common.SocketConnectionType
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private lateinit var httpClient: HttpClient
@@ -38,8 +37,7 @@ class MainActivity : AppCompatActivity() {
                     protocol = URLProtocol.byName[config.getString("protocol")]!!
                 }
 
-                header("Socket-Type", SocketConnectionType.CLIENT)
-                header("Socket-Id", UUID.randomUUID().toString())
+                header("Socket-Type", SocketConnectionType.CLIENT.name)
             }
         }
 

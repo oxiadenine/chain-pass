@@ -23,7 +23,7 @@ fun Application.main() {
         webSocket("/") {
             val fromConnection = SocketConnection(
                 SocketConnectionType.valueOf(call.request.headers["Socket-Type"]!!),
-                call.request.headers["Socket-Id"]!!,
+                UUID.randomUUID().toString(),
                 this
             )
 
@@ -43,7 +43,8 @@ fun Application.main() {
 
                     val toConnection = when (fromConnection.type) {
                         SocketConnectionType.SERVICE -> socketConnections.first { connection ->
-                            connection.type == SocketConnectionType.CLIENT && connection.socketId == message.socketId &&
+                            connection.type == SocketConnectionType.CLIENT &&
+                                    connection.socketId == message.socketId &&
                                     connection.session.isActive
                         }
                         SocketConnectionType.CLIENT -> {

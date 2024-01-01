@@ -23,7 +23,6 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.slf4j.LoggerFactory
-import java.util.*
 
 fun main() {
     val config = ConfigFactory.load()
@@ -57,8 +56,7 @@ fun main() {
                     protocol = URLProtocol.byName[config.getString("service.protocol")]!!
                 }
 
-                header("Socket-Type", SocketConnectionType.SERVICE)
-                header("Socket-Id", UUID.randomUUID().toString())
+                header("Socket-Type", SocketConnectionType.SERVICE.name)
             }
         }
 
