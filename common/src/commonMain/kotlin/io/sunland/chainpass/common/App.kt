@@ -113,6 +113,8 @@ fun App(settings: Settings, appState: AppState) = MaterialTheme(
                     },
                     onIconRefreshClick = {
                         coroutineScope.launch {
+                            scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+
                             chainListViewModel.getAll().onFailure { exception ->
                                 scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
                             }
@@ -129,6 +131,8 @@ fun App(settings: Settings, appState: AppState) = MaterialTheme(
                     onIconAddClick = { chainLinkListViewModel.draft() },
                     onIconRefreshClick = {
                         coroutineScope.launch {
+                            scaffoldState.snackbarHostState.currentSnackbarData?.performAction()
+
                             chainLinkListViewModel.getAll()
                                 .onSuccess { appState.screenState.value = Screen.CHAIN_LINK_LIST }
                                 .onFailure { exception ->
