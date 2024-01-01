@@ -53,8 +53,8 @@ fun ChainList(
                             title = null,
                             placeholder = "Key",
                             value = keyInputState.value,
-                            ontValueChange = {
-                                keyInputState.value = it
+                            ontValueChange = { key ->
+                                keyInputState.value = key
                                 keyInputErrorState.value = keyInputState.value.isEmpty()
                             },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

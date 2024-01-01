@@ -11,17 +11,17 @@ import org.jetbrains.exposed.sql.selectAll
 object ChainDataRepository : ChainRepository {
     override suspend fun create(chain: Chain) = runCatching {
         Database.execute {
-            ChainTable.insertAndGetId {
-                it[name] = chain.name
-                it[key] = chain.key
+            ChainTable.insertAndGetId { statement ->
+                statement[name] = chain.name
+                statement[key] = chain.key
             }.value
         }
     }
 
     override suspend fun read() = runCatching {
         Database.execute {
-            ChainTable.selectAll().map {
-                Chain(it[ChainTable.id].value, it[ChainTable.name], it[ChainTable.key])
+            ChainTable.selectAll().map { record ->
+                Chain(record[ChainTable.id].value, record[ChainTable.name], record[ChainTable.key])
             }
         }
     }

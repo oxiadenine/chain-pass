@@ -15,8 +15,8 @@ import io.sunland.chainpass.common.SocketConnectionType
 import java.util.*
 
 fun main(args: Array<String>) = application {
-    val config = args.joinToString { "application.$it" }.ifEmpty { "application" }.let {
-        ConfigFactory.load(it).getConfig("client")
+    val config = args.joinToString { env -> "application.$env" }.ifEmpty { "application" }.let { name ->
+        ConfigFactory.load(name).getConfig("client")
     }
 
     val httpClient = HttpClient(CIO) {
