@@ -1,13 +1,13 @@
 services:
-  chain-pass-service:
-    image: chain-pass-service
-    container_name: chain-pass-service
+  chain-pass-server:
+    image: chain-pass-server
+    container_name: chain-pass-server
     build:
       context: ./
-      dockerfile: ./service/Dockerfile
+      dockerfile: ./server/Dockerfile
     expose:
       - ${SERVER_PORT}
-    env_file: ./service/.env
+    env_file: ./server/.env
     volumes:
       - ${DATABASE_DIR}:/app/db
     labels:

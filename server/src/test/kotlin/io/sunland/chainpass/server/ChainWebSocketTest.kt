@@ -1,4 +1,4 @@
-package io.sunland.chainpass.service
+package io.sunland.chainpass.server
 
 import com.typesafe.config.ConfigFactory
 import io.ktor.client.plugins.websocket.*
