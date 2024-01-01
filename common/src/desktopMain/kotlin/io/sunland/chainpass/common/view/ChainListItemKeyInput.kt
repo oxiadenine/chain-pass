@@ -177,13 +177,10 @@ actual fun ChainListItemKeyInput(
                         colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
                     ) {
                         Row(
-                            horizontalArrangement = Arrangement.Center,
+                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                modifier = Modifier.width(width = 60.dp).padding(start = 8.dp, end = 4.dp),
-                                text = storageTypeState.value.name
-                            )
+                            Text(text = storageTypeState.value.name)
                             Icon(imageVector = Icons.Default.ExpandMore, contentDescription = null)
                         }
                         DropdownMenu(
@@ -230,15 +227,18 @@ actual fun ChainListItemKeyInput(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(space = 16.dp)
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Button(
+                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        onClick = { fileDialogOpenState.value = true },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
                     ) {
-                        Text(text = "Select File")
-                        IconButton(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                            onClick = { fileDialogOpenState.value = true }
-                        ) { Icon(imageVector = Icons.Default.FileOpen, contentDescription = null) }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "Select File")
+                            Icon(imageVector = Icons.Default.FileOpen, contentDescription = null)
+                        }
                     }
                     if (filePathState.value.isNotEmpty()) {
                         Text(text = FilePath(filePathState.value).fileName)

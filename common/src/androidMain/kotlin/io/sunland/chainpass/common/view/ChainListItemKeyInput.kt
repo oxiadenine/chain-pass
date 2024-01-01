@@ -14,14 +14,10 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerIconDefaults
-import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -33,7 +29,6 @@ import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.StorageType
 import io.sunland.chainpass.common.component.InputDialog
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 actual fun ChainListItemKeyInput(
     inputActionType: InputActionType,
@@ -93,24 +88,6 @@ actual fun ChainListItemKeyInput(
         }
     }
 
-    val onKeyEvent = { keyEvent: KeyEvent ->
-        if (keyEvent.type == KeyEventType.KeyDown) {
-            false
-        } else when (keyEvent.key) {
-            Key.Escape -> {
-                onDismiss()
-
-                true
-            }
-            Key.Enter -> {
-                onDone()
-
-                true
-            }
-            else -> false
-        }
-    }
-
     InputDialog(
         onDismissRequest = onDismiss,
         onConfirmRequest = onDone
@@ -121,7 +98,7 @@ actual fun ChainListItemKeyInput(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             TextField(
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester).onKeyEvent(onKeyEvent),
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
                 placeholder = { Text(text = "Key") },
                 value = keyState.value,
                 onValueChange = onKeyChange,
@@ -129,10 +106,7 @@ actual fun ChainListItemKeyInput(
                     if (keyErrorState.value) {
                         Icon(imageVector = Icons.Default.Info, contentDescription = null)
                     } else {
-                        IconButton(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                            onClick = onKeyVisibleChange
-                        ) {
+                        IconButton(onClick = onKeyVisibleChange) {
                             Icon(imageVector = if (keyVisibleState.value) {
                                 Icons.Default.Visibility
                             } else Icons.Default.VisibilityOff, contentDescription = null)
@@ -166,25 +140,17 @@ actual fun ChainListItemKeyInput(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(text = "Private")
-                        Switch(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                            checked = storageIsPrivateState.value,
-                            onCheckedChange = onStorageIsPrivateChange
-                        )
+                        Switch(checked = storageIsPrivateState.value, onCheckedChange = onStorageIsPrivateChange)
                     }
                     Button(
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = { storageTypeMenuExpandedState.value = true },
                         colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
                     ) {
                         Row(
-                            horizontalArrangement = Arrangement.Center,
+                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                modifier = Modifier.width(width = 60.dp).padding(start = 8.dp, end = 4.dp),
-                                text = storageTypeState.value.name
-                            )
+                            Text(text = storageTypeState.value.name)
                             Icon(imageVector = Icons.Default.ExpandMore, contentDescription = null)
                         }
                         DropdownMenu(
@@ -194,7 +160,6 @@ actual fun ChainListItemKeyInput(
                             offset = DpOffset(x = 8.dp, y = (-16).dp)
                         ) {
                             DropdownMenuItem(
-                                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                                 onClick = {
                                     storageTypeMenuExpandedState.value = false
 
@@ -203,7 +168,6 @@ actual fun ChainListItemKeyInput(
                                 contentPadding = PaddingValues(horizontal = 16.dp)
                             ) { Text(text = "JSON", fontSize = 12.sp) }
                             DropdownMenuItem(
-                                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                                 onClick = {
                                     storageTypeMenuExpandedState.value = false
 
@@ -212,7 +176,6 @@ actual fun ChainListItemKeyInput(
                                 contentPadding = PaddingValues(horizontal = 16.dp)
                             ) { Text(text = "CSV", fontSize = 12.sp) }
                             DropdownMenuItem(
-                                modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
                                 onClick = {
                                     storageTypeMenuExpandedState.value = false
 
@@ -235,17 +198,17 @@ actual fun ChainListItemKeyInput(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(space = 16.dp)
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Button(
+                        onClick = { resultLauncher.launch(arrayOf("application/json", "text/comma-separated-values")) },
+                        colors = ButtonDefaults.buttonColors(backgroundColor = MaterialTheme.colors.background)
                     ) {
-                        Text(text = "Select File")
-                        IconButton(
-                            modifier = Modifier.pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                            onClick = {
-                                resultLauncher.launch(arrayOf("application/json", "text/comma-separated-values"))
-                            }
-                        ) { Icon(imageVector = Icons.Default.FileOpen, contentDescription = null) }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = "Select File")
+                            Icon(imageVector = Icons.Default.FileOpen, contentDescription = null)
+                        }
                     }
                     if (filePathState.value.isNotEmpty()) {
                         Text(text = FilePath(filePathState.value).fileName)
