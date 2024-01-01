@@ -103,13 +103,12 @@ fun ChainLinkList(
 
                                             onRemove(chainLink)
                                         },
-                                        onPasswordLock = { isPasswordLocked ->
-                                            if (isPasswordLocked) {
-                                                viewModel.unlockPassword(chainLink)
-                                            } else viewModel.lockPassword(chainLink)
-                                        },
                                         onPasswordCopy = {
+                                            viewModel.unlockPassword(chainLink)
+
                                             clipboardManager.setText(AnnotatedString(chainLink.password.value))
+
+                                            viewModel.lockPassword(chainLink)
                                         }
                                     )
                                 }
