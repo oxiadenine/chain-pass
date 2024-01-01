@@ -61,7 +61,7 @@ fun ChainList(
                                             keyInputDialogVisible.value = false
                                         },
                                         onInputConfirm = { chainKey ->
-                                            viewModel.remove(chainKey)?.let(onItemRemove)
+                                            viewModel.removeLater(chainKey)?.let(onItemRemove)
                                             viewModel.select(chainKey)?.let(onItemSelect)
 
                                             viewModel.chainRemoveState.value = null

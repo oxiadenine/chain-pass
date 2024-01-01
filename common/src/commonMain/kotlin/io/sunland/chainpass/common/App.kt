@@ -229,7 +229,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                 }
                             }
                         },
-                        onItemRemove = { chain, chainLink ->
+                        onItemRemove = { chainLink ->
                             coroutineScope.launch {
                                 scaffoldState.snackbarHostState.currentSnackbarData?.dismiss()
 
@@ -240,7 +240,7 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                 )) {
                                     SnackbarResult.ActionPerformed -> chainLinkListViewModel.undoRemove(chainLink)
                                     SnackbarResult.Dismissed -> {
-                                        chainLinkListViewModel.remove(chain, chainLink).onFailure { exception ->
+                                        chainLinkListViewModel.remove(chainLink).onFailure { exception ->
                                             chainLinkListViewModel.undoRemove(chainLink)
 
                                             scaffoldState.snackbarHostState.showSnackbar(exception.message!!)
