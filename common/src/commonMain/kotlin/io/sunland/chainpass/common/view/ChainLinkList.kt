@@ -4,8 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.List
@@ -16,8 +15,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import io.sunland.chainpass.common.Chain
-import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.*
 import io.sunland.chainpass.common.component.PopupText
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -25,24 +23,32 @@ import kotlinx.coroutines.launch
 @Composable
 fun ChainLinkList(
     viewModel: ChainLinkListViewModel,
-    onBack: () -> Unit,
-    onSync: (Chain) -> Unit,
-    onNew: (ChainLink) -> Unit,
-    onEdit: (ChainLink) -> Unit,
-    onRemove: (ChainLink) -> Unit,
-    onSearch: () -> Unit
+    settingsState: MutableState<Settings>,
+    navigationState: NavigationState,
+    snackbarHostState: SnackbarHostState
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    val toastMessageState = remember { mutableStateOf("") }
-    val isToastVisibleState = remember { mutableStateOf(false) }
+    val isWorkInProgressState = remember { mutableStateOf(false) }
 
-    if (isToastVisibleState.value) {
+    val popupMessageState = remember { mutableStateOf("") }
+    val isPopupVisibleState = remember { mutableStateOf(false) }
+
+    if (isWorkInProgressState.value) {
+        LoadingIndicator()
+    }
+
+    if (isPopupVisibleState.value) {
         PopupText(
             alignment = Alignment.BottomCenter,
             offset = IntOffset(x = 0, y = -80),
-            text = toastMessageState.value
+            text = popupMessageState.value
         )
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.chain = navigationState.chainState.value
+        viewModel.getAll()
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -55,18 +61,40 @@ fun ChainLinkList(
         } else {
             ChainLinkListTopBar(
                 onBack = {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
                     viewModel.back()
 
-                    onBack()
+                    navigationState.screenState.value = Screen.CHAIN_LIST
                 },
-                onSync = { onSync(viewModel.chain!!) },
+                onSync = {
+                    snackbarHostState.currentSnackbarData?.performAction()
+
+                    coroutineScope.launch {
+                        if (settingsState.value.deviceAddress.isEmpty()) {
+                            snackbarHostState.showSnackbar("You have to set sync options on Settings")
+                        } else {
+                            isWorkInProgressState.value = true
+
+                            viewModel.sync(settingsState.value.deviceAddress).onSuccess {
+                                viewModel.getAll()
+
+                                isWorkInProgressState.value = false
+                            }.onFailure { exception ->
+                                isWorkInProgressState.value = false
+
+                                snackbarHostState.showSnackbar(exception.message ?: "Error")
+                            }
+                        }
+                    }
+                },
                 onAdd = { viewModel.draft() },
                 onSearch = {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
                     viewModel.rejectDrafts()
                     viewModel.cancelEdits()
                     viewModel.startSearch()
-
-                    onSearch()
                 }
             )
         }
@@ -108,9 +136,20 @@ fun ChainLinkList(
                                         chainLink = chainLink,
                                         onEdit = { viewModel.startEdit(chainLink) },
                                         onDelete = {
+                                            snackbarHostState.currentSnackbarData?.dismiss()
+
                                             viewModel.removeLater(chainLink)
 
-                                            onRemove(chainLink)
+                                            coroutineScope.launch {
+                                                when (snackbarHostState.showSnackbar(
+                                                    message = "${chainLink.name.value} removed",
+                                                    actionLabel = "Dismiss",
+                                                    duration = SnackbarDuration.Short
+                                                )) {
+                                                    SnackbarResult.ActionPerformed -> viewModel.undoRemove(chainLink)
+                                                    SnackbarResult.Dismissed -> viewModel.remove(chainLink)
+                                                }
+                                            }
                                         },
                                         onPasswordCopy = {
                                             val password = viewModel.copyPassword(chainLink).value
@@ -118,13 +157,13 @@ fun ChainLinkList(
                                             clipboardManager.setText(AnnotatedString(password))
 
                                             coroutineScope.launch {
-                                                toastMessageState.value = "Password copied"
-                                                isToastVisibleState.value = true
+                                                popupMessageState.value = "Password copied"
+                                                isPopupVisibleState.value = true
 
                                                 delay(1000L)
 
-                                                toastMessageState.value = ""
-                                                isToastVisibleState.value = false
+                                                popupMessageState.value = ""
+                                                isPopupVisibleState.value = false
                                             }
                                         }
                                     )
@@ -132,14 +171,14 @@ fun ChainLinkList(
                                 ChainLink.Status.DRAFT -> key(chainLink.id) {
                                     ChainLinkListItemDraft(
                                         chainLink = chainLink,
-                                        onNew = { onNew(chainLink) },
+                                        onNew = { viewModel.new(chainLink) },
                                         onCancel = { viewModel.rejectDraft(chainLink) }
                                     )
                                 }
                                 ChainLink.Status.EDIT -> key(chainLink.id) {
                                     ChainLinkListItemEdit(
                                         chainLink = chainLink,
-                                        onEdit = { onEdit(chainLink) },
+                                        onEdit = { viewModel.edit(chainLink) },
                                         onCancel = { viewModel.cancelEdit(chainLink) }
                                     )
                                 }

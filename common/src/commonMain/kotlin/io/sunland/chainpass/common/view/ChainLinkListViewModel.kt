@@ -4,6 +4,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import io.sunland.chainpass.common.Chain
 import io.sunland.chainpass.common.ChainLink
+import io.sunland.chainpass.common.network.ChainLinkApi
+import io.sunland.chainpass.common.network.WebSocket
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
 
@@ -192,8 +194,8 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         chainLinkSearchListState.clear()
     }
 
-    fun getAll() = chainLinkRepository.getBy(chain!!.id).mapCatching { chainLinkEntities ->
-        chainLinks = chainLinkEntities.map { chainLinkEntity ->
+    fun getAll() {
+        chainLinks = chainLinkRepository.getBy(chain!!.id).map { chainLinkEntity ->
             ChainLink(chain!!).apply {
                 id = chainLinkEntity.id
                 name = ChainLink.Name(chainLinkEntity.name)
@@ -220,11 +222,9 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)
-
-        Unit
     }
 
-    fun new(chainLink: ChainLink) = runCatching {
+    fun new(chainLink: ChainLink) {
         val secretKey = chainLink.chain.secretKey()
 
         chainLink.password = chainLink.privatePassword(secretKey)
@@ -237,14 +237,14 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
             chainLink.chain.id
         )
 
-        chainLinkRepository.create(chainLinkEntity).getOrThrow()
+        chainLinkRepository.create(chainLinkEntity)
 
         chainLink.status = ChainLink.Status.ACTUAL
 
         update()
     }
 
-    fun edit(chainLink: ChainLink) = runCatching {
+    fun edit(chainLink: ChainLink) {
         val secretKey = chainLink.chain.secretKey()
 
         chainLink.password = chainLink.privatePassword(secretKey)
@@ -257,14 +257,14 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
             chainLink.chain.id
         )
 
-        chainLinkRepository.update(chainLinkEntity).getOrThrow()
+        chainLinkRepository.update(chainLinkEntity)
 
         chainLink.status = ChainLink.Status.ACTUAL
 
         update()
     }
 
-    fun remove(chainLink: ChainLink) = runCatching {
+    fun remove(chainLink: ChainLink) {
         val chainLinkEntity = ChainLinkEntity(
             chainLink.id,
             chainLink.name.value,
@@ -273,9 +273,15 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
             chainLink.chain.id
         )
 
-        chainLinkRepository.delete(chainLinkEntity).getOrThrow()
+        chainLinkRepository.delete(chainLinkEntity)
 
         update()
+    }
+
+    suspend fun sync(deviceAddress: String) = runCatching {
+        val webSocket = WebSocket.connect(deviceAddress)
+
+        ChainLinkApi(chainLinkRepository, webSocket).sync(chain!!.id)
     }
 
     private fun update() {

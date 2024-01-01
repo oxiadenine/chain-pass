@@ -13,31 +13,19 @@ data class ChainLinkEntity(
 )
 
 class ChainLinkRepository(private val database: Database) {
-    fun create(chainLinkEntity: ChainLinkEntity) = runCatching {
-        database.chainLinkQueries.transaction {
-            database.chainLinkQueries.insert(
-                id = chainLinkEntity.id,
-                name = chainLinkEntity.name,
-                description = chainLinkEntity.description,
-                password = chainLinkEntity.password,
-                chainId = chainLinkEntity.chainId
-            )
-        }
+    fun create(chainLinkEntity: ChainLinkEntity) = database.chainLinkQueries.transaction {
+        database.chainLinkQueries.insert(
+            chainLinkEntity.id,
+            chainLinkEntity.name,
+            chainLinkEntity.description,
+            chainLinkEntity.password,
+            chainLinkEntity.chainId
+        )
     }
 
-    fun getAll() = runCatching {
-        database.chainLinkQueries.transactionWithResult {
-            database.chainLinkQueries.selectAll().executeAsList().map { record ->
-                ChainLinkEntity(record.id, record.name, record.description, record.password, record.chainId)
-            }
-        }
-    }
-
-    fun getBy(chainId: String) = runCatching {
-        database.chainLinkQueries.transactionWithResult {
-            database.chainLinkQueries.selectBy(chainId).executeAsList().map { record ->
-                ChainLinkEntity(record.id, record.name, record.description, record.password, record.chainId)
-            }
+    fun getBy(chainId: String) = database.chainLinkQueries.transactionWithResult {
+        database.chainLinkQueries.selectBy(chainId).executeAsList().map { record ->
+            ChainLinkEntity(record.id, record.name, record.description, record.password, record.chainId)
         }
     }
 
@@ -49,19 +37,11 @@ class ChainLinkRepository(private val database: Database) {
         }
     }
 
-    fun update(chainLinkEntity: ChainLinkEntity) = runCatching {
-        database.chainLinkQueries.transaction {
-            database.chainLinkQueries.update(
-                id = chainLinkEntity.id,
-                description = chainLinkEntity.description,
-                password = chainLinkEntity.password
-            )
-        }
+    fun update(chainLinkEntity: ChainLinkEntity) = database.chainLinkQueries.transaction {
+        database.chainLinkQueries.update(chainLinkEntity.description, chainLinkEntity.password, chainLinkEntity.id)
     }
 
-    fun delete(chainLinkEntity: ChainLinkEntity) = runCatching {
-        database.chainLinkQueries.transaction {
-            database.chainLinkQueries.delete(id = chainLinkEntity.id, chainId = chainLinkEntity.chainId)
-        }
+    fun delete(chainLinkEntity: ChainLinkEntity) = database.chainLinkQueries.transaction {
+        database.chainLinkQueries.delete(chainLinkEntity.id, chainLinkEntity.chainId)
     }
 }

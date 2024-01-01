@@ -19,7 +19,7 @@ class ChainApi(
 
         chainEntities.forEach { chainEntity ->
             chainRepository.getOne(chainEntity.id).onFailure {
-                chainRepository.create(chainEntity).getOrThrow()
+                chainRepository.create(chainEntity)
             }
 
             val chainLinkEntities = tcpSocket.requestResponse(
@@ -30,10 +30,10 @@ class ChainApi(
                 chainLinkRepository.getOne(chainLinkEntity.id).onSuccess { chainLinkEntityFound ->
                     if (chainLinkEntity.password != chainLinkEntityFound.password
                         || chainLinkEntity.description != chainLinkEntityFound.description) {
-                        chainLinkRepository.update(chainLinkEntity).getOrThrow()
+                        chainLinkRepository.update(chainLinkEntity)
                     }
                 }.onFailure {
-                    chainLinkRepository.create(chainLinkEntity).getOrThrow()
+                    chainLinkRepository.create(chainLinkEntity)
                 }
             }
         }

@@ -4,8 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material.Icon
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.runtime.*
@@ -13,35 +12,164 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.sunland.chainpass.common.Chain
+import io.sunland.chainpass.common.NavigationState
+import io.sunland.chainpass.common.Screen
+import io.sunland.chainpass.common.Settings
+import kotlinx.coroutines.launch
 
-enum class InputActionType { SELECT, REMOVE, STORE, UNSTORE }
+enum class ChainListAction { SELECT, REMOVE, STORE, UNSTORE }
 
 @Composable
 fun ChainList(
     viewModel: ChainListViewModel,
-    onSettings: () -> Unit,
-    onSync: () -> Unit,
-    onNew: (Chain) -> Unit,
-    onSelect: (Chain) -> Unit,
-    onRemove: (Chain) -> Unit,
-    onStore: (StoreOptions) -> Unit,
-    onUnstore: (FilePath) -> Unit
+    settingsState: MutableState<Settings>,
+    navigationState: NavigationState,
+    snackbarHostState: SnackbarHostState
 ) {
-    val inputActionTypeState = remember { mutableStateOf(InputActionType.SELECT) }
-    val inputActionDialogVisibleState = remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+
+    val chainListActionState = remember { mutableStateOf(ChainListAction.SELECT) }
+
+    val isWorkInProgressState = remember { mutableStateOf(false) }
+    val isInputDialogVisibleState = remember { mutableStateOf(false) }
+
+    if (isWorkInProgressState.value) {
+        LoadingIndicator()
+    }
+
+    if (isInputDialogVisibleState.value) {
+        when (chainListActionState.value) {
+            ChainListAction.SELECT -> ChainListItemKeyInput(
+                onCancel = { isInputDialogVisibleState.value = false },
+                onSelect = { chainKey ->
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
+                    isInputDialogVisibleState.value = false
+
+                    val chain = viewModel.chainSelected!!.apply { key = chainKey }
+
+                    viewModel.setSelected()
+
+                    coroutineScope.launch {
+                        viewModel.select(chain).onSuccess {
+                            navigationState.chainState.value = chain
+                            navigationState.screenState.value = Screen.CHAIN_LINK_LIST
+                        }.onFailure { exception ->
+                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                        }
+                    }
+                }
+            )
+            ChainListAction.REMOVE -> ChainListItemKeyInput(
+                onCancel = { isInputDialogVisibleState.value = false },
+                onSelect = { chainKey ->
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
+                    isInputDialogVisibleState.value = false
+
+                    val chain = viewModel.chainSelected!!.apply { key = chainKey }
+
+                    viewModel.removeLater(chain)
+
+                    coroutineScope.launch {
+                        when (snackbarHostState.showSnackbar(
+                            message = "${chain.name.value} removed",
+                            actionLabel = "Dismiss",
+                            duration = SnackbarDuration.Short
+                        )) {
+                            SnackbarResult.ActionPerformed -> viewModel.undoRemove(chain)
+                            SnackbarResult.Dismissed -> viewModel.remove(chain).onFailure { exception ->
+                                viewModel.undoRemove(chain)
+
+                                snackbarHostState.showSnackbar(exception.message ?: "Error")
+                            }
+                        }
+                    }
+                }
+            )
+            ChainListAction.STORE -> ChainListStoreInput(
+                onCancel = { isInputDialogVisibleState.value = false },
+                onSelect = { storeOptions ->
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
+                    isInputDialogVisibleState.value = false
+
+                    coroutineScope.launch {
+                        isWorkInProgressState.value = true
+
+                        viewModel.store(storeOptions).onSuccess { fileName ->
+                            isWorkInProgressState.value = false
+
+                            snackbarHostState.showSnackbar("Stored to $fileName")
+                        }.onFailure { exception ->
+                            isWorkInProgressState.value = false
+
+                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                        }
+                    }
+                }
+            )
+            ChainListAction.UNSTORE -> ChainListUnstoreInput(
+                onCancel = { isInputDialogVisibleState.value = false },
+                onSelect = { filePath ->
+                    snackbarHostState.currentSnackbarData?.dismiss()
+
+                    isInputDialogVisibleState.value = false
+
+                    coroutineScope.launch {
+                        isWorkInProgressState.value = true
+
+                        viewModel.unstore(filePath).onSuccess {
+                            viewModel.getAll()
+
+                            isWorkInProgressState.value = false
+
+                            snackbarHostState.showSnackbar("Unstored from ${filePath.fileName}")
+                        }.onFailure { exception ->
+                            isWorkInProgressState.value = false
+
+                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    LaunchedEffect(Unit) { viewModel.getAll() }
 
     Column(modifier = Modifier.fillMaxSize()) {
         ChainListTopBar(
-            onSettings = onSettings,
-            onSync = onSync,
+            onSettings = { navigationState.screenState.value = Screen.SETTINGS },
+            onSync = {
+                snackbarHostState.currentSnackbarData?.performAction()
+
+                coroutineScope.launch {
+                    if (settingsState.value.deviceAddress.isEmpty()) {
+                        snackbarHostState.showSnackbar("You have to set Device Address on Settings")
+                    } else {
+                        isWorkInProgressState.value = true
+
+                        viewModel.sync(settingsState.value.deviceAddress).onSuccess {
+                            viewModel.getAll()
+
+                            isWorkInProgressState.value = false
+                        }.onFailure { exception ->
+                            isWorkInProgressState.value = false
+
+                            snackbarHostState.showSnackbar(exception.message ?: "Error")
+                        }
+                    }
+                }
+            },
             onAdd = { viewModel.draft() },
             onStore = {
-                inputActionTypeState.value = InputActionType.STORE
-                inputActionDialogVisibleState.value = true
+                chainListActionState.value = ChainListAction.STORE
+                isInputDialogVisibleState.value = true
             },
             onUnstore = {
-                inputActionTypeState.value = InputActionType.UNSTORE
-                inputActionDialogVisibleState.value = true
+                chainListActionState.value = ChainListAction.UNSTORE
+                isInputDialogVisibleState.value = true
             }
         )
         Box(modifier = Modifier.fillMaxSize()) {
@@ -66,21 +194,21 @@ fun ChainList(
                                     onSelect = {
                                         viewModel.setSelected(chain)
 
-                                        inputActionTypeState.value = InputActionType.SELECT
-                                        inputActionDialogVisibleState.value = true
+                                        chainListActionState.value = ChainListAction.SELECT
+                                        isInputDialogVisibleState.value = true
                                     },
                                     onRemove = {
                                         viewModel.setSelected(chain)
 
-                                        inputActionTypeState.value = InputActionType.REMOVE
-                                        inputActionDialogVisibleState.value = true
+                                        chainListActionState.value = ChainListAction.REMOVE
+                                        isInputDialogVisibleState.value = true
                                     }
                                 )
                             }
                             Chain.Status.DRAFT -> key(chain.id) {
                                 ChainListItemDraft(
                                     chain = chain,
-                                    onNew = { onNew(chain) },
+                                    onNew = { viewModel.new(chain) },
                                     onCancel = { viewModel.rejectDraft(chain) }
                                 )
                             }
@@ -90,51 +218,6 @@ fun ChainList(
 
                 viewModel.chainLatestIndex.takeIf { index -> index != -1 }?.let { index ->
                     LaunchedEffect(index) { lazyListState.scrollToItem(index) }
-                }
-            }
-
-            if (inputActionDialogVisibleState.value) {
-                when (inputActionTypeState.value) {
-                    InputActionType.SELECT -> ChainListItemKeyInput(
-                        onCancel = { inputActionDialogVisibleState.value = false },
-                        onSelect = { chainKey ->
-                            val chain = viewModel.chainSelected?.apply { key = chainKey }
-
-                            viewModel.setSelected()
-
-                            inputActionDialogVisibleState.value = false
-
-                            onSelect(chain!!)
-                        }
-                    )
-                    InputActionType.REMOVE -> ChainListItemKeyInput(
-                        onCancel = { inputActionDialogVisibleState.value = false },
-                        onSelect = { chainKey ->
-                            val chain = viewModel.chainSelected?.apply { key = chainKey }
-
-                            viewModel.removeLater(chain!!)
-
-                            inputActionDialogVisibleState.value = false
-
-                            onRemove(chain)
-                        }
-                    )
-                    InputActionType.STORE -> ChainListStoreInput(
-                        onCancel = { inputActionDialogVisibleState.value = false },
-                        onSelect = { storeOptions ->
-                            inputActionDialogVisibleState.value = false
-
-                            onStore(storeOptions)
-                        }
-                    )
-                    InputActionType.UNSTORE -> ChainListUnstoreInput(
-                        onCancel = { inputActionDialogVisibleState.value = false },
-                        onSelect = { filePath ->
-                            inputActionDialogVisibleState.value = false
-
-                            onUnstore(filePath)
-                        }
-                    )
                 }
             }
         }

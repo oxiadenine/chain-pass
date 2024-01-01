@@ -2,6 +2,8 @@ package io.sunland.chainpass.common.view
 
 import androidx.compose.runtime.mutableStateListOf
 import io.sunland.chainpass.common.*
+import io.sunland.chainpass.common.network.ChainApi
+import io.sunland.chainpass.common.network.WebSocket
 import io.sunland.chainpass.common.repository.ChainEntity
 import io.sunland.chainpass.common.repository.ChainLinkEntity
 import io.sunland.chainpass.common.repository.ChainLinkRepository
@@ -79,8 +81,8 @@ class ChainListViewModel(
         chainListState.addAll(chains)
     }
 
-    fun getAll() = chainRepository.getAll().mapCatching { chainEntities ->
-        chains = chainEntities.map { chainEntity ->
+    fun getAll() {
+        chains = chainRepository.getAll().map { chainEntity ->
             Chain(passwordGenerator).apply {
                 id = chainEntity.id
                 name = Chain.Name(chainEntity.name)
@@ -97,17 +99,15 @@ class ChainListViewModel(
 
         chainListState.clear()
         chainListState.addAll(chains)
-
-        Unit
     }
 
-    fun new(chain: Chain) = runCatching {
+    fun new(chain: Chain) {
         val secretKey = chain.secretKey()
         val privateKey = chain.privateKey(secretKey)
 
         val chainEntity = ChainEntity(chain.id, chain.name.value, privateKey.value)
 
-        chainRepository.create(chainEntity).getOrThrow()
+        chainRepository.create(chainEntity)
 
         chain.key = Chain.Key()
         chain.status = Chain.Status.ACTUAL
@@ -115,7 +115,9 @@ class ChainListViewModel(
         update()
     }
 
-    fun select(chain: Chain) = chainRepository.getOne(chain.id).mapCatching { chainEntity ->
+    fun select(chain: Chain) = runCatching {
+        val chainEntity = chainRepository.getOne(chain.id).getOrThrow()
+
         val secretKey = chain.secretKey()
         val privateKey = chain.privateKey(secretKey)
 
@@ -126,7 +128,9 @@ class ChainListViewModel(
         }.validateKey(privateKey)
     }
 
-    fun remove(chain: Chain) = chainRepository.getOne(chain.id).mapCatching { chainEntity ->
+    fun remove(chain: Chain) = runCatching {
+        val chainEntity = chainRepository.getOne(chain.id).getOrThrow()
+
         val secretKey = chain.secretKey()
         val privateKey = chain.privateKey(secretKey)
 
@@ -136,33 +140,29 @@ class ChainListViewModel(
             key = Chain.Key(chainEntity.key)
         }.validateKey(privateKey)
 
-        chainRepository.delete(chain.id).getOrThrow()
+        chainRepository.delete(chain.id)
 
         update()
     }
 
     fun store(storeOptions: StoreOptions) = runCatching {
-        val chains = chainRepository.getAll().mapCatching { chainEntities ->
-            chainEntities.map { chainEntity ->
-                Chain(passwordGenerator).apply {
-                    id = chainEntity.id
-                    name = Chain.Name(chainEntity.name)
-                    key = Chain.Key(chainEntity.key)
-                }
+        val chains = chainRepository.getAll().map { chainEntity ->
+            Chain(passwordGenerator).apply {
+                id = chainEntity.id
+                name = Chain.Name(chainEntity.name)
+                key = Chain.Key(chainEntity.key)
             }
-        }.getOrThrow()
+        }
 
         val chainLinks = chains.flatMap { chain ->
-            chainLinkRepository.getBy(chain.id).mapCatching { chainLinkEntities ->
-                chainLinkEntities.map { chainLinkEntity ->
-                    ChainLink(chain).apply {
-                        id = chainLinkEntity.id
-                        name = ChainLink.Name(chainLinkEntity.name)
-                        description = ChainLink.Description(chainLinkEntity.description)
-                        password = ChainLink.Password(chainLinkEntity.password)
-                    }
+            chainLinkRepository.getBy(chain.id).map { chainLinkEntity ->
+                ChainLink(chain).apply {
+                    id = chainLinkEntity.id
+                    name = ChainLink.Name(chainLinkEntity.name)
+                    description = ChainLink.Description(chainLinkEntity.description)
+                    password = ChainLink.Password(chainLinkEntity.password)
                 }
-            }.getOrThrow()
+            }
         }
 
         val storableOptions = StorableOptions(storeOptions.isPrivate)
@@ -170,11 +170,7 @@ class ChainListViewModel(
             val storableChainLinks = chainLinks
                 .filter { chainLink -> chainLink.chain.id == chain.id }
                 .map { chainLink ->
-                    StorableChainLink(
-                        chainLink.name.value,
-                        chainLink.description.value,
-                        chainLink.password.value
-                    )
+                    StorableChainLink(chainLink.name.value, chainLink.description.value, chainLink.password.value)
                 }
 
             StorableChain(chain.name.value, chain.key.value, storableChainLinks)
@@ -185,7 +181,7 @@ class ChainListViewModel(
         storage.store(storable, storeOptions.type)
     }
 
-    fun unstore(storage: Storage, filePath: FilePath) = runCatching {
+    fun unstore(filePath: FilePath) = runCatching {
         val storable = storage.unstore(filePath.value)
 
         val chains = mutableStateListOf<Chain>()
@@ -210,7 +206,7 @@ class ChainListViewModel(
         chains.forEach { chain ->
             val chainEntity = ChainEntity(chain.id, chain.name.value, chain.key.value)
 
-            chainRepository.create(chainEntity).getOrThrow()
+            chainRepository.create(chainEntity)
         }
 
         chainLinks.forEach { chainLink ->
@@ -222,8 +218,14 @@ class ChainListViewModel(
                 chainLink.chain.id
             )
 
-            chainLinkRepository.create(chainLinkEntity).getOrThrow()
+            chainLinkRepository.create(chainLinkEntity)
         }
+    }
+
+    suspend fun sync(deviceAddress: String) = runCatching {
+        val webSocket = WebSocket.connect(deviceAddress)
+
+        ChainApi(chainRepository, chainLinkRepository, webSocket).sync()
     }
 
     private fun update() {
