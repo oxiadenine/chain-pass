@@ -160,16 +160,13 @@ class ChainLinkListViewModel(
         }
 
         val draftChainLinks = chainLinkListState.filter { chainLink -> chainLink.status == ChainLink.Status.DRAFT }
-        val editChainLink = chainLinkListState.firstOrNull { chainLink -> chainLink.status == ChainLink.Status.EDIT }
+
+        val chainLinks = chainLinks.map { chainLink ->
+            chainLinkListState.firstOrNull { chainLink.id == it.id } ?: chainLink
+        }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks)
 
         chainLinkListState.clear()
-        chainLinkListState.addAll(if (editChainLink != null) {
-            chainLinks.map { chainLink ->
-                if (chainLink.id == editChainLink.id) {
-                    editChainLink
-                } else chainLink
-            }.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks)
-        } else chainLinks.sortedBy { chainLink -> chainLink.name.value }.plus(draftChainLinks))
+        chainLinkListState.addAll(chainLinks)
     }
 
     suspend fun new(chainLink: ChainLink) = chainRepository.key(chain!!.id).mapCatching { chainKeyEntity ->
