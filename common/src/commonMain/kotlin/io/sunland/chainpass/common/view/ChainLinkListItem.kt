@@ -26,7 +26,8 @@ fun ChainLinkListItem(
     chainLink: ChainLink,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
-    onPasswordLock: (Boolean) -> Unit
+    onPasswordLock: (Boolean) -> Unit,
+    onPasswordCopy: () -> Unit
 ) {
     val passwordLockState = mutableStateOf(chainLink.password.isPrivate)
     val passwordLockIconState = mutableStateOf(Icons.Default.Lock)
@@ -87,10 +88,29 @@ fun ChainLinkListItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SelectionContainer(modifier = Modifier.padding(horizontal = 16.dp)) {
+            SelectionContainer {
                 if (passwordLockState.value) {
-                    DisableSelection { Text(text = "???", fontStyle = FontStyle.Italic) }
-                } else Text(text = chainLink.password.value)
+                    DisableSelection {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            text = "???",
+                            fontStyle = FontStyle.Italic
+                        )
+                    }
+                } else {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            modifier = Modifier
+                                .padding(horizontal = 4.dp)
+                                .pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                            onClick = onPasswordCopy
+                        ) { Icon(imageVector = Icons.Default.ContentCopy, contentDescription = null) }
+                        Text(text = chainLink.password.value)
+                    }
+                }
             }
             IconButton(
                 modifier = Modifier.padding(horizontal = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
