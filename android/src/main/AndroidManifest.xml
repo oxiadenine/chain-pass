@@ -9,7 +9,6 @@
             android:label="Chain Pass"
             android:icon="@mipmap/icon"
             android:roundIcon="@mipmap/icon_round"
-            android:allowBackup="false"
             android:supportsRtl="true"
             android:theme="@style/Theme.AppCompat.NoActionBar">
         <activity
