@@ -16,7 +16,7 @@ application.*.conf
 !application.conf
 
 # Database
-service/db/*.db
+*.db
 
 # Build
 build/
