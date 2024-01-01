@@ -8,7 +8,3 @@ allprojects {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
-
-tasks.wrapper {
-    gradleVersion = "7.4.2"
-}
