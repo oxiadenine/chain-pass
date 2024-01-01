@@ -3,7 +3,10 @@ package io.sunland.chainpass.common.view
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.Text
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Clear
@@ -114,7 +117,9 @@ fun ChainListItemDraft(chain: Chain, onIconDoneClick: () -> Unit, onIconClearCli
                 onValueChange = onKeyChange,
                 leadingIcon = {
                     IconButton(
-                        modifier = Modifier.padding(horizontal = 2.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
+                        modifier = Modifier
+                            .padding(horizontal = 2.dp)
+                            .pointerHoverIcon(icon = PointerIconDefaults.Hand),
                         onClick = { onKeyChange(keyGenerator.generate()) }
                     ) { Icon(imageVector = Icons.Default.Build, contentDescription = null) }
                 },
