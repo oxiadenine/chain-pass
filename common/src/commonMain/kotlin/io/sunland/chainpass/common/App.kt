@@ -147,6 +147,10 @@ fun App(settingsFactory: SettingsFactory, appState: AppState) = MaterialTheme(
                                 serverConnectionState.discoveringState.value = null
                             }
                         },
+                        onDiscoverCancel = {
+                            serverConnectionState.discoveringState.value?.cancel()
+                            serverConnectionState.discoveringState.value = null
+                        },
                         onConnect = { serverAddress ->
                             settingsFactory.save(serverAddress).let {
                                 appState.serverAddressState.value = serverAddress
