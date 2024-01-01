@@ -284,11 +284,11 @@ fun ChainLinkList(
                     viewModel.isSearchState.value,
                     viewModel.searchKeywordState.value,
                     viewModel.chainLinkSearchListState.size
-                ) { lazyListState.scrollToItem(0) }
+                ) { lazyListState.animateScrollToItem(0) }
 
                 viewModel.chainLinkLatestIndex.takeIf { index -> index != -1 }?.let { index ->
                     LaunchedEffect(index) {
-                        lazyListState.scrollToItem(index)
+                        lazyListState.animateScrollToItem(index)
                     }
                 }
             }
