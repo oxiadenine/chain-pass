@@ -40,7 +40,11 @@ fun ChainLinkList(
                 },
                 onSync = onSync,
                 onAdd = { viewModel.draft() },
-                onSearch = { viewModel.startSearch() }
+                onSearch = {
+                    viewModel.rejectDrafts()
+                    viewModel.cancelEdit()
+                    viewModel.startSearch()
+                }
             )
         }
         Box(modifier = Modifier.fillMaxSize()) {
@@ -68,16 +72,15 @@ fun ChainLinkList(
                         if (viewModel.isSearchState.value) {
                             ChainLinkSearchListItem(
                                 chainLink = chainLink,
-                                onPasswordLock = { isPasswordLocked ->
-                                    if (isPasswordLocked) {
-                                        viewModel.unlockPassword(chainLink)
-                                    } else viewModel.lockPassword(chainLink)
-                                },
-                                onPasswordCopy = { onPasswordCopy(chainLink) }
+                                onSelect = {
+                                    chainLink.status = ChainLink.Status.SELECT
+
+                                    viewModel.endSearch()
+                                }
                             )
                         } else {
                             when (chainLink.status) {
-                                ChainLink.Status.ACTUAL -> ChainLinkListItem(
+                                ChainLink.Status.ACTUAL, ChainLink.Status.SELECT -> ChainLinkListItem(
                                     chainLink = chainLink,
                                     onEdit = {
                                         viewModel.cancelEdit()

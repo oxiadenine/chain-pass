@@ -38,7 +38,7 @@ class ChainLink {
         } ?: Result.success(this.value)
     }
 
-    enum class Status { ACTUAL, DRAFT, EDIT }
+    enum class Status { ACTUAL, DRAFT, EDIT, SELECT }
 
     var id = 0
     var name = Name()
