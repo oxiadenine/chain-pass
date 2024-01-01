@@ -10,20 +10,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIconDefaults
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.sunland.chainpass.common.ChainLink
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun ChainLinkSearchListItem(chainLink: ChainLink) {
-    val passwordVisibleState = remember { mutableStateOf(false) }
+fun ChainLinkSearchListItem(chainLink: ChainLink, onIconLockClick: (Boolean) -> Unit) {
+    val passwordLockState = mutableStateOf(chainLink.password.isPrivate)
 
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(modifier = Modifier.padding(horizontal = 16.dp, vertical = 17.dp), text = chainLink.name.value)
@@ -40,15 +40,17 @@ fun ChainLinkSearchListItem(chainLink: ChainLink) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             SelectionContainer(Modifier.padding(horizontal = 16.dp)) {
-                if (passwordVisibleState.value) {
-                    Text(text = chainLink.password.value)
-                } else DisableSelection {
-                    Text(text = chainLink.password.value.toList().joinToString(separator = "") { "*" })
-                }
+                if (passwordLockState.value) {
+                    DisableSelection { Text(text = "???", fontStyle = FontStyle.Italic) }
+                } else Text(text = chainLink.password.value)
             }
             IconButton(
                 modifier = Modifier.padding(horizontal = 4.dp).pointerHoverIcon(icon = PointerIconDefaults.Hand),
-                onClick = { passwordVisibleState.value = !passwordVisibleState.value }
+                onClick = {
+                    onIconLockClick(passwordLockState.value)
+
+                    passwordLockState.value = !passwordLockState.value
+                }
             ) { Icon(imageVector = Icons.Default.Lock, contentDescription = null) }
         }
     }

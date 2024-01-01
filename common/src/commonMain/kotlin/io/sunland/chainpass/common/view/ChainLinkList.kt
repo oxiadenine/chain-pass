@@ -64,16 +64,38 @@ fun ChainLinkList(
                 Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
                     chainLinks.forEach { chainLink ->
                         if (viewModel.isSearchState.value) {
-                            ChainLinkSearchListItem(chainLink = chainLink)
+                            ChainLinkSearchListItem(
+                                chainLink = chainLink,
+                                onIconLockClick = { isPasswordLocked ->
+                                    if (isPasswordLocked) {
+                                        viewModel.unlockPassword(chainLink)
+                                    } else viewModel.lockPassword(chainLink)
+                                }
+                            )
                         } else {
                             when (chainLink.status) {
                                 ChainLink.Status.ACTUAL -> ChainLinkListItem(
                                     chainLink = chainLink,
-                                    onIconEditClick = { viewModel.startEdit(chainLink.id) },
+                                    onIconEditClick = {
+                                        if (chainLink.password.isPrivate) {
+                                            viewModel.unlockPassword(chainLink)
+                                        }
+
+                                        viewModel.startEdit(chainLink.id)
+                                    },
                                     onIconDeleteClick = {
+                                        if (!chainLink.password.isPrivate) {
+                                            viewModel.lockPassword(chainLink)
+                                        }
+
                                         viewModel.removeLater(chainLink)
 
                                         onItemRemove(chainLink)
+                                    },
+                                    onIconLockClick = { isPasswordLocked ->
+                                        if (isPasswordLocked) {
+                                            viewModel.unlockPassword(chainLink)
+                                        } else viewModel.lockPassword(chainLink)
                                     }
                                 )
                                 ChainLink.Status.DRAFT -> ChainLinkListItemDraft(
@@ -85,7 +107,10 @@ fun ChainLinkList(
                                     ChainLinkListItemEdit(
                                         chainLink = chainLink,
                                         onIconDoneClick = { onItemEdit(chainLink) },
-                                        onIconClearClick = { viewModel.endEdit(chainLink) }
+                                        onIconClearClick = {
+                                            viewModel.lockPassword(chainLink)
+                                            viewModel.endEdit(chainLink)
+                                        }
                                     )
                                 }
                             }
