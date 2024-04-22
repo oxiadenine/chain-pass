@@ -6,7 +6,7 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(20)
+    jvmToolchain(17)
 
     jvm {
         withJava()
@@ -17,7 +17,7 @@ kotlin {
     }
 
     sourceSets {
-        named("jvmMain") {
+        jvmMain {
             val exposedVersion = properties["exposed.version"] as String
             val h2databaseVersion = properties["h2database.version"] as String
 
@@ -30,7 +30,7 @@ kotlin {
                 implementation("com.h2database:h2:$h2databaseVersion")
             }
         }
-        named("jvmTest") {
+        jvmTest {
             val junitVersion = properties["junit.version"] as String
 
             dependencies {
@@ -55,7 +55,6 @@ compose.desktop {
 
             packageName = "Chain Pass"
             packageVersion = rootProject.version as String
-            vendor = "SunLand"
 
             val resourcesDir = project.file("src/jvmMain/resources")
 

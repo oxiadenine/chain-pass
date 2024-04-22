@@ -32,7 +32,7 @@ class ChainLinkRepository(private val database: Database, val storage: Storage) 
     }
 
     suspend fun getBy(chainId: String) = database.transaction {
-        ChainLinkTable.select { ChainLinkTable.chainId eq chainId }.map { record ->
+        ChainLinkTable.selectAll().where { ChainLinkTable.chainId eq chainId }.map { record ->
             ChainLinkEntity(
                 record[ChainLinkTable.id],
                 record[ChainLinkTable.name],
@@ -46,7 +46,7 @@ class ChainLinkRepository(private val database: Database, val storage: Storage) 
 
     suspend fun getOne(id: String) = runCatching {
         database.transaction {
-            val record = ChainLinkTable.select { ChainLinkTable.id eq id }.first()
+            val record = ChainLinkTable.selectAll().where { ChainLinkTable.id eq id }.first()
 
             ChainLinkEntity(
                 record[ChainLinkTable.id],

@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -70,7 +71,7 @@ fun ChainListItem(onMenuItemClick: (ChainListItemMenuItem) -> Unit, name: String
                     },
                     modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
                     leadingIcon = { Icon(imageVector = Icons.Default.LockOpen, contentDescription = null) },
-                    trailingIcon = { Icon(imageVector = Icons.Default.KeyboardArrowRight, contentDescription = null) },
+                    trailingIcon = { Icon(imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null) },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
                 DropdownMenuItem(

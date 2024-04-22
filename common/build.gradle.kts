@@ -6,7 +6,7 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(20)
+    jvmToolchain(17)
 
     androidTarget()
     jvm("desktop") {
@@ -49,7 +49,7 @@ kotlin {
             }
         }
 
-        named("androidMain") {
+        androidMain {
             val androidxCoreVersion = properties["androidx-core.version"] as String
             val androidxAppcompatVersion = properties["androidx-appcompat.version"] as String
             val androidxActivityVersion = properties["androidx-activity.version"] as String
@@ -60,21 +60,23 @@ kotlin {
                 api("androidx.activity:activity-compose:$androidxActivityVersion")
             }
         }
-        named("androidUnitTest") {
+        val androidUnitTest by getting {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
 
-        named("desktopMain") {
+        val desktopMain by getting {
             dependencies {
-                api(compose.desktop.common)
+                implementation(compose.desktop.common)
             }
         }
-        named("desktopTest") {
+        val desktopTest by getting {
             val junitVersion = properties["junit.version"] as String
 
             dependencies {
+                implementation(compose.desktop.currentOs)
+
                 implementation(kotlin("test"))
 
                 implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
@@ -91,11 +93,14 @@ android {
         minSdk = 26
     }
 
-    sourceSets {
-        named("main") {
-            manifest.srcFile("src/androidMain/AndroidManifest.xml")
-            res.srcDirs("src/androidMain/res")
-            resources.srcDirs("src/commonMain/resources")
-        }
+    sourceSets["main"].apply {
+        manifest.srcFile("src/androidMain/AndroidManifest.xml")
+        res.srcDirs("src/androidMain/res")
+        resources.srcDirs("src/commonMain/resources")
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }

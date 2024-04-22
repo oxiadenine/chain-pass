@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Undo
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -74,7 +74,7 @@ fun ChainLinkList(
                                     modifier = Modifier.pointerHoverIcon(PointerIcon.Hand)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Undo,
+                                        imageVector = Icons.AutoMirrored.Filled.Undo,
                                         contentDescription = null,
                                         modifier = Modifier.rotate(degrees = 90f)
                                     )

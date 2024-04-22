@@ -3,6 +3,7 @@ package io.github.oxiadenine.chainpass.view
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -34,7 +35,7 @@ fun ChainLinkListTopAppBar(
             IconButton(
                 onClick = onBackClick,
                 modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-            ) { Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null) }
+            ) { Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
         },
         actions = {
             IconButton(

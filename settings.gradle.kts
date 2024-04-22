@@ -10,10 +10,8 @@ pluginManagement {
         val androidVersion = extra["android.version"] as String
         val composeVersion = extra["compose.version"] as String
 
-        kotlin("jvm").version(kotlinVersion)
         kotlin("multiplatform").version(kotlinVersion)
         kotlin("plugin.serialization").version(kotlinVersion)
-        kotlin("android").version(kotlinVersion)
         id("com.android.base").version(androidVersion)
         id("com.android.application").version(androidVersion)
         id("com.android.library").version(androidVersion)
@@ -22,7 +20,7 @@ pluginManagement {
 }
 
 plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "0.5.0"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 
 rootProject.name = "chain-pass"

@@ -5,12 +5,12 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(20)
+    jvmToolchain(17)
 
     androidTarget()
 
     sourceSets {
-        named("androidMain") {
+        androidMain {
             val exposedVersion = properties["exposed.version"] as String
             val h2databaseVersion = properties["h2database.version"] as String
 
@@ -21,7 +21,7 @@ kotlin {
                 implementation("com.h2database:h2:$h2databaseVersion")
             }
         }
-        named("androidUnitTest") {
+        val androidUnitTest by getting {
             dependencies {
                 implementation(kotlin("test"))
             }
@@ -46,6 +46,11 @@ android {
         setProperty("archivesBaseName", "${rootProject.name}-${project.name}-${project.version}")
     }
 
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
     signingConfigs {
         register("release") {
             keyAlias = "${rootProject.name}-${project.name}-key"
@@ -60,10 +65,10 @@ android {
     }
 
     buildTypes {
-        named("debug") {
+        debug {
             isDebuggable = true
         }
-        named("release") {
+        release {
             signingConfig = signingConfigs["release"]
         }
     }
