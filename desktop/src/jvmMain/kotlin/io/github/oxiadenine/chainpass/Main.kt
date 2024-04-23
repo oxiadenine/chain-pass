@@ -4,6 +4,7 @@ import androidx.compose.foundation.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,7 @@ fun main() {
 
     application {
         val windowState = rememberWindowState()
+        val navigationState = rememberNavigationState()
 
         windowState.size = DpSize(640.dp, 480.dp)
         windowState.position = WindowPosition(Alignment.Center)
@@ -51,14 +53,22 @@ fun main() {
             state = windowState,
             onCloseRequest = ::exitApplication,
             title = "Chain Pass",
-            icon = painterResource("icon.png")
+            icon = painterResource("icon.png"),
+            onKeyEvent = { keyEvent ->
+                if (keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
+                    if (navigationState.composableRouteStack.size > 1) {
+                        navigationState.pop()
+                    } else exitApplication()
+
+                    true
+                } else false
+            }
         ) {
             window.minimumSize = Dimension(360, 480)
 
             val settingsState = rememberSettingsState("${appDataDir.absolutePath}/settings.json")
             val networkState = rememberNetworkState(syncServer.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
-            val navigationState = rememberNavigationState()
 
             CompositionLocalProvider(
                 LocalContextMenuRepresentation provides if (themeState.isDarkMode) {

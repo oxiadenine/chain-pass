@@ -31,7 +31,7 @@ class NavigationState {
 
     var currentComposableRoute by mutableStateOf<ComposableRoute<RouteArgument>?>(null)
 
-    private val composableRouteStack = mutableStateListOf<ComposableRoute<RouteArgument>>()
+    val composableRouteStack = mutableStateListOf<ComposableRoute<RouteArgument>>()
 
     fun initStack(initialRoute: String) {
         val composableRoute = composableRouteScope.composableRouteListState
