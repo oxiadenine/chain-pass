@@ -24,10 +24,16 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.oxiadenine.chainpass.Intl
-import io.github.oxiadenine.chainpass.LocalIntl
 import io.github.oxiadenine.chainpass.SettingsState
 import io.github.oxiadenine.chainpass.component.Dialog
 import io.github.oxiadenine.chainpass.component.ValidationTextField
+import io.github.oxiadenine.common.generated.resources.*
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.dialog_settings_button_save_text
+import io.github.oxiadenine.common.generated.resources.dialog_settings_item_sync_title
+import io.github.oxiadenine.common.generated.resources.dialog_settings_title
+import org.jetbrains.compose.resources.stringResource
+import java.util.*
 
 class DeviceAddress(value: String? = null) {
     object InvalidIPv4Error : Error() {
@@ -46,8 +52,6 @@ class DeviceAddress(value: String? = null) {
 
 @Composable
 fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPath: String) {
-    val intl = LocalIntl.current
-
     var deviceAddress by remember { mutableStateOf(DeviceAddress(settingsState.deviceAddressState.value)) }
 
     val onDeviceAddressTextFieldValueChange = { address: String ->
@@ -98,7 +102,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = intl.translate("dialog.settings.title"))
+                Text(text = stringResource(Res.string.dialog_settings_title))
                 IconButton(
                     onClick = onClose,
                     modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
@@ -109,7 +113,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
             TextButton(
                 onClick = onInputDialogConfirmRequest,
                 modifier = Modifier.align(alignment = Alignment.End).pointerHoverIcon(icon = PointerIcon.Hand)
-            ) { Text(text = intl.translate("dialog.settings.button.save.text")) }
+            ) { Text(text = stringResource(Res.string.dialog_settings_button_save_text)) }
         }
     ) {
         val scrollState = rememberScrollState(initial = 0)
@@ -121,7 +125,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
                 Text(
-                    text = intl.translate("dialog.settings.item.sync.title"),
+                    text = stringResource(Res.string.dialog_settings_item_sync_title),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp
                 )
@@ -146,7 +150,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                         ,
                         placeholder = {
                             Text(
-                                text = intl.translate("dialog.settings.item.sync.textField.device.placeholder"),
+                                text = stringResource(Res.string.dialog_settings_item_sync_textField_device_placeholder),
                                 fontSize = 14.sp
                             )
                         },
@@ -158,7 +162,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                         isError = deviceAddress.validation.isFailure,
                         errorMessage = deviceAddress.validation.exceptionOrNull()?.let { error ->
                             if (error is DeviceAddress.InvalidIPv4Error) {
-                                intl.translate("dialog.settings.item.sync.textFiled.device.error")
+                                stringResource(Res.string.dialog_settings_item_sync_textFiled_device_error)
                             } else null
                         },
                         colors = TextFieldDefaults.colors(
@@ -176,7 +180,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
             }
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
                 Text(
-                    text = intl.translate("dialog.settings.item.password.title"),
+                    text = stringResource(Res.string.dialog_settings_item_password_title),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp
                 )
@@ -185,7 +189,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                         horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = intl.translate("dialog.settings.item.password.length.text"))
+                        Text(text = stringResource(Res.string.dialog_settings_item_password_length_text))
                         Slider(
                             value = passwordLength,
                             onValueChange = onPasswordLengthChange,
@@ -212,7 +216,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                         horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = intl.translate("dialog.settings.item.password.alphanumeric.text"))
+                        Text(text = stringResource(Res.string.dialog_settings_item_password_alphanumeric_text))
                         Switch(
                             checked = passwordIsAlphanumeric,
                             onCheckedChange = onPasswordIsAlphanumericChange,
@@ -223,13 +227,13 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
             }
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
                 Text(
-                    text = intl.translate("dialog.settings.item.storage.title"),
+                    text = stringResource(Res.string.dialog_settings_item_storage_title),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp,
                 )
                 Text(
                     text = buildAnnotatedString {
-                        append(intl.translate("dialog.settings.item.storage.text"))
+                        append(stringResource(Res.string.dialog_settings_item_storage_text))
                         withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
                             append(storeDirPath)
                         }
@@ -238,7 +242,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
             }
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
                 Text(
-                    text = intl.translate("dialog.settings.item.language.title"),
+                    text = stringResource(Res.string.dialog_settings_item_language_title),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp
                 )
@@ -257,7 +261,12 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                                 Icon(imageVector = Icons.Default.RadioButtonChecked, contentDescription = null)
                             } else Icon(imageVector = Icons.Default.RadioButtonUnchecked, contentDescription = null)
                             Column {
-                                Text(text = intl.translate("dialog.settings.item.language.item.$language.text"))
+                                Text(text = stringResource(
+                                    Res.string.dialog_settings_item_language_item_text,
+                                    Locale.getAvailableLocales().first { locale ->
+                                        locale.language == language
+                                    }.displayLanguage.replaceFirstChar { it.uppercase() }
+                                ))
                                 Text(
                                     text = language,
                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)

@@ -11,7 +11,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
-import io.github.oxiadenine.chainpass.LocalIntl
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.inputDialog_button_cancel_text
+import io.github.oxiadenine.common.generated.resources.inputDialog_button_confirm_text
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun InputDialog(
@@ -20,8 +23,6 @@ fun InputDialog(
     title: @Composable (() -> Unit)? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val intl = LocalIntl.current
-
     Dialog(
         onDismissRequest = onDismissRequest,
         title = title,
@@ -33,11 +34,11 @@ fun InputDialog(
                 TextButton(
                     onClick = onDismissRequest,
                     modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                ) { Text(text = intl.translate("inputDialog.button.cancel.text")) }
+                ) { Text(text = stringResource(Res.string.inputDialog_button_cancel_text)) }
                 TextButton(
                     onClick = onConfirmRequest,
                     modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
-                ) { Text(text = intl.translate("inputDialog.button.confirm.text")) }
+                ) { Text(text = stringResource(Res.string.inputDialog_button_confirm_text)) }
             }
         },
         content = content

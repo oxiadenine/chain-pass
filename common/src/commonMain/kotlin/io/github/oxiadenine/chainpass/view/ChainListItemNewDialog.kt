@@ -19,10 +19,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import io.github.oxiadenine.chainpass.Chain
-import io.github.oxiadenine.chainpass.LocalIntl
 import io.github.oxiadenine.chainpass.component.InputDialog
 import io.github.oxiadenine.chainpass.component.ValidationTextField
 import io.github.oxiadenine.chainpass.security.PasswordGenerator
+import io.github.oxiadenine.common.generated.resources.*
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.dialog_chain_textField_name_empty_error
+import io.github.oxiadenine.common.generated.resources.dialog_chain_textField_name_placeholder
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ChainListItemNewDialog(
@@ -30,8 +34,6 @@ fun ChainListItemNewDialog(
     onCancel: () -> Unit,
     passwordGenerator: PasswordGenerator
 ) {
-    val intl = LocalIntl.current
-
     var chainName by remember { mutableStateOf(Chain.Name()) }
     var chainKey by remember { mutableStateOf(Chain.Key()) }
 
@@ -70,7 +72,7 @@ fun ChainListItemNewDialog(
                 value = chainName.value,
                 onValueChange = onNameTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                placeholder = { Text(text = intl.translate("dialog.chain.textField.name.placeholder")) },
+                placeholder = { Text(text = stringResource(Res.string.dialog_chain_textField_name_placeholder)) },
                 trailingIcon = if (chainName.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
@@ -78,13 +80,13 @@ fun ChainListItemNewDialog(
                 errorMessage = chainName.validation.exceptionOrNull()?.let { error ->
                     when (error) {
                         is Chain.Name.EmptyError -> {
-                            intl.translate("dialog.chain.textField.name.empty.error")
+                            stringResource(Res.string.dialog_chain_textField_name_empty_error)
                         }
                         is Chain.Name.LengthError -> {
-                            intl.translate("dialog.chain.textField.name.length.error")
+                            stringResource(Res.string.dialog_chain_textField_name_length_error)
                         }
                         is Chain.Name.InvalidError -> {
-                            intl.translate("dialog.chain.textField.name.invalid.error")
+                            stringResource(Res.string.dialog_chain_textField_name_invalid_error)
                         }
                         else -> null
                     }
@@ -101,7 +103,7 @@ fun ChainListItemNewDialog(
             ValidationTextField(
                 value = chainKey.value,
                 onValueChange = onKeyTextFieldValueChange,
-                placeholder = { Text(text = intl.translate("dialog.chain.textField.key.placeholder")) },
+                placeholder = { Text(text = stringResource(Res.string.dialog_chain_textField_key_placeholder)) },
                 leadingIcon = {
                     IconButton(
                         onClick = { onKeyTextFieldValueChange(passwordGenerator.generate()) },
@@ -124,10 +126,10 @@ fun ChainListItemNewDialog(
                 errorMessage = chainKey.validation.exceptionOrNull()?.let { error ->
                     when (error) {
                         is Chain.Key.EmptyError -> {
-                            intl.translate("dialog.chain.textField.key.empty.error")
+                            stringResource(Res.string.dialog_chain_textField_key_empty_error)
                         }
                         is Chain.Key.LengthError -> {
-                            intl.translate("dialog.chain.textField.key.length.error")
+                            stringResource(Res.string.dialog_chain_textField_key_length_error)
                         }
                         else -> null
                     }

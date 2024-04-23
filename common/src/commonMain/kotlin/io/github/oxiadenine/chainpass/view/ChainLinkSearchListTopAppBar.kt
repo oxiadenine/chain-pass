@@ -17,13 +17,13 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.sp
-import io.github.oxiadenine.chainpass.LocalIntl
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.topAppBar_chainLink_textField_search_placeholder
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (String) -> Unit) {
-    val intl = LocalIntl.current
-
     val keywordState = remember { mutableStateOf("") }
 
     val onSearchTextFieldValueChange = { keyword: String ->
@@ -48,7 +48,7 @@ fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (Stri
                 modifier = Modifier.fillMaxWidth().focusRequester(focusRequester = focusRequester),
                 textStyle = TextStyle(fontSize = 18.sp),
                 placeholder = {
-                    Text(text = intl.translate("topAppBar.chainLink.textField.search.placeholder"))
+                    Text(text = stringResource(Res.string.topAppBar_chainLink_textField_search_placeholder))
                 },
                 trailingIcon = if (keywordState.value.isNotEmpty()) {
                     {

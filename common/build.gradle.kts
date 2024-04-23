@@ -16,6 +16,12 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings {
+                optIn("org.jetbrains.compose.resources.ExperimentalResourceApi")
+            }
+        }
+
         commonMain {
             val kotlinxCoroutinesVersion = properties["kotlinx-coroutines.version"] as String
             val kotlinxSerializationVersion = properties["kotlinx-serialization.version"] as String
@@ -28,6 +34,7 @@ kotlin {
                 api(compose.foundation)
                 api(compose.material3)
                 api(compose.materialIconsExtended)
+                api(compose.components.resources)
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
@@ -96,7 +103,6 @@ android {
     sourceSets["main"].apply {
         manifest.srcFile("src/androidMain/AndroidManifest.xml")
         res.srcDirs("src/androidMain/res")
-        resources.srcDirs("src/commonMain/resources")
     }
 
     compileOptions {

@@ -11,13 +11,17 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.oxiadenine.chainpass.LocalIntl
 import io.github.oxiadenine.chainpass.Platform
 import io.github.oxiadenine.chainpass.StorageType
 import io.github.oxiadenine.chainpass.component.FileChooserDialog
 import io.github.oxiadenine.chainpass.component.FileChooserResult
 import io.github.oxiadenine.chainpass.component.InputDialog
 import io.github.oxiadenine.chainpass.platform
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.dialog_unstore_item_button_file_text
+import io.github.oxiadenine.common.generated.resources.dialog_unstore_item_file_error
+import io.github.oxiadenine.common.generated.resources.dialog_unstore_title
+import org.jetbrains.compose.resources.stringResource
 
 class FileSelected(val path: String, val bytes: ByteArray) {
     val fileName = path.substringAfterLast("/").substringBeforeLast(".")
@@ -25,8 +29,6 @@ class FileSelected(val path: String, val bytes: ByteArray) {
 
 @Composable
 fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
-    val intl = LocalIntl.current
-
     var fileChooserDialogOpened by remember { mutableStateOf(false) }
     var fileChooserDialogResult by remember { mutableStateOf<FileChooserResult?>(null) }
 
@@ -54,7 +56,12 @@ fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
     InputDialog(
         onDismissRequest = onCancel,
         onConfirmRequest = onInputDialogConfirmRequest,
-        title = { Text(text = intl.translate("dialog.unstore.title"), modifier = Modifier.padding(all = 16.dp)) }
+        title = {
+            Text(
+                text = stringResource(Res.string.dialog_unstore_title),
+                modifier = Modifier.padding(all = 16.dp)
+            )
+        }
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
@@ -69,7 +76,7 @@ fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = intl.translate("dialog.unstore.item.button.file.text"))
+                    Text(text = stringResource(Res.string.dialog_unstore_item_button_file_text))
                     Icon(imageVector = Icons.Default.FileOpen, contentDescription = null)
                 }
             }
@@ -77,7 +84,7 @@ fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
             if (fileChooserDialogResult != null) {
                 if (fileChooserDialogResult is FileChooserResult.None) {
                     Text(
-                        text = intl.translate("dialog.unstore.item.file.error"),
+                        text = stringResource(Res.string.dialog_unstore_item_file_error),
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 14.sp
                     )

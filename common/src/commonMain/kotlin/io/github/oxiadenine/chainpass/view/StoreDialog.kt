@@ -12,14 +12,15 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.oxiadenine.chainpass.LocalIntl
 import io.github.oxiadenine.chainpass.StorageType
 import io.github.oxiadenine.chainpass.component.InputDialog
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.dialog_store_item_private_text
+import io.github.oxiadenine.common.generated.resources.dialog_store_title
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit, isSingle: Boolean) {
-    val intl = LocalIntl.current
-
     var storageType by remember { mutableStateOf(StorageType.JSON) }
     var storeIsPrivate by remember { mutableStateOf(true) }
 
@@ -38,7 +39,12 @@ fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit,
     InputDialog(
         onDismissRequest = onCancel,
         onConfirmRequest = onInputDialogConfirmRequest,
-        title = { Text(text = intl.translate("dialog.store.title"), modifier = Modifier.padding(all = 16.dp)) }
+        title = {
+            Text(
+                text = stringResource(Res.string.dialog_store_title),
+                modifier = Modifier.padding(all = 16.dp)
+            )
+        }
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(all = 16.dp),
@@ -50,7 +56,7 @@ fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit,
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = intl.translate("dialog.store.item.private.text"))
+                    Text(text = stringResource(Res.string.dialog_store_item_private_text))
                     Switch(
                         checked = storeIsPrivate,
                         onCheckedChange = onStorePrivateSwitchCheckedChange,

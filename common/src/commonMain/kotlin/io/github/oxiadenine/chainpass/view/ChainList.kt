@@ -17,13 +17,18 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import io.github.oxiadenine.chainpass.Chain
-import io.github.oxiadenine.chainpass.LocalIntl
 import io.github.oxiadenine.chainpass.Platform
 import io.github.oxiadenine.chainpass.component.*
 import io.github.oxiadenine.chainpass.platform
 import io.github.oxiadenine.chainpass.security.PasswordGenerator
+import io.github.oxiadenine.common.generated.resources.*
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.popup_sync_device_message
+import io.github.oxiadenine.common.generated.resources.popup_sync_network_error
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
 
 class ChainListRouteArgument : NavigationState.RouteArgument()
 
@@ -35,8 +40,6 @@ fun ChainList(
     deviceAddress: String,
     passwordGenerator: PasswordGenerator
 ) {
-    val intl = LocalIntl.current
-
     val coroutineScope = rememberCoroutineScope()
 
     val scaffoldListState = rememberScaffoldListState()
@@ -108,7 +111,7 @@ fun ChainList(
                                 if (deviceAddress.isEmpty()) {
                                     scaffoldListState.popupHostState.currentPopupData?.dismiss()
                                     scaffoldListState.popupHostState.showPopup(
-                                        message = intl.translate("popup.sync.device.message")
+                                        message = getString(Res.string.popup_sync_device_message)
                                     )
                                 } else {
                                     loadingDialogVisible = true
@@ -123,7 +126,7 @@ fun ChainList(
                                         scaffoldListState.popupHostState.currentPopupData?.dismiss()
                                         scaffoldListState.popupHostState.showPopup(
                                             message = if (error is ChainListViewModel.SyncNetworkError) {
-                                                intl.translate("popup.sync.network.error")
+                                                getString(Res.string.popup_sync_network_error)
                                             } else "Error"
                                         )
                                     }
@@ -150,7 +153,7 @@ fun ChainList(
                 horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = intl.translate("list.chain.empty.text"))
+                Text(text = stringResource(Res.string.list_chain_empty_text))
                 Icon(imageVector = Icons.Default.Add, contentDescription = null)
             }
         } else {
@@ -195,7 +198,7 @@ fun ChainList(
                             scaffoldListState.popupHostState.currentPopupData?.dismiss()
                             scaffoldListState.popupHostState.showPopup(
                                 message = if (error is Chain.KeyInvalidError) {
-                                    intl.translate("popup.chain.key.error")
+                                    getString(Res.string.popup_chain_key_error)
                                 } else "Error"
                             )
                         }
@@ -210,11 +213,11 @@ fun ChainList(
                         loadingDialogVisible = false
 
                         when (scaffoldListState.snackbarHostState.showSnackbar(
-                            message = intl.translate(
-                                id = "snackbar.label.delete.text",
-                                value = "name" to viewModel.chainSelected!!.name.value
+                            message = getString(
+                                Res.string.snackbar_label_delete_text,
+                                viewModel.chainSelected!!.name.value
                             ),
-                            actionLabel = intl.translate("snackbar.button.undo.text"),
+                            actionLabel = getString(Res.string.snackbar_button_undo_text),
                             duration = SnackbarDuration.Short
                         )) {
                             SnackbarResult.ActionPerformed -> viewModel.undoRemove()
@@ -224,7 +227,7 @@ fun ChainList(
                                 scaffoldListState.popupHostState.currentPopupData?.dismiss()
                                 scaffoldListState.popupHostState.showPopup(
                                     message = if (error is Chain.KeyInvalidError) {
-                                        intl.translate("popup.chain.key.error")
+                                        getString(Res.string.popup_chain_key_error)
                                     } else "Error"
                                 )
                             }
@@ -269,10 +272,9 @@ fun ChainList(
                     loadingDialogVisible = false
 
                     scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                    scaffoldListState.popupHostState.showPopup(message = intl.translate(
-                        id = "popup.store.message",
-                        value = "fileName" to fileName
-                    ))
+                    scaffoldListState.popupHostState.showPopup(
+                        message = getString(Res.string.popup_store_message, fileName)
+                    )
                 }
             },
             onCancel = { storeDialogVisible = false },
@@ -296,20 +298,19 @@ fun ChainList(
                         loadingDialogVisible = false
 
                         scaffoldListState.popupHostState.currentPopupData?.dismiss()
-                        scaffoldListState.popupHostState.showPopup(message = intl.translate(
-                            id = "popup.unstore.message",
-                            value = "fileName" to fileSelected.fileName
-                        ))
+                        scaffoldListState.popupHostState.showPopup(
+                            message = getString(Res.string.popup_unstore_message, fileSelected.fileName)
+                        )
                     }.onFailure { error ->
                         loadingDialogVisible = false
 
                         scaffoldListState.popupHostState.currentPopupData?.dismiss()
                         scaffoldListState.popupHostState.showPopup(message = when (error) {
                             is ChainListViewModel.StorableFormatError -> {
-                                intl.translate("popup.unstore.storable.format.error")
+                                getString(Res.string.popup_unstore_storable_format_error)
                             }
                             is ChainListViewModel.StorablePrivateError -> {
-                                intl.translate("popup.unstore.storable.private.error")
+                                getString(Res.string.popup_unstore_storable_private_error)
                             }
                             else -> "Error"
                         })

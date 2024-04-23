@@ -15,14 +15,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.oxiadenine.chainpass.LocalIntl
+import io.github.oxiadenine.common.generated.resources.*
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.list_chainLink_menu_item_copy_text
+import io.github.oxiadenine.common.generated.resources.list_chainLink_menu_item_edit_text
+import org.jetbrains.compose.resources.stringResource
 
 enum class ChainLinkListItemMenuItem { COPY, EDIT, DELETE }
 
 @Composable
 fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name: String, description: String) {
-    val intl = LocalIntl.current
-
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
     var dropdownMenuOffset by remember { mutableStateOf(DpOffset.Zero) }
 
@@ -74,7 +76,7 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
                 offset = dropdownMenuOffset
             ) {
                 DropdownMenuItem(
-                    text = { Text(text = intl.translate("list.chainLink.menu.item.copy.text"), fontSize = 14.sp) },
+                    text = { Text(text = stringResource(Res.string.list_chainLink_menu_item_copy_text), fontSize = 14.sp) },
                     onClick = {
                         dropdownMenuExpanded = false
 
@@ -85,7 +87,7 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
                 DropdownMenuItem(
-                    text = { Text(text = intl.translate("list.chainLink.menu.item.edit.text"), fontSize = 14.sp) },
+                    text = { Text(text = stringResource(Res.string.list_chainLink_menu_item_edit_text), fontSize = 14.sp) },
                     onClick = {
                         dropdownMenuExpanded = false
 
@@ -96,7 +98,7 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
                 DropdownMenuItem(
-                    text = { Text(text = intl.translate("list.chainLink.menu.item.delete.text"), fontSize = 14.sp) },
+                    text = { Text(text = stringResource(Res.string.list_chainLink_menu_item_delete_text), fontSize = 14.sp) },
                     onClick = {
                         dropdownMenuExpanded = false
 

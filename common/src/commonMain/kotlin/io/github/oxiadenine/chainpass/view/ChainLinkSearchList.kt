@@ -10,8 +10,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.oxiadenine.chainpass.ChainLink
-import io.github.oxiadenine.chainpass.LocalIntl
 import io.github.oxiadenine.chainpass.component.NavigationState
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.list_chainLink_search_empty_text
+import org.jetbrains.compose.resources.stringResource
 
 class ChainLinkSearchListRouteArgument(val chainLinks: List<ChainLink>) : NavigationState.RouteArgument()
 
@@ -39,8 +41,6 @@ fun ChainLinkSearchList(
     onTopAppBarBackClick: () -> Unit,
     onListItemClick: (ChainLink) -> Unit
 ) {
-    val intl = LocalIntl.current
-
     Column(modifier = Modifier.fillMaxSize()) {
         ChainLinkSearchListTopAppBar(
             onBackClick = { onTopAppBarBackClick() },
@@ -55,7 +55,7 @@ fun ChainLinkSearchList(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
-                ) { Text(text = intl.translate("list.chainLink.search.empty.text")) }
+                ) { Text(text = stringResource(Res.string.list_chainLink_search_empty_text)) }
             } else {
                 val lazyListState = rememberLazyListState()
 

@@ -29,14 +29,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import io.github.oxiadenine.chainpass.Chain
-import io.github.oxiadenine.chainpass.LocalIntl
 import io.github.oxiadenine.chainpass.component.InputDialog
 import io.github.oxiadenine.chainpass.component.ValidationTextField
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.dialog_chain_textField_key_empty_error
+import io.github.oxiadenine.common.generated.resources.dialog_chain_textField_key_length_error
+import io.github.oxiadenine.common.generated.resources.dialog_chain_textField_key_placeholder
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit) {
-    val intl = LocalIntl.current
-
     var chainKey by remember { mutableStateOf(Chain.Key()) }
 
     var keyVisible by remember { mutableStateOf(false) }
@@ -75,7 +77,7 @@ fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit)
                 value = chainKey.value,
                 onValueChange = onKeyTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                placeholder = { Text(text = intl.translate("dialog.chain.textField.key.placeholder")) },
+                placeholder = { Text(text = stringResource(Res.string.dialog_chain_textField_key_placeholder)) },
                 trailingIcon = {
                     if (chainKey.validation.isFailure) {
                         Icon(imageVector = Icons.Default.Info, contentDescription = null)
@@ -101,10 +103,10 @@ fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit)
                 errorMessage = chainKey.validation.exceptionOrNull()?.let { error ->
                     when (error) {
                         is Chain.Key.EmptyError -> {
-                            intl.translate("dialog.chain.textField.key.empty.error")
+                            stringResource(Res.string.dialog_chain_textField_key_empty_error)
                         }
                         is Chain.Key.LengthError -> {
-                            intl.translate("dialog.chain.textField.key.length.error")
+                            stringResource(Res.string.dialog_chain_textField_key_length_error)
                         }
                         else -> null
                     }

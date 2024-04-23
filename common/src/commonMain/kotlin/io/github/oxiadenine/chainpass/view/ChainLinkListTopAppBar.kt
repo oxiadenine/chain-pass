@@ -12,7 +12,11 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.oxiadenine.chainpass.LocalIntl
+import io.github.oxiadenine.common.generated.resources.*
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.topAppBar_chainLink_menu_item_store_text
+import io.github.oxiadenine.common.generated.resources.topAppBar_chainLink_menu_item_sync_text
+import org.jetbrains.compose.resources.stringResource
 
 enum class ChainLinkListTopAppBarMenuItem { SYNC, STORE, UNSTORE }
 
@@ -24,8 +28,6 @@ fun ChainLinkListTopAppBar(
     onMenuItemClick: (ChainLinkListTopAppBarMenuItem) -> Unit,
     title: String
 ) {
-    val intl = LocalIntl.current
-
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
 
     TopAppBar(
@@ -57,7 +59,7 @@ fun ChainLinkListTopAppBar(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = intl.translate("topAppBar.chainLink.menu.item.sync.text"),
+                                text = stringResource(Res.string.topAppBar_chainLink_menu_item_sync_text),
                                 fontSize = 14.sp
                             )
                         },
@@ -73,7 +75,7 @@ fun ChainLinkListTopAppBar(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = intl.translate("topAppBar.chainLink.menu.item.store.text"),
+                                text = stringResource(Res.string.topAppBar_chainLink_menu_item_store_text),
                                 fontSize = 14.sp
                             )
                         },
@@ -89,7 +91,7 @@ fun ChainLinkListTopAppBar(
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = intl.translate("topAppBar.chainLink.menu.item.unstore.text"),
+                                text = stringResource(Res.string.topAppBar_chainLink_menu_item_unstore_text),
                                 fontSize = 14.sp
                             )
                         },

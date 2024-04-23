@@ -13,7 +13,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.oxiadenine.chainpass.component.NavigationHost
@@ -22,12 +21,17 @@ import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.repository.ChainRepository
 import io.github.oxiadenine.chainpass.security.PasswordGenerator
 import io.github.oxiadenine.chainpass.view.*
+import io.github.oxiadenine.common.generated.resources.Res
+import io.github.oxiadenine.common.generated.resources.drawer_item_settings_text
+import io.github.oxiadenine.common.generated.resources.drawer_network_text
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.stringResource
 import java.io.File
+import java.util.*
 
 class SettingsState(private val filePath: String) {
     val deviceAddressState = mutableStateOf("")
@@ -97,7 +101,11 @@ fun rememberThemeState(mode: ThemeMode = ThemeMode.LIGHT) = remember {
 
 enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST, CHAIN_LINK_SEARCH_LIST }
 
-val LocalIntl = staticCompositionLocalOf { Intl() }
+object Intl {
+    val languages = listOf("es", "en")
+}
+
+val LocalLocale = staticCompositionLocalOf { Locale.getDefault() }
 
 @Composable
 fun App(
@@ -111,14 +119,12 @@ fun App(
     val coroutineScope = rememberCoroutineScope()
 
     if (settingsState.languageState.value.isEmpty()) {
-        settingsState.languageState.value = Intl.languages.firstOrNull { language ->
-            language == Locale.current.language
-        } ?: Intl.DEFAULT_LANGUAGE
-    }
+        settingsState.languageState.value = Intl.languages.first { language ->
+            language == Locale.getDefault().language
+        }
+    } else Locale.setDefault(Locale(settingsState.languageState.value))
 
-    CompositionLocalProvider(LocalIntl provides Intl(settingsState.languageState.value)) {
-        val intl = LocalIntl.current
-
+    CompositionLocalProvider(LocalLocale provides Locale.getDefault()) {
         Surface(modifier = Modifier.fillMaxSize()) {
             NavigationHost(navigationState = navigationState, initialRoute = Screen.CHAIN_LIST.name) {
                 composableRoute<ChainListRouteArgument>(route = Screen.CHAIN_LIST.name) {
@@ -168,13 +174,13 @@ fun App(
                                             } else osName
                                         } ?: platform.name.lowercase().replaceFirstChar { it.uppercase() })
                                         Text(
-                                            text = hostAddress.ifEmpty { intl.translate("drawer.network.text") },
+                                            text = hostAddress.ifEmpty { stringResource(Res.string.drawer_network_text) },
                                             fontSize = 14.sp
                                         )
                                     }
                                 }
                                 NavigationDrawerItem(
-                                    label = { Text(text = intl.translate("drawer.item.settings.text")) },
+                                    label = { Text(text = stringResource(Res.string.drawer_item_settings_text)) },
                                     selected = false,
                                     onClick = {
                                         coroutineScope.launch {
@@ -222,9 +228,9 @@ fun App(
                         SettingsDialog(
                             settingsState = settingsState,
                             onClose = {
-                                settingsState.save()
+                                Locale.setDefault(Locale(settingsState.languageState.value))
 
-                                LocalIntl.provides(Intl(settingsState.languageState.value))
+                                settingsState.save()
 
                                 settingsDialogVisible = false
                             },
@@ -232,7 +238,6 @@ fun App(
                         )
                     }
                 }
-
                 composableRoute<ChainLinkListRouteArgument>(route = Screen.CHAIN_LINK_LIST.name) { argument ->
                     val chainLinkListViewModel = rememberChainLinkListViewModel(chainLinkRepository, argument!!.chain)
 
