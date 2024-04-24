@@ -7,6 +7,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.DpOffset
@@ -65,11 +67,13 @@ fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit,
                 }
             }
 
+            val focusRequester = remember { FocusRequester() }
+
             var dropdownMenuExpanded by remember { mutableStateOf(false) }
 
             Button(
                 onClick = { dropdownMenuExpanded = true },
-                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).focusRequester(focusRequester)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
@@ -118,6 +122,10 @@ fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit,
                         )
                     }
                 }
+            }
+
+            LaunchedEffect(focusRequester) {
+                focusRequester.requestFocus()
             }
         }
     }

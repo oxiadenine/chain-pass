@@ -7,6 +7,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
@@ -68,9 +70,11 @@ fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val focusRequester = remember { FocusRequester() }
+
             Button(
                 onClick = onSelectFileButtonClick,
-                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
+                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).focusRequester(focusRequester = focusRequester)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
@@ -93,6 +97,10 @@ fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
 
                     Text(text = FileSelected(file.path, file.bytes).fileName, fontSize = 14.sp)
                 }
+            }
+
+            LaunchedEffect(focusRequester) {
+                focusRequester.requestFocus()
             }
         }
     }
