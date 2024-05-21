@@ -1,4 +1,4 @@
-[![latest release](https://img.shields.io/github/v/release/sunlandx/chain-pass?color=brightgreen&label=latest%20release)](https://github.com/sunlandx/chain-pass/releases/latest)
+[![latest release](https://img.shields.io/github/v/release/oxiadenine/chain-pass?color=brightgreen&label=latest%20release)](https://github.com/oxiadenine/chain-pass/releases/latest)
 
 # Chain Pass
 
