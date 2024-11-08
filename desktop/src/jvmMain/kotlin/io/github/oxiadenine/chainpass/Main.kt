@@ -35,7 +35,8 @@ fun main() {
     }
 
     val database = Database.create(appDataDir.absolutePath)
-    val storage = Storage("${appStorageDir.absolutePath}/Store")
+    val settings = Settings(appDataDir.absolutePath)
+    val storage = Storage(appStorageDir.absolutePath)
 
     val chainRepository = ChainRepository(database, storage)
     val chainLinkRepository = ChainLinkRepository(database, storage)
@@ -66,7 +67,7 @@ fun main() {
         ) {
             window.minimumSize = Dimension(360, 480)
 
-            val settingsState = rememberSettingsState("${appDataDir.absolutePath}/settings.json")
+            val settingsState = rememberSettingsState(settings)
             val networkState = rememberNetworkState(syncServer.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
 

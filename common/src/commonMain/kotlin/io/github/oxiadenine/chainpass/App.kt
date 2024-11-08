@@ -26,58 +26,40 @@ import io.github.oxiadenine.common.generated.resources.drawer_item_settings_text
 import io.github.oxiadenine.common.generated.resources.drawer_network_text
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.*
 import org.jetbrains.compose.resources.stringResource
-import java.io.File
 import java.util.*
 
-class SettingsState(private val filePath: String) {
+class SettingsState(private val settings: Settings) {
     val deviceAddressState = mutableStateOf("")
     val passwordLengthState = mutableStateOf(16)
     val passwordIsAlphanumericState = mutableStateOf(false)
     val languageState = mutableStateOf("")
 
-    @Serializable
-    data class Settings(
-        val deviceAddress: String,
-        val passwordLength: Int,
-        val passwordIsAlphanumeric: Boolean,
-        val language: String
-    )
-
     init {
-        val settingsFile = File(filePath)
-
-        if (settingsFile.exists()) {
-            val settings = Json.decodeFromString<Settings>(settingsFile.readText())
-
-            deviceAddressState.value = settings.deviceAddress
-            passwordLengthState.value = settings.passwordLength
-            passwordIsAlphanumericState.value = settings.passwordIsAlphanumeric
-            languageState.value = settings.language
-        } else {
-            settingsFile.createNewFile()
-
-            save()
-        }
+        settings.load()?.let { settingsJson ->
+            deviceAddressState.value = settingsJson["deviceAddress"]!!.jsonPrimitive.content
+            passwordLengthState.value = settingsJson["passwordLength"]!!.jsonPrimitive.content.toInt()
+            passwordIsAlphanumericState.value = settingsJson["passwordIsAlphanumeric"]!!.jsonPrimitive.content.toBoolean()
+            languageState.value = settingsJson["language"]!!.jsonPrimitive.content
+        } ?: settings.save(buildJsonObject {
+            put("deviceAddress", deviceAddressState.value)
+            put("passwordLength", passwordLengthState.value)
+            put("passwordIsAlphanumeric", passwordIsAlphanumericState.value)
+            put("language", languageState.value)
+        })
     }
 
-    fun save() {
-        val settings = Settings(
-            deviceAddressState.value,
-            passwordLengthState.value,
-            passwordIsAlphanumericState.value,
-            languageState.value
-        )
-
-        File(filePath).writeText(Json.encodeToString(settings))
-    }
+    fun update() = settings.save(buildJsonObject {
+        put("deviceAddress", deviceAddressState.value)
+        put("passwordLength", passwordLengthState.value)
+        put("passwordIsAlphanumeric", passwordIsAlphanumericState.value)
+        put("language", languageState.value)
+    })
 }
 
 @Composable
-fun rememberSettingsState(dirPath: String) = remember { SettingsState(dirPath) }
+fun rememberSettingsState(settings: Settings) = remember { SettingsState(settings) }
 
 class NetworkState(val hostAddressState: State<String>)
 
@@ -230,11 +212,11 @@ fun App(
                             onClose = {
                                 Locale.setDefault(Locale(settingsState.languageState.value))
 
-                                settingsState.save()
+                                settingsState.update()
 
                                 settingsDialogVisible = false
                             },
-                            storeDirPath = chainRepository.storage.storeDirPath
+                            storeDirPath = chainRepository.storage.storeDir.absolutePath
                         )
                     }
                 }

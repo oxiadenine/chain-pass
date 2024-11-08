@@ -12,10 +12,12 @@ import kotlin.reflect.full.primaryConstructor
 
 enum class StorageType { JSON, CSV, TXT }
 
-class Storage(val storeDirPath: String) {
+class Storage(storageDirPath: String) {
+    val storeDir = File("$storageDirPath/Store")
+
     init {
-        if (!File(storeDirPath).exists()) {
-            File(storeDirPath).mkdir()
+        if (!storeDir.exists()) {
+            storeDir.mkdir()
         }
     }
 
@@ -27,7 +29,7 @@ class Storage(val storeDirPath: String) {
         val storableFileNames = mutableListOf<String>()
 
         storable.chains.forEach { storableChain ->
-            val storableDir = File("$storeDirPath/${storableChain.name}")
+            val storableDir = storeDir.resolve(storableChain.name)
 
             if (!storableDir.exists()) {
                 storableDir.mkdir()

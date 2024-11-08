@@ -206,8 +206,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
 
                                         true
                                     } else false
-                                }
-                            ,
+                                },
                             valueRange = passwordLengthValueRange
                         )
                         Text(text = passwordLength.toInt().toString())
