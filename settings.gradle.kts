@@ -12,6 +12,7 @@ pluginManagement {
 
         kotlin("multiplatform").version(kotlinVersion)
         kotlin("plugin.serialization").version(kotlinVersion)
+        kotlin("plugin.compose").version(kotlinVersion)
         id("com.android.base").version(androidVersion)
         id("com.android.application").version(androidVersion)
         id("com.android.library").version(androidVersion)

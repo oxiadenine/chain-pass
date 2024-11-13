@@ -1,6 +1,7 @@
 .idea/
-build/
+.kotlin/
 .gradle/
+build/
 *.db
 *.jks
 local.properties

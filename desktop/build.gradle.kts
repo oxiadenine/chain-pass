@@ -2,6 +2,7 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.compose")
     id("org.jetbrains.compose")
 }
 
@@ -9,8 +10,6 @@ kotlin {
     jvmToolchain(17)
 
     jvm {
-        withJava()
-
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
@@ -23,9 +22,7 @@ kotlin {
 
             dependencies {
                 implementation(project(":common"))
-
                 implementation(compose.desktop.currentOs)
-
                 implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
                 implementation("com.h2database:h2:$h2databaseVersion")
             }
@@ -35,7 +32,6 @@ kotlin {
 
             dependencies {
                 implementation(kotlin("test"))
-
                 implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
             }
         }
@@ -45,7 +41,6 @@ kotlin {
 compose.desktop {
     application {
         javaHome = System.getenv("JAVA_HOME") ?: ""
-
         mainClass = "${rootProject.group}.chainpass.MainKt"
 
         setProperty("archivesBaseName", "${rootProject.name}-${project.name}")

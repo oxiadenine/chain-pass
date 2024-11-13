@@ -1,5 +1,6 @@
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.compose")
     id("com.android.application")
     id("org.jetbrains.compose")
 }
@@ -16,7 +17,6 @@ kotlin {
 
             dependencies {
                 implementation(project(":common"))
-
                 implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
                 implementation("com.h2database:h2:$h2databaseVersion")
             }
@@ -31,16 +31,14 @@ kotlin {
 
 android {
     namespace = "${project.group}.chainpass"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26
-        targetSdk = 34
-
+        targetSdk = 35
         applicationId = "${project.group}.chainpass"
         versionCode = (project.version as String).replace(".", "").toInt()
         versionName = project.version as String
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         setProperty("archivesBaseName", "${rootProject.name}-${project.name}-${project.version}")

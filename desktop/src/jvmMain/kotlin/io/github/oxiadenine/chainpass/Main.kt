@@ -2,10 +2,12 @@ package io.github.oxiadenine.chainpass
 
 import androidx.compose.foundation.*
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -16,8 +18,21 @@ import io.github.oxiadenine.chainpass.network.SyncServer
 import io.github.oxiadenine.chainpass.component.rememberNavigationState
 import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.repository.ChainRepository
+import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.decodeToImageBitmap
 import java.awt.Dimension
 import java.io.File
+
+private object ResourceLoader
+
+private fun readResourceBytes(resourcePath: String) =
+    ResourceLoader.javaClass.classLoader.getResourceAsStream(resourcePath)!!.readAllBytes()
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
+internal fun rememberBitmapResource(path: String) = remember(path) {
+    BitmapPainter(readResourceBytes(path).decodeToImageBitmap())
+}
 
 fun main() {
     val appDataDir = if (System.getenv("DEBUG")?.toBoolean() ?: false) {
@@ -54,7 +69,7 @@ fun main() {
             state = windowState,
             onCloseRequest = ::exitApplication,
             title = "Chain Pass",
-            icon = painterResource("icon.png"),
+            icon = rememberBitmapResource("icon.png"),
             onKeyEvent = { keyEvent ->
                 if (keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
                     if (navigationState.composableRouteStack.size > 1) {

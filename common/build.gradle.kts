@@ -1,8 +1,9 @@
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.serialization")
+    kotlin("plugin.compose")
     id("com.android.library")
     id("org.jetbrains.compose")
-    kotlin("plugin.serialization")
 }
 
 kotlin {
@@ -38,15 +39,12 @@ kotlin {
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
-
                 implementation("io.ktor:ktor-client-cio:$ktorVersion")
                 implementation("io.ktor:ktor-client-websockets:$ktorVersion")
                 implementation("io.ktor:ktor-server-cio:$ktorVersion")
                 implementation("io.ktor:ktor-server-websockets:$ktorVersion")
-
                 implementation("io.rsocket.kotlin:rsocket-transport-ktor-websocket-client:$rsocketVersion")
                 implementation("io.rsocket.kotlin:rsocket-transport-ktor-websocket-server:$rsocketVersion")
-
                 implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
             }
         }
@@ -83,9 +81,7 @@ kotlin {
 
             dependencies {
                 implementation(compose.desktop.currentOs)
-
                 implementation(kotlin("test"))
-
                 implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
             }
         }
@@ -94,7 +90,7 @@ kotlin {
 
 android {
     namespace = "${project.group}.chainpass.${project.name}"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26
