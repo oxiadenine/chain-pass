@@ -1,0 +1,44 @@
+[versions]
+kotlin = "2.0.21"
+compose = "1.7.0"
+android = "8.5.0"
+kotlinx-coroutines = "1.9.0"
+kotlinx-serialization = "1.7.3"
+ktor = "2.3.11"
+rsocket = "0.16.0"
+exposed = "0.56.0"
+h2database = "2.3.232"
+androidx-core = "1.15.0"
+androidx-appcompat = "1.7.0"
+androidx-activity = "1.9.3"
+junit = "5.11.3"
+
+[libraries]
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
+ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
+rsocket-transport-ktor-websocket-server = { module = "io.rsocket.kotlin:rsocket-transport-ktor-websocket-server", version.ref = "rsocket" }
+rsocket-transport-ktor-websocket-client = { module = "io.rsocket.kotlin:rsocket-transport-ktor-websocket-client", version.ref = "rsocket" }
+exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
+exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+h2 = { module = "com.h2database:h2", version.ref = "h2database" }
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
+activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+
+[bundles]
+ktor = ["ktor-server-cio", "ktor-server-websockets", "ktor-client-cio", "ktor-client-websockets"]
+rsocket = ["rsocket-transport-ktor-websocket-server", "rsocket-transport-ktor-websocket-client"]
+androidx = ["core-ktx", "appcompat", "activity-compose"]
+
+[plugins]
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.compose", version.ref = "compose" }
+android-library = { id = "com.android.library", version.ref = "android" }
+android-application = { id = "com.android.application", version.ref = "android" }

@@ -1,9 +1,9 @@
 plugins {
-    kotlin("multiplatform") apply false
-    kotlin("plugin.serialization") apply false
-    id("com.android.application") apply false
-    id("com.android.library") apply false
-    id("org.jetbrains.compose") apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.compose) apply false
 }
 
 allprojects {

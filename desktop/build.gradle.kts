@@ -1,9 +1,9 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.compose")
-    id("org.jetbrains.compose")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.compose)
 }
 
 kotlin {
@@ -17,22 +17,19 @@ kotlin {
 
     sourceSets {
         jvmMain {
-            val exposedVersion = properties["exposed.version"] as String
-            val h2databaseVersion = properties["h2database.version"] as String
-
             dependencies {
                 implementation(project(":common"))
+
                 implementation(compose.desktop.currentOs)
-                implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
-                implementation("com.h2database:h2:$h2databaseVersion")
+                implementation(libs.exposed.jdbc)
+                implementation(libs.h2)
             }
         }
         jvmTest {
-            val junitVersion = properties["junit.version"] as String
-
             dependencies {
                 implementation(kotlin("test"))
-                implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+
+                implementation(libs.junit.jupiter.api)
             }
         }
     }

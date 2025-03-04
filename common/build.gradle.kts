@@ -1,9 +1,9 @@
 plugins {
-    kotlin("multiplatform")
-    kotlin("plugin.serialization")
-    kotlin("plugin.compose")
-    id("com.android.library")
-    id("org.jetbrains.compose")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.compose)
 }
 
 kotlin {
@@ -24,12 +24,6 @@ kotlin {
         }
 
         commonMain {
-            val kotlinxCoroutinesVersion = properties["kotlinx-coroutines.version"] as String
-            val kotlinxSerializationVersion = properties["kotlinx-serialization.version"] as String
-            val ktorVersion = properties["ktor.version"] as String
-            val rsocketVersion = properties["rsocket.version"] as String
-            val exposedVersion = properties["exposed.version"] as String
-
             dependencies {
                 api(compose.runtime)
                 api(compose.foundation)
@@ -37,15 +31,11 @@ kotlin {
                 api(compose.materialIconsExtended)
                 api(compose.components.resources)
 
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinxCoroutinesVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinxSerializationVersion")
-                implementation("io.ktor:ktor-client-cio:$ktorVersion")
-                implementation("io.ktor:ktor-client-websockets:$ktorVersion")
-                implementation("io.ktor:ktor-server-cio:$ktorVersion")
-                implementation("io.ktor:ktor-server-websockets:$ktorVersion")
-                implementation("io.rsocket.kotlin:rsocket-transport-ktor-websocket-client:$rsocketVersion")
-                implementation("io.rsocket.kotlin:rsocket-transport-ktor-websocket-server:$rsocketVersion")
-                implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+                implementation(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.bundles.ktor)
+                implementation(libs.bundles.rsocket)
+                implementation(libs.exposed.core)
             }
         }
         commonTest {
@@ -55,14 +45,8 @@ kotlin {
         }
 
         androidMain {
-            val androidxCoreVersion = properties["androidx-core.version"] as String
-            val androidxAppcompatVersion = properties["androidx-appcompat.version"] as String
-            val androidxActivityVersion = properties["androidx-activity.version"] as String
-
             dependencies {
-                api("androidx.core:core-ktx:$androidxCoreVersion")
-                api("androidx.appcompat:appcompat:$androidxAppcompatVersion")
-                api("androidx.activity:activity-compose:$androidxActivityVersion")
+                api(libs.bundles.androidx)
             }
         }
         val androidUnitTest by getting {
@@ -77,12 +61,11 @@ kotlin {
             }
         }
         val desktopTest by getting {
-            val junitVersion = properties["junit.version"] as String
-
             dependencies {
-                implementation(compose.desktop.currentOs)
                 implementation(kotlin("test"))
-                implementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+
+                implementation(compose.desktop.currentOs)
+                implementation(libs.junit.jupiter.api)
             }
         }
     }
