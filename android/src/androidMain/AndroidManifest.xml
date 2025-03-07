@@ -3,9 +3,7 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         tools:ignore="LockedOrientationActivity">
-
     <uses-permission android:name="android.permission.INTERNET" />
-
     <application
             android:label="Chain Pass"
             android:icon="@mipmap/icon"
@@ -14,6 +12,7 @@
         <activity
                 android:name="io.github.oxiadenine.chainpass.MainActivity"
                 android:screenOrientation="portrait"
+                android:windowSoftInputMode="adjustResize"
                 android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

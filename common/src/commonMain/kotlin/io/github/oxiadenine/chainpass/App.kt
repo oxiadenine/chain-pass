@@ -107,7 +107,7 @@ fun App(
     } else Locale.setDefault(Locale(settingsState.languageState.value))
 
     CompositionLocalProvider(LocalLocale provides Locale.getDefault()) {
-        Surface(modifier = Modifier.fillMaxSize()) {
+        Surface(modifier = Modifier.safeContentPadding().fillMaxSize()) {
             NavigationHost(navigationState = navigationState, initialRoute = Screen.CHAIN_LIST.name) {
                 composableRoute<ChainListRouteArgument>(route = Screen.CHAIN_LIST.name) {
                     val drawerState = rememberDrawerState(DrawerValue.Closed)
