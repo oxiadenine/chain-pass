@@ -73,7 +73,9 @@ fun StoreDialog(onConfirm: (StorageType, Boolean) -> Unit, onCancel: () -> Unit,
 
             Button(
                 onClick = { dropdownMenuExpanded = true },
-                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).focusRequester(focusRequester)
+                modifier = Modifier
+                    .pointerHoverIcon(icon = PointerIcon.Hand)
+                    .focusRequester(focusRequester)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),

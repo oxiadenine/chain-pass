@@ -237,6 +237,9 @@ class ChainListViewModel(
 }
 
 @Composable
-fun rememberChainListViewModel(chainRepository: ChainRepository, chainLinkRepository: ChainLinkRepository) = remember {
+fun rememberChainListViewModel(
+    chainRepository: ChainRepository,
+    chainLinkRepository: ChainLinkRepository
+) = remember {
     ChainListViewModel(chainRepository, chainLinkRepository)
 }

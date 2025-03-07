@@ -14,11 +14,15 @@ actual object PasswordEncoder {
     }
 
     actual object Salt {
-        actual fun generate() = Base64.encode(Random.nextBytes(EncoderSpec.Strength.SALT_LENGTH / 8))
+        actual fun generate() = Base64.encode(
+            Random.nextBytes(EncoderSpec.Strength.SALT_LENGTH / 8)
+        )
     }
 
     actual object IV {
-        actual fun generate() = Base64.encode(Random.nextBytes(EncoderSpec.Strength.IV_LENGTH / 8))
+        actual fun generate() = Base64.encode(
+            Random.nextBytes(EncoderSpec.Strength.IV_LENGTH / 8)
+        )
     }
 
     actual fun hash(password: String, salt: String): String {
@@ -29,7 +33,9 @@ actual object PasswordEncoder {
             EncoderSpec.Strength.KEY_LENGTH
         )
 
-        val secretKey = SecretKeyFactory.getInstance(EncoderSpec.Algorithm.PBKDF2_WITH_HMAC_SHA256).generateSecret(keySpec)
+        val secretKey = SecretKeyFactory.getInstance(
+            EncoderSpec.Algorithm.PBKDF2_WITH_HMAC_SHA256
+        ).generateSecret(keySpec)
 
         return Base64.encode(secretKey.encoded)
     }

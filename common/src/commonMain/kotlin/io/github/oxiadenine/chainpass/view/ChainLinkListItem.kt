@@ -24,7 +24,11 @@ import org.jetbrains.compose.resources.stringResource
 enum class ChainLinkListItemMenuItem { COPY, EDIT, DELETE }
 
 @Composable
-fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name: String, description: String) {
+fun ChainLinkListItem(
+    onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit,
+    name: String,
+    description: String
+) {
     var dropdownMenuExpanded by remember { mutableStateOf(false) }
     var dropdownMenuOffset by remember { mutableStateOf(DpOffset.Zero) }
 
@@ -76,36 +80,57 @@ fun ChainLinkListItem(onMenuItemClick: (ChainLinkListItemMenuItem) -> Unit, name
                 offset = dropdownMenuOffset
             ) {
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(Res.string.list_chainLink_menu_item_copy_text), fontSize = 14.sp) },
+                    text = {
+                        Text(
+                            text = stringResource(Res.string.list_chainLink_menu_item_copy_text),
+                            fontSize = 14.sp
+                        )
+                    },
                     onClick = {
                         dropdownMenuExpanded = false
 
                         onMenuItemClick(ChainLinkListItemMenuItem.COPY)
                     },
                     modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                    leadingIcon = { Icon(imageVector = Icons.Default.CopyAll, contentDescription = null) },
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Default.CopyAll, contentDescription = null)
+                    },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(Res.string.list_chainLink_menu_item_edit_text), fontSize = 14.sp) },
+                    text = {
+                        Text(
+                            text = stringResource(Res.string.list_chainLink_menu_item_edit_text),
+                            fontSize = 14.sp
+                        )
+                    },
                     onClick = {
                         dropdownMenuExpanded = false
 
                         onMenuItemClick(ChainLinkListItemMenuItem.EDIT)
                     },
                     modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                    leadingIcon = { Icon(imageVector = Icons.Default.Edit, contentDescription = null) },
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Default.Edit, contentDescription = null)
+                    },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
                 DropdownMenuItem(
-                    text = { Text(text = stringResource(Res.string.list_chainLink_menu_item_delete_text), fontSize = 14.sp) },
+                    text = {
+                        Text(
+                            text = stringResource(Res.string.list_chainLink_menu_item_delete_text),
+                            fontSize = 14.sp
+                        )
+                    },
                     onClick = {
                         dropdownMenuExpanded = false
 
                         onMenuItemClick(ChainLinkListItemMenuItem.DELETE)
                     },
                     modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                    leadingIcon = { Icon(imageVector = Icons.Default.Delete, contentDescription = null) },
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                    },
                     contentPadding = PaddingValues(horizontal = 16.dp)
                 )
             }

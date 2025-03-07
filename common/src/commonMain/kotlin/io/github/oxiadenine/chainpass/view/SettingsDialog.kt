@@ -44,7 +44,9 @@ class DeviceAddress(value: String? = null) {
         private set
 
     val validation = value?.let {
-        if (value.isNotEmpty() && !value.matches("^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\$".toRegex())) {
+        if (value.isNotEmpty() && !value.matches(
+                "^(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\$".toRegex()
+        )) {
             Result.failure(InvalidIPv4Error)
         } else Result.success(value)
     } ?: Result.success(this.value)
@@ -52,19 +54,27 @@ class DeviceAddress(value: String? = null) {
 
 @Composable
 fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPath: String) {
-    var deviceAddress by remember { mutableStateOf(DeviceAddress(settingsState.deviceAddressState.value)) }
+    var deviceAddress by remember {
+        mutableStateOf(DeviceAddress(settingsState.deviceAddressState.value))
+    }
 
     val onDeviceAddressTextFieldValueChange = { address: String ->
         deviceAddress = DeviceAddress(address)
     }
 
-    var passwordLength by remember { mutableStateOf(settingsState.passwordLengthState.value.toFloat()) }
+    var passwordLength by remember {
+        mutableStateOf(settingsState.passwordLengthState.value.toFloat())
+    }
+
     val passwordLengthValueRange by remember { mutableStateOf(8f..32f) }
 
-    var passwordIsAlphanumeric by remember { mutableStateOf(settingsState.passwordIsAlphanumericState.value) }
+    var passwordIsAlphanumeric by remember {
+        mutableStateOf(settingsState.passwordIsAlphanumericState.value)
+    }
 
     val onPasswordLengthChange = { length: Float ->
-        if (length >= passwordLengthValueRange.start && length <= passwordLengthValueRange.endInclusive) {
+        if (length >= passwordLengthValueRange.start
+            && length <= passwordLengthValueRange.endInclusive) {
             passwordLength = length
         }
     }
@@ -74,7 +84,9 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
     }
 
     var selectedLanguage by remember {
-        mutableStateOf(Intl.languages.first { language -> language == settingsState.languageState.value })
+        mutableStateOf(Intl.languages.first { language ->
+            language == settingsState.languageState.value
+        })
     }
 
     val onLanguageListItemClick = { language: String ->
@@ -112,14 +124,18 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
         buttons = {
             TextButton(
                 onClick = onInputDialogConfirmRequest,
-                modifier = Modifier.align(alignment = Alignment.End).pointerHoverIcon(icon = PointerIcon.Hand)
+                modifier = Modifier
+                    .align(alignment = Alignment.End)
+                    .pointerHoverIcon(icon = PointerIcon.Hand)
             ) { Text(text = stringResource(Res.string.dialog_settings_button_save_text)) }
         }
     ) {
         val scrollState = rememberScrollState(initial = 0)
 
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).verticalScroll(state = scrollState),
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .verticalScroll(state = scrollState),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -149,13 +165,14 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                             }
                         ,
                         placeholder = {
-                            Text(
-                                text = stringResource(Res.string.dialog_settings_item_sync_textField_device_placeholder),
-                                fontSize = 14.sp
-                            )
+                            Text(text = stringResource(
+                                Res.string.dialog_settings_item_sync_textField_device_placeholder
+                            ), fontSize = 14.sp)
                         },
                         singleLine = true,
-                        leadingIcon = { Icon(imageVector = Icons.Default.Devices, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(imageVector = Icons.Default.Devices, contentDescription = null)
+                        },
                         trailingIcon = if (deviceAddress.validation.isFailure) {
                             { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                         } else null,
@@ -258,7 +275,9 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                         ) {
                             if (selectedLanguage == language) {
                                 Icon(imageVector = Icons.Default.RadioButtonChecked, contentDescription = null)
-                            } else Icon(imageVector = Icons.Default.RadioButtonUnchecked, contentDescription = null)
+                            } else {
+                                Icon(imageVector = Icons.Default.RadioButtonUnchecked, contentDescription = null)
+                            }
                             Column {
                                 Text(text = stringResource(
                                     Res.string.dialog_settings_item_language_item_text,

@@ -18,7 +18,8 @@ actual fun FileChooserDialog(
         val result = if (uri != null) {
             context.contentResolver.openInputStream(uri)!!.use { inputStream ->
                 FileChooserResult.File(
-                    "${Environment.getExternalStorageDirectory().absolutePath}/${uri.path!!.substringAfterLast(":")}",
+                    "${Environment.getExternalStorageDirectory()
+                        .absolutePath}/${uri.path!!.substringAfterLast(":")}",
                     inputStream.readBytes()
                 )
             }

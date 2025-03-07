@@ -28,6 +28,16 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 class PopupHostState {
+    class PopupData(
+        val message: String,
+        val duration: Long,
+        private val continuation: CancellableContinuation<Unit>
+    ) {
+        fun dismiss() {
+            if (continuation.isActive) continuation.cancel()
+        }
+    }
+
     private val mutex = Mutex()
 
     var currentPopupData by mutableStateOf<PopupData?>(null)
@@ -40,17 +50,6 @@ class PopupHostState {
             }
         } finally {
             currentPopupData = null
-
-        }
-    }
-
-    class PopupData(
-        val message: String,
-        val duration: Long,
-        private val continuation: CancellableContinuation<Unit>
-    ) {
-        fun dismiss() {
-            if (continuation.isActive) continuation.cancel()
         }
     }
 }
@@ -71,6 +70,17 @@ fun PopupHost(
     }
 
     AnimatedPopup(popupData = hostState.currentPopupData, content = popupContent)
+}
+
+private data class AnimatedPopupItem<T>(
+    val key: T,
+    val transition: @Composable (content: @Composable () -> Unit) -> Unit
+)
+
+private class AnimatedPopupState<T> {
+    var popupData: Any? = Any()
+    var items = mutableListOf<AnimatedPopupItem<T>>()
+    var scope: RecomposeScope? = null
 }
 
 @Composable
@@ -158,17 +168,6 @@ private fun AnimatedPopup(
         }
     }
 }
-
-private class AnimatedPopupState<T> {
-    var popupData: Any? = Any()
-    var items = mutableListOf<AnimatedPopupItem<T>>()
-    var scope: RecomposeScope? = null
-}
-
-private data class AnimatedPopupItem<T>(
-    val key: T,
-    val transition: @Composable (content: @Composable () -> Unit) -> Unit
-)
 
 @Composable
 private fun animatedOpacity(

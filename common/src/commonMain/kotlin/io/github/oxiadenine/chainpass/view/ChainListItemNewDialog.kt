@@ -72,7 +72,9 @@ fun ChainListItemNewDialog(
                 value = chainName.value,
                 onValueChange = onNameTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                placeholder = { Text(text = stringResource(Res.string.dialog_chain_textField_name_placeholder)) },
+                placeholder = {
+                    Text(text = stringResource(Res.string.dialog_chain_textField_name_placeholder))
+                },
                 trailingIcon = if (chainName.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
@@ -103,7 +105,9 @@ fun ChainListItemNewDialog(
             ValidationTextField(
                 value = chainKey.value,
                 onValueChange = onKeyTextFieldValueChange,
-                placeholder = { Text(text = stringResource(Res.string.dialog_chain_textField_key_placeholder)) },
+                placeholder = {
+                    Text(text = stringResource(Res.string.dialog_chain_textField_key_placeholder))
+                },
                 leadingIcon = {
                     IconButton(
                         onClick = { onKeyTextFieldValueChange(passwordGenerator.generate()) },

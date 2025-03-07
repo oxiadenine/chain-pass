@@ -61,7 +61,8 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
     fun undoRemove() {
         chainLinkSelected = chainLinkRemovedListState.removeAt(0)
 
-        val chainLinks = chainLinkListState.plus(chainLinkSelected!!).sortedBy { chainLink -> chainLink.name.value }
+        val chainLinks = chainLinkListState.plus(chainLinkSelected!!)
+            .sortedBy { chainLink -> chainLink.name.value }
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)
@@ -113,7 +114,8 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
 
         chainLinkSelected = chainLinkDraft
 
-        val chainLinks = chainLinkListState.plus(chainLinkDraft).sortedBy { chainLink -> chainLink.name.value }
+        val chainLinks = chainLinkListState.plus(chainLinkDraft)
+            .sortedBy { chainLink -> chainLink.name.value }
 
         chainLinkListState.clear()
         chainLinkListState.addAll(chainLinks)

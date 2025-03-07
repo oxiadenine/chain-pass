@@ -4,14 +4,6 @@ import io.github.oxiadenine.chainpass.security.PasswordEncoder
 import io.github.oxiadenine.chainpass.security.Random
 
 class ChainLink(val chain: Chain) {
-    constructor(chainLink: ChainLink) : this(chainLink.chain) {
-        id = chainLink.id
-        name = chainLink.name
-        description = chainLink.description
-        password = chainLink.password
-        iv = chainLink.iv
-    }
-
     class Name(value: String? = null) {
         object EmptyError : Error() {
             private fun readResolve(): Any = EmptyError
@@ -73,6 +65,14 @@ class ChainLink(val chain: Chain) {
                 Result.failure(LengthError)
             } else Result.success(value)
         } ?: Result.success(this.value)
+    }
+
+    constructor(chainLink: ChainLink) : this(chainLink.chain) {
+        id = chainLink.id
+        name = chainLink.name
+        description = chainLink.description
+        password = chainLink.password
+        iv = chainLink.iv
     }
 
     var id = Random.uuid()

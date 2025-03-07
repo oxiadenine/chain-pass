@@ -24,7 +24,9 @@ class MainActivity : AppCompatActivity() {
             File("${applicationContext.getExternalFilesDir("")!!.absolutePath}/local")
         } else File(applicationContext.getExternalFilesDir("")!!.absolutePath)
 
-        val appStorageDir = File("${Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).path}/Chain Pass")
+        val appStorageDir = File("${Environment.getExternalStoragePublicDirectory(
+            Environment.DIRECTORY_DOWNLOADS
+        ).path}/Chain Pass")
 
         if (!appDataDir.exists()) {
             appDataDir.mkdirs()

@@ -4,13 +4,13 @@ import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.runtime.*
 
 class NavigationState {
+    open class RouteArgument
+
     data class Route(
         val path: String = "",
         val argument: RouteArgument? = null,
         val animation: FiniteAnimationSpec<Float>? = null
     )
-
-    open class RouteArgument
 
     class ComposableRoute<in T : RouteArgument>(
         val route: Route,

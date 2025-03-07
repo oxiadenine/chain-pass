@@ -4,17 +4,6 @@ import io.github.oxiadenine.chainpass.security.PasswordEncoder
 import io.github.oxiadenine.chainpass.security.Random
 
 class Chain() {
-    object KeyInvalidError : Error() {
-        private fun readResolve(): Any = KeyInvalidError
-    }
-
-    constructor(chain: Chain) : this() {
-        id = chain.id
-        name = chain.name
-        key = chain.key
-        salt = chain.salt
-    }
-
     class Name(value: String? = null) {
         object EmptyError : Error() {
             private fun readResolve(): Any = EmptyError
@@ -61,6 +50,17 @@ class Chain() {
                 Result.failure(LengthError)
             } else Result.success(value)
         } ?: Result.success(this.value)
+    }
+
+    object KeyInvalidError : Error() {
+        private fun readResolve(): Any = KeyInvalidError
+    }
+
+    constructor(chain: Chain) : this() {
+        id = chain.id
+        name = chain.name
+        key = chain.key
+        salt = chain.salt
     }
 
     var id = Random.uuid()

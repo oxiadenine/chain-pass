@@ -78,7 +78,9 @@ fun ChainLinkListItemNewDialog(
                 value = chainLinkName.value,
                 onValueChange = onNameTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                placeholder = { Text(text = stringResource(Res.string.dialog_chainLink_textField_name_placeholder)) },
+                placeholder = {
+                    Text(text = stringResource(Res.string.dialog_chainLink_textField_name_placeholder))
+                },
                 trailingIcon = if (chainLinkName.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
@@ -109,7 +111,9 @@ fun ChainLinkListItemNewDialog(
             ValidationTextField(
                 value = chainLinkDescription.value,
                 onValueChange = onDescriptionTextFieldValueChange,
-                placeholder = { Text(text = stringResource(Res.string.dialog_chainLink_textField_description_placeholder)) },
+                placeholder = {
+                    Text(text = stringResource(Res.string.dialog_chainLink_textField_description_placeholder))
+                },
                 trailingIcon = if (chainLinkDescription.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
@@ -131,7 +135,9 @@ fun ChainLinkListItemNewDialog(
             ValidationTextField(
                 value = chainLinkPassword.value,
                 onValueChange = onPasswordTextFieldValueChange,
-                placeholder = { Text(text = stringResource(Res.string.dialog_chainLink_textField_password_placeholder)) },
+                placeholder = {
+                    Text(text = stringResource(Res.string.dialog_chainLink_textField_password_placeholder))
+                },
                 leadingIcon = {
                     IconButton(
                         onClick = { onPasswordTextFieldValueChange(passwordGenerator.generate()) },

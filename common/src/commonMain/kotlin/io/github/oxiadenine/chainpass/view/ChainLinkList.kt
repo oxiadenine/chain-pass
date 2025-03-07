@@ -34,7 +34,10 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
-class ChainLinkListRouteArgument(val chain: Chain, val chainLink: ChainLink? = null) : NavigationState.RouteArgument()
+class ChainLinkListRouteArgument(
+    val chain: Chain,
+    val chainLink: ChainLink? = null
+) : NavigationState.RouteArgument()
 
 @Composable
 fun ChainLinkList(

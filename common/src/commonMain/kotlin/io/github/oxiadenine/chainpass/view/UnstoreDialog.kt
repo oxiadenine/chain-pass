@@ -74,7 +74,9 @@ fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
 
             Button(
                 onClick = onSelectFileButtonClick,
-                modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand).focusRequester(focusRequester = focusRequester)
+                modifier = Modifier
+                    .pointerHoverIcon(icon = PointerIcon.Hand)
+                    .focusRequester(focusRequester = focusRequester)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),

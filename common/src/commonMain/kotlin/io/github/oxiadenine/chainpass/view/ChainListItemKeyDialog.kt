@@ -77,7 +77,9 @@ fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit)
                 value = chainKey.value,
                 onValueChange = onKeyTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                placeholder = { Text(text = stringResource(Res.string.dialog_chain_textField_key_placeholder)) },
+                placeholder = {
+                    Text(text = stringResource(Res.string.dialog_chain_textField_key_placeholder))
+                },
                 trailingIcon = {
                     if (chainKey.validation.isFailure) {
                         Icon(imageVector = Icons.Default.Info, contentDescription = null)

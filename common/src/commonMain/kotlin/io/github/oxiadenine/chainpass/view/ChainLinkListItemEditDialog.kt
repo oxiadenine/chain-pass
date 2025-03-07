@@ -96,7 +96,9 @@ fun ChainLinkListItemEditDialog(
                 value = chainLinkPassword.value,
                 onValueChange = onPasswordTextFieldValueChange,
                 modifier = Modifier.focusRequester(focusRequester = focusRequester),
-                placeholder = { Text(text = stringResource(Res.string.dialog_chainLink_textField_password_placeholder)) },
+                placeholder = {
+                    Text(text = stringResource(Res.string.dialog_chainLink_textField_password_placeholder))
+                },
                 leadingIcon = {
                     IconButton(
                         onClick = { onPasswordTextFieldValueChange(passwordGenerator.generate()) },

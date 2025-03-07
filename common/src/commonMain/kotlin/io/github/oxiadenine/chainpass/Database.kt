@@ -29,23 +29,6 @@ object ChainLinkTable : Table("chain_link") {
 }
 
 class Database private constructor(private val connection: Database) {
-    companion object {
-        fun create(dataDirPath: String): io.github.oxiadenine.chainpass.Database {
-            val connection = Database.connect(
-                url = "jdbc:h2:$dataDirPath/chain_pass;FILE_LOCK=FS",
-                driver = "org.h2.Driver",
-                user = "chain_pass",
-                password = "chain_pass",
-                setupConnection = { connection ->
-                    connection.autoCommit = true
-                    connection.transactionIsolation = Connection.TRANSACTION_REPEATABLE_READ
-                }
-            )
-
-            return Database(connection)
-        }
-    }
-
     init {
         transaction(connection) {
             if (platform == Platform.ANDROID) {
@@ -66,4 +49,21 @@ class Database private constructor(private val connection: Database) {
         transactionIsolation = Connection.TRANSACTION_REPEATABLE_READ,
         statement = statement
     )
+
+    companion object {
+        fun create(dataDirPath: String): io.github.oxiadenine.chainpass.Database {
+            val connection = Database.connect(
+                url = "jdbc:h2:$dataDirPath/chain_pass;FILE_LOCK=FS",
+                driver = "org.h2.Driver",
+                user = "chain_pass",
+                password = "chain_pass",
+                setupConnection = { connection ->
+                    connection.autoCommit = true
+                    connection.transactionIsolation = Connection.TRANSACTION_REPEATABLE_READ
+                }
+            )
+
+            return Database(connection)
+        }
+    }
 }

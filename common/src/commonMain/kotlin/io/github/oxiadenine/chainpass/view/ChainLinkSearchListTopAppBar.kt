@@ -83,7 +83,9 @@ fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (Stri
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary.let { color -> color.copy(alpha = color.alpha / 2) }
+                    tint = MaterialTheme.colorScheme.primary.let { color ->
+                        color.copy(alpha = color.alpha / 2)
+                    }
                 )
             }
         }

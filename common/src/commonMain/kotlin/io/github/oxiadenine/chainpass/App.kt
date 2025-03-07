@@ -38,9 +38,12 @@ class SettingsState(private val settings: Settings) {
 
     init {
         settings.load()?.let { settingsJson ->
-            deviceAddressState.value = settingsJson["deviceAddress"]!!.jsonPrimitive.content
-            passwordLengthState.value = settingsJson["passwordLength"]!!.jsonPrimitive.content.toInt()
-            passwordIsAlphanumericState.value = settingsJson["passwordIsAlphanumeric"]!!.jsonPrimitive.content.toBoolean()
+            deviceAddressState.value = settingsJson["deviceAddress"]!!
+                .jsonPrimitive.content
+            passwordLengthState.value = settingsJson["passwordLength"]!!
+                .jsonPrimitive.content.toInt()
+            passwordIsAlphanumericState.value = settingsJson["passwordIsAlphanumeric"]!!
+                .jsonPrimitive.content.toBoolean()
             languageState.value = settingsJson["language"]!!.jsonPrimitive.content
         } ?: settings.save(buildJsonObject {
             put("deviceAddress", deviceAddressState.value)
@@ -138,12 +141,16 @@ fun App(
                                                 visible = themeState.isDarkMode,
                                                 enter = fadeIn(animationSpec = tween(durationMillis = 500)),
                                                 exit = fadeOut(animationSpec = tween(durationMillis = 500))
-                                            ) { Icon(imageVector = Icons.Default.LightMode, contentDescription = null) }
+                                            ) {
+                                                Icon(imageVector = Icons.Default.LightMode, contentDescription = null)
+                                            }
                                             AnimatedVisibility(
                                                 visible = !themeState.isDarkMode,
                                                 enter = fadeIn(animationSpec = tween(durationMillis = 500)),
                                                 exit = fadeOut(animationSpec = tween(durationMillis = 500))
-                                            ) { Icon(imageVector = Icons.Default.DarkMode, contentDescription = null) }
+                                            ) {
+                                                Icon(imageVector = Icons.Default.DarkMode, contentDescription = null)
+                                            }
                                         }
                                     }
                                     Column(
@@ -156,7 +163,9 @@ fun App(
                                             } else osName
                                         } ?: platform.name.lowercase().replaceFirstChar { it.uppercase() })
                                         Text(
-                                            text = hostAddress.ifEmpty { stringResource(Res.string.drawer_network_text) },
+                                            text = hostAddress.ifEmpty {
+                                                stringResource(Res.string.drawer_network_text)
+                                            },
                                             fontSize = 14.sp
                                         )
                                     }

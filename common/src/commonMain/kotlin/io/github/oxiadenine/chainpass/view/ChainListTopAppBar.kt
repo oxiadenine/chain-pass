@@ -65,7 +65,9 @@ fun ChainListTopAppBar(
                             onMenuItemClick(ChainListTopAppBarMenuItem.SYNC)
                         },
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                        leadingIcon = { Icon(imageVector = Icons.Default.Sync, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(imageVector = Icons.Default.Sync, contentDescription = null)
+                        },
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     )
                     DropdownMenuItem(
@@ -81,7 +83,9 @@ fun ChainListTopAppBar(
                             onMenuItemClick(ChainListTopAppBarMenuItem.STORE)
                         },
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                        leadingIcon = { Icon(imageVector = Icons.Default.Archive, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(imageVector = Icons.Default.Archive, contentDescription = null)
+                        },
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     )
                     DropdownMenuItem(
@@ -97,7 +101,9 @@ fun ChainListTopAppBar(
                             onMenuItemClick(ChainListTopAppBarMenuItem.UNSTORE)
                         },
                         modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                        leadingIcon = { Icon(imageVector = Icons.Default.Unarchive, contentDescription = null) },
+                        leadingIcon = {
+                            Icon(imageVector = Icons.Default.Unarchive, contentDescription = null)
+                        },
                         contentPadding = PaddingValues(horizontal = 16.dp)
                     )
                 }
