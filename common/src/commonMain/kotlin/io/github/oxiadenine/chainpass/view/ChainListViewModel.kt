@@ -2,13 +2,13 @@ package io.github.oxiadenine.chainpass.view
 
 import androidx.compose.runtime.*
 import io.github.oxiadenine.chainpass.network.ChainApi
-import io.github.oxiadenine.chainpass.network.WebSocket
 import io.github.oxiadenine.chainpass.repository.ChainEntity
 import io.github.oxiadenine.chainpass.repository.ChainLinkEntity
 import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.repository.ChainRepository
 import io.github.oxiadenine.chainpass.security.PasswordEncoder
 import io.github.oxiadenine.chainpass.*
+import io.github.oxiadenine.chainpass.network.SyncClient
 
 class ChainListViewModel(
     private val chainRepository: ChainRepository,
@@ -226,9 +226,10 @@ class ChainListViewModel(
 
     suspend fun sync(deviceAddress: String) = runCatching {
         try {
-            val webSocket = WebSocket.connect(deviceAddress)
+            val syncClient = SyncClient(deviceAddress)
 
-            ChainApi(chainRepository, chainLinkRepository, webSocket).sync().getOrThrow()
+            ChainApi(chainRepository, chainLinkRepository, syncClient).sync()
+                .onFailure { syncClient.disconnect() }.getOrThrow()
         } catch (e: Exception) {
             throw SyncNetworkError
         }

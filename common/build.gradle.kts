@@ -33,8 +33,7 @@ kotlin {
 
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.serialization.json)
-                implementation(libs.bundles.ktor)
-                implementation(libs.bundles.rsocket)
+                implementation(libs.ktor.network)
                 implementation(libs.exposed.core)
             }
         }

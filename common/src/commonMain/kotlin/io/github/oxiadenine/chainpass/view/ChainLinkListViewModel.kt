@@ -2,11 +2,11 @@ package io.github.oxiadenine.chainpass.view
 
 import androidx.compose.runtime.*
 import io.github.oxiadenine.chainpass.network.ChainLinkApi
-import io.github.oxiadenine.chainpass.network.WebSocket
 import io.github.oxiadenine.chainpass.repository.ChainLinkEntity
 import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.security.PasswordEncoder
 import io.github.oxiadenine.chainpass.*
+import io.github.oxiadenine.chainpass.network.SyncClient
 import kotlin.IllegalStateException
 
 class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepository, val chain: Chain) {
@@ -256,9 +256,10 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
 
     suspend fun sync(deviceAddress: String) = runCatching {
         try {
-            val webSocket = WebSocket.connect(deviceAddress)
+            val syncClient = SyncClient(deviceAddress)
 
-            ChainLinkApi(chainLinkRepository, webSocket).sync(chain.id).getOrThrow()
+            ChainLinkApi(chainLinkRepository, syncClient).sync(chain.id)
+                .onFailure { syncClient.disconnect() }.getOrThrow()
         } catch (e: Exception) {
             throw SyncNetworkError
         }

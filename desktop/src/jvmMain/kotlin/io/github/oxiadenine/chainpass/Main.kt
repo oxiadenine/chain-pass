@@ -16,8 +16,13 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import io.github.oxiadenine.chainpass.network.SyncServer
 import io.github.oxiadenine.chainpass.component.rememberNavigationState
+import io.github.oxiadenine.chainpass.network.TcpSocket
 import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.repository.ChainRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.decodeToImageBitmap
 import java.awt.Dimension
@@ -26,7 +31,7 @@ import java.io.File
 private object ResourceLoader
 
 private fun readResourceBytes(resourcePath: String) =
-    ResourceLoader.javaClass.classLoader.getResourceAsStream(resourcePath)!!.readAllBytes()
+    ResourceLoader.javaClass.classLoader!!.getResourceAsStream(resourcePath)!!.readAllBytes()
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
@@ -56,7 +61,17 @@ fun main() {
     val chainRepository = ChainRepository(database, storage)
     val chainLinkRepository = ChainLinkRepository(database, storage)
 
-    val syncServer = SyncServer(chainRepository, chainLinkRepository).start()
+    val syncServer = SyncServer(chainRepository, chainLinkRepository)
+
+    CoroutineScope(Dispatchers.IO).launch {
+        TcpSocket.hostAddressFlow.collectLatest { hostAddress ->
+            syncServer.stop()
+
+            try {
+                if (hostAddress.isNotEmpty()) syncServer.start(hostAddress)
+            } catch (_: Exception) {}
+        }
+    }
 
     application {
         val windowState = rememberWindowState()
@@ -83,7 +98,7 @@ fun main() {
             window.minimumSize = Dimension(360, 480)
 
             val settingsState = rememberSettingsState(settings)
-            val networkState = rememberNetworkState(syncServer.hostAddressFlow)
+            val networkState = rememberNetworkState(TcpSocket.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
 
             CompositionLocalProvider(

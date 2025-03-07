@@ -7,8 +7,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.MaterialTheme
 import io.github.oxiadenine.chainpass.network.SyncServer
 import io.github.oxiadenine.chainpass.component.rememberNavigationState
+import io.github.oxiadenine.chainpass.network.TcpSocket
 import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.repository.ChainRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -36,13 +41,23 @@ class MainActivity : AppCompatActivity() {
         val chainRepository = ChainRepository(database, storage)
         val chainLinkRepository = ChainLinkRepository(database, storage)
 
-        val syncServer = SyncServer(chainRepository, chainLinkRepository).start()
+        val syncServer = SyncServer(chainRepository, chainLinkRepository)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            TcpSocket.hostAddressFlow.collectLatest { hostAddress ->
+                syncServer.stop()
+
+                try {
+                    if (hostAddress.isNotEmpty()) syncServer.start(hostAddress)
+                } catch (_: Exception) {}
+            }
+        }
 
         setContent {
             title = "Chain Pass"
 
             val settingsState = rememberSettingsState(settings)
-            val networkState = rememberNetworkState(syncServer.hostAddressFlow)
+            val networkState = rememberNetworkState(TcpSocket.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
             val navigationState = rememberNavigationState()
 

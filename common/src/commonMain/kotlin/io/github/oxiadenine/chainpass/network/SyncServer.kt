@@ -1,59 +1,94 @@
 package io.github.oxiadenine.chainpass.network
 
-import androidx.compose.runtime.mutableStateOf
-import io.ktor.server.cio.*
-import io.rsocket.kotlin.RSocketRequestHandler
-import io.rsocket.kotlin.payload.Payload
+import io.github.oxiadenine.chainpass.repository.ChainEntity
+import io.github.oxiadenine.chainpass.repository.ChainLinkEntity
 import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.repository.ChainRepository
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.*
 
 class SyncServer(
     private val chainRepository: ChainRepository,
     private val chainLinkRepository: ChainLinkRepository
 ) {
-    val hostAddressFlow = flow {
+    private var selectorManager: SelectorManager? = null
+    private var serverSocket: ServerSocket? = null
+
+    suspend fun start(hostAddress: String) = coroutineScope {
+        selectorManager = SelectorManager(Dispatchers.IO)
+        serverSocket = aSocket(selectorManager!!).tcp().bind(hostAddress, TcpSocket.PORT)
+
+        println("Sync server started at ${hostAddress}:${TcpSocket.PORT}")
+
         while (true) {
-            delay(2000)
+            val socket = serverSocket!!.accept()
 
-            emit(WebSocket.getLocalHost().getOrElse { "" })
-        }
-    }.flowOn(Dispatchers.IO).distinctUntilChanged().conflate()
+            val readChannel = socket.openReadChannel()
+            val writeChannel = socket.openWriteChannel(autoFlush = true)
 
-    private val engineState = mutableStateOf<CIOApplicationEngine?>(null)
+            val readPayload = Json.decodeFromString<TcpSocket.Payload>(readChannel.readUTF8Line()!!)
 
-    fun start(): SyncServer {
-        CoroutineScope(Dispatchers.IO).launch {
-            hostAddressFlow.collect { hostAddress ->
-                if (hostAddress.isNotEmpty()) {
-                    try {
-                        engineState.value = WebSocket.start(hostAddress) {
-                            RSocketRequestHandler {
-                                requestResponse { payload ->
-                                    when (payload.getRoute()) {
-                                        WebSocket.Route.CHAIN_SYNC -> {
-                                            Payload.encode(chainRepository.getAll())
-                                        }
+            val writePayload = when (TcpSocket.Route.valueOf(readPayload.route)) {
+                TcpSocket.Route.CHAIN_SYNC -> {
+                    val chainEntityMap = mutableMapOf<ChainEntity, List<ChainLinkEntity>>()
 
-                                        WebSocket.Route.CHAIN_LINK_SYNC -> {
-                                            Payload.encode(chainLinkRepository.getBy(payload.decode()))
+                    chainRepository.getAll().forEach { chainEntity ->
+                        chainEntityMap[chainEntity] = chainLinkRepository.getBy(chainEntity.id)
+                    }
+
+                    val chainJsonArray = buildJsonArray {
+                        chainEntityMap.map { (chainEntity, chainLinkEntities) ->
+                            addJsonObject {
+                                put("id", chainEntity.id)
+                                put("name", chainEntity.name)
+                                put("key", chainEntity.key)
+                                put("salt", chainEntity.salt)
+                                put("links", buildJsonArray {
+                                    chainLinkEntities.map { chainLinkEntity ->
+                                        addJsonObject {
+                                            put("id", chainLinkEntity.id)
+                                            put("name", chainLinkEntity.name)
+                                            put("description", chainLinkEntity.description)
+                                            put("password", chainLinkEntity.password)
+                                            put("iv", chainLinkEntity.iv)
                                         }
                                     }
-                                }
+                                })
                             }
                         }
-                    } catch (_: Throwable) {}
-                } else {
-                    engineState.value?.application?.cancel()
-                    engineState.value?.application?.dispose()
+                    }
+
+                    TcpSocket.Payload(TcpSocket.Route.CHAIN_SYNC.name, chainJsonArray)
+                }
+                TcpSocket.Route.CHAIN_LINK_SYNC -> {
+                    val chainLinkEntities = chainLinkRepository.getBy(readPayload.data!!.jsonPrimitive.content)
+
+                    val chainLinkJsonArray = buildJsonArray {
+                        chainLinkEntities.map { chainLinkEntity ->
+                            addJsonObject {
+                                put("id", chainLinkEntity.id)
+                                put("name", chainLinkEntity.name)
+                                put("description", chainLinkEntity.description)
+                                put("password", chainLinkEntity.password)
+                                put("iv", chainLinkEntity.iv)
+                            }
+                        }
+                    }
+
+                    TcpSocket.Payload(TcpSocket.Route.CHAIN_LINK_SYNC.name, chainLinkJsonArray)
                 }
             }
-        }
 
-        return this
+            writeChannel.writeStringUtf8("${Json.encodeToString(writePayload)}\n")
+        }
     }
+
+    fun stop() = try {
+        serverSocket?.close()
+        selectorManager?.close()
+    } catch (_: Exception) {}
 }

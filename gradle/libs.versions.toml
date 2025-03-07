@@ -5,7 +5,6 @@ android = "8.5.0"
 kotlinx-coroutines = "1.9.0"
 kotlinx-serialization = "1.7.3"
 ktor = "2.3.11"
-rsocket = "0.16.0"
 exposed = "0.56.0"
 h2database = "2.3.232"
 androidx-core = "1.15.0"
@@ -16,12 +15,7 @@ junit = "5.11.3"
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
-ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
-ktor-server-websockets = { module = "io.ktor:ktor-server-websockets", version.ref = "ktor" }
-ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
-ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
-rsocket-transport-ktor-websocket-server = { module = "io.rsocket.kotlin:rsocket-transport-ktor-websocket-server", version.ref = "rsocket" }
-rsocket-transport-ktor-websocket-client = { module = "io.rsocket.kotlin:rsocket-transport-ktor-websocket-client", version.ref = "rsocket" }
+ktor-network = { module = "io.ktor:ktor-network", version.ref = "ktor" }
 exposed-core = { module = "org.jetbrains.exposed:exposed-core", version.ref = "exposed" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
 h2 = { module = "com.h2database:h2", version.ref = "h2database" }
@@ -31,8 +25,6 @@ activity-compose = { module = "androidx.activity:activity-compose", version.ref 
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 
 [bundles]
-ktor = ["ktor-server-cio", "ktor-server-websockets", "ktor-client-cio", "ktor-client-websockets"]
-rsocket = ["rsocket-transport-ktor-websocket-server", "rsocket-transport-ktor-websocket-client"]
 androidx = ["core-ktx", "appcompat", "activity-compose"]
 
 [plugins]
