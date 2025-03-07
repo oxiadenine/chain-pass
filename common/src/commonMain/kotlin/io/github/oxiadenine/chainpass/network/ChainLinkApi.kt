@@ -4,7 +4,6 @@ import io.github.oxiadenine.chainpass.repository.ChainLinkEntity
 import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
 class ChainLinkApi(

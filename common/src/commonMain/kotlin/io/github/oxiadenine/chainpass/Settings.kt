@@ -1,6 +1,5 @@
 package io.github.oxiadenine.chainpass
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import java.io.File
