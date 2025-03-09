@@ -15,8 +15,10 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.oxiadenine.chainpass.component.NavigationHost
-import io.github.oxiadenine.chainpass.component.NavigationState
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
 import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.repository.ChainRepository
 import io.github.oxiadenine.chainpass.security.PasswordGenerator
@@ -26,6 +28,7 @@ import io.github.oxiadenine.common.generated.resources.drawer_item_settings_text
 import io.github.oxiadenine.common.generated.resources.drawer_network_text
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
 import org.jetbrains.compose.resources.stringResource
 import java.util.*
@@ -84,7 +87,14 @@ fun rememberThemeState(mode: ThemeMode = ThemeMode.LIGHT) = remember {
     ThemeState(mutableStateOf(mode))
 }
 
-enum class Screen { CHAIN_LIST, CHAIN_LINK_LIST, CHAIN_LINK_SEARCH_LIST }
+object Route {
+    @Serializable
+    data object ChainList
+    @Serializable
+    data class ChainLinkList(val chainId: String, val chainKey: String, val chainLinkSearchId: String? = null)
+    @Serializable
+    data class ChainLinkSearchList(val chainId: String)
+}
 
 object Intl {
     val languages = listOf("es", "en")
@@ -99,7 +109,7 @@ fun App(
     settingsState: SettingsState,
     networkState: NetworkState,
     themeState: ThemeState,
-    navigationState: NavigationState
+    navHostController: NavHostController
 ) {
     val coroutineScope = rememberCoroutineScope()
 
@@ -111,8 +121,8 @@ fun App(
 
     CompositionLocalProvider(LocalLocale provides Locale.getDefault()) {
         Surface(modifier = Modifier.safeContentPadding().fillMaxSize()) {
-            NavigationHost(navigationState = navigationState, initialRoute = Screen.CHAIN_LIST.name) {
-                composableRoute<ChainListRouteArgument>(route = Screen.CHAIN_LIST.name) {
+            NavHost(navController = navHostController, startDestination = Route.ChainList) {
+                composable<Route.ChainList> {
                     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
                     var settingsDialogVisible by remember { mutableStateOf(false) }
@@ -200,11 +210,9 @@ fun App(
                                 }
                             },
                             onListItemOpenMenuItemClick = { chain ->
-                                navigationState.push(route = NavigationState.Route(
-                                    path = Screen.CHAIN_LINK_LIST.name,
-                                    argument = ChainLinkListRouteArgument(chain),
-                                    animation = tween(easing = FastOutSlowInEasing)
-                                ))
+                                coroutineScope.launch {
+                                    navHostController.navigate(route = Route.ChainLinkList(chain.id, chain.key.value))
+                                }
                             },
                             deviceAddress = settingsState.deviceAddressState.value,
                             passwordGenerator = PasswordGenerator(
@@ -229,21 +237,21 @@ fun App(
                         )
                     }
                 }
-                composableRoute<ChainLinkListRouteArgument>(route = Screen.CHAIN_LINK_LIST.name) { argument ->
-                    val chainLinkListViewModel = rememberChainLinkListViewModel(chainLinkRepository, argument!!.chain)
+                composable<Route.ChainLinkList> { navBackStackEntry ->
+                    val route = navBackStackEntry.toRoute<Route.ChainLinkList>()
 
-                    chainLinkListViewModel.chainLinkSelected = argument.chainLink
+                    val chainLinkListViewModel = rememberChainLinkListViewModel(chainRepository, chainLinkRepository)
 
                     ChainLinkList(
+                        chainId = route.chainId,
+                        chainKey = Chain.Key(route.chainKey),
+                        chainLinkSearchId = route.chainLinkSearchId,
                         viewModel = chainLinkListViewModel,
-                        onTopAppBarBackClick = { navigationState.pop() },
-                        onTopAppBarSearchClick = { chainLinks ->
-                            navigationState.push(
-                                NavigationState.Route(
-                                path = Screen.CHAIN_LINK_SEARCH_LIST.name,
-                                argument = ChainLinkSearchListRouteArgument(chainLinks),
-                                animation = tween(easing = FastOutLinearInEasing)
-                            ))
+                        onTopAppBarBackClick = { navHostController.navigateUp() },
+                        onTopAppBarSearchClick = { chain ->
+                            coroutineScope.launch {
+                                navHostController.navigate(route = Route.ChainLinkSearchList(chain.id))
+                            }
                         },
                         deviceAddress = settingsState.deviceAddressState.value,
                         passwordGenerator = PasswordGenerator(
@@ -253,17 +261,29 @@ fun App(
                         ))
                     )
                 }
-                composableRoute<ChainLinkSearchListRouteArgument>(Screen.CHAIN_LINK_SEARCH_LIST.name) { argument ->
-                    val chainLinkSearchListState = rememberChainLinkSearchListState(chainLinks = argument!!.chainLinks)
+                composable<Route.ChainLinkSearchList> { navBackStackEntry ->
+                    val route = navBackStackEntry.toRoute<Route.ChainLinkSearchList>()
+
+                    val chainLinkSearchListViewModel = rememberChainLinkSearchListViewModel(
+                        chainRepository,
+                        chainLinkRepository
+                    )
 
                     ChainLinkSearchList(
-                        state = chainLinkSearchListState,
-                        onTopAppBarBackClick = { navigationState.pop() },
+                        chainId = route.chainId,
+                        viewModel = chainLinkSearchListViewModel,
+                        onTopAppBarBackClick = { navHostController.navigateUp() },
                         onListItemClick = { chainLink ->
-                            navigationState.pop(
-                                NavigationState.Route(
-                                argument = ChainLinkListRouteArgument(chainLink.chain, chainLink)
-                            ))
+                            navHostController.popBackStack()
+                            navHostController.popBackStack()
+
+                            coroutineScope.launch {
+                                navHostController.navigate(route = Route.ChainLinkList(
+                                    chainLink.chain.id,
+                                    chainLink.chain.key.value,
+                                    chainLink.id
+                                ))
+                            }
                         }
                     )
                 }

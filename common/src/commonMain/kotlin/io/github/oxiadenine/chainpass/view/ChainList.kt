@@ -30,8 +30,6 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
-class ChainListRouteArgument : NavigationState.RouteArgument()
-
 @Composable
 fun ChainList(
     viewModel: ChainListViewModel,

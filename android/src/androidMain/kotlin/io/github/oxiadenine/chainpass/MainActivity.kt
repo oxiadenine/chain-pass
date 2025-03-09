@@ -2,11 +2,12 @@ package io.github.oxiadenine.chainpass
 
 import android.os.Bundle
 import android.os.Environment
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.material3.MaterialTheme
+import androidx.navigation.compose.rememberNavController
 import io.github.oxiadenine.chainpass.network.SyncServer
-import io.github.oxiadenine.chainpass.component.rememberNavigationState
 import io.github.oxiadenine.chainpass.network.TcpSocket
 import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.repository.ChainRepository
@@ -61,7 +62,14 @@ class MainActivity : AppCompatActivity() {
             val settingsState = rememberSettingsState(settings)
             val networkState = rememberNetworkState(TcpSocket.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
-            val navigationState = rememberNavigationState()
+            val navHostController = rememberNavController()
+
+            BackHandler(
+                enabled = true,
+                onBack = {
+                    if (!navHostController.popBackStack()) finish()
+                }
+            )
 
             MaterialTheme(colorScheme = if (themeState.isDarkMode) {
                 Theme.DarkColors
@@ -72,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                     settingsState = settingsState,
                     networkState = networkState,
                     themeState = themeState,
-                    navigationState = navigationState
+                    navHostController = navHostController
                 )
             }
         }

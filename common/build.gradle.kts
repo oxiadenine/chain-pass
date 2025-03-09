@@ -35,6 +35,8 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.ktor.network)
                 implementation(libs.exposed.core)
+
+                api(libs.bundles.androidx.multiplatform)
             }
         }
         commonTest {
@@ -45,7 +47,7 @@ kotlin {
 
         androidMain {
             dependencies {
-                api(libs.bundles.androidx)
+                api(libs.bundles.androidx.android)
             }
         }
         val androidUnitTest by getting {

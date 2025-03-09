@@ -7,9 +7,13 @@ import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.security.PasswordEncoder
 import io.github.oxiadenine.chainpass.*
 import io.github.oxiadenine.chainpass.network.SyncClient
+import io.github.oxiadenine.chainpass.repository.ChainRepository
 import kotlin.IllegalStateException
 
-class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepository, val chain: Chain) {
+class ChainLinkListViewModel(
+    private val chainRepository: ChainRepository,
+    private val chainLinkRepository: ChainLinkRepository
+) {
     object StorableFormatError : Error() {
         private fun readResolve(): Any = StorableFormatError
     }
@@ -26,6 +30,8 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         private fun readResolve(): Any = SyncNetworkError
     }
 
+    var chain = mutableStateOf<Chain?>(null)
+
     val chainLinkListState = mutableStateListOf<ChainLink>()
 
     val chainLinkSelectedIndex: Int
@@ -34,7 +40,7 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
     var chainLinkEdit by mutableStateOf<ChainLink?>(null)
         private set
 
-    var chainLinkSelected by mutableStateOf<ChainLink?>(null)
+    private var chainLinkSelected by mutableStateOf<ChainLink?>(null)
 
     private val chainLinkRemovedListState = mutableStateListOf<ChainLink>()
 
@@ -72,9 +78,18 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         return chainLink.plainPassword(chainLink.chain.key)
     }
 
-    suspend fun getAll() {
-        val chainLinks = chainLinkRepository.getBy(chain.id).map { chainLinkEntity ->
-            ChainLink(chain).apply {
+    suspend fun getAll(chainId: String, chainKey: Chain.Key) {
+        chain.value = chainRepository.getOne(chainId).getOrThrow().let { chainEntity ->
+            Chain().apply {
+                id = chainEntity.id
+                name = Chain.Name(chainEntity.name)
+                key = chainKey
+                salt = chainEntity.salt
+            }
+        }
+
+        val chainLinks = chainLinkRepository.getBy(chain.value!!.id).map { chainLinkEntity ->
+            ChainLink(chain.value!!).apply {
                 id = chainLinkEntity.id
                 name = ChainLink.Name(chainLinkEntity.name)
                 description = ChainLink.Description(chainLinkEntity.description)
@@ -92,7 +107,7 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         chainLinkDescription: ChainLink.Description,
         chainLinkPassword : ChainLink.Password
     ) {
-        val chainLinkDraft = ChainLink(chain).apply {
+        val chainLinkDraft = ChainLink(chain.value!!).apply {
             name = chainLinkName
             description = chainLinkDescription
             password = chainLinkPassword
@@ -122,7 +137,7 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
     }
 
     suspend fun edit(chainLinkDescription: ChainLink.Description, chainLinkPassword: ChainLink.Password) {
-        val chainLinkEdit = ChainLink(chain).apply {
+        val chainLinkEdit = ChainLink(chain.value!!).apply {
             id = chainLinkEdit!!.id
             name = chainLinkEdit!!.name
             description = chainLinkDescription
@@ -172,11 +187,23 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         chainLinkRemovedListState.remove(chainLink)
     }
 
+    suspend fun select(chainLinkId: String) {
+        chainLinkSelected = chainLinkRepository.getOne(chainLinkId).getOrThrow().let { chainLinkEntity ->
+            ChainLink(chain.value!!).apply {
+                id = chainLinkEntity.id
+                name = ChainLink.Name(chainLinkEntity.name)
+                description = ChainLink.Description(chainLinkEntity.description)
+                password = ChainLink.Password(chainLinkEntity.password)
+                iv = chainLinkEntity.iv
+            }
+        }
+    }
+
     suspend fun store(storageType: StorageType, storeIsPrivate: Boolean): String {
         val storableOptions = StorableOptions(storeIsPrivate)
 
-        val storableChainLinks = chainLinkRepository.getBy(chain.id).map { chainLinkEntity ->
-            val chainLink = ChainLink(chain).apply {
+        val storableChainLinks = chainLinkRepository.getBy(chain.value!!.id).map { chainLinkEntity ->
+            val chainLink = ChainLink(chain.value!!).apply {
                 id = chainLinkEntity.id
                 name = ChainLink.Name(chainLinkEntity.name)
                 description = ChainLink.Description(chainLinkEntity.description)
@@ -196,9 +223,9 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
 
         val storableChains = listOf(
             StorableChain(
-            chain.name.value,
-            chain.privateKey(chain.key).value,
-            chain.salt,
+            chain.value!!.name.value,
+            chain.value!!.privateKey(chain.value!!.key).value,
+            chain.value!!.salt,
             storableChainLinks
         )
         )
@@ -230,7 +257,7 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         val chainLinks = mutableStateListOf<ChainLink>()
 
         storable.chains[0].chainLinks.forEach { storableChainLink ->
-            val chainLink = ChainLink(chain).apply {
+            val chainLink = ChainLink(chain.value!!).apply {
                 name = ChainLink.Name(storableChainLink.name)
                 description = ChainLink.Description(storableChainLink.description)
                 password = ChainLink.Password(storableChainLink.password)
@@ -260,7 +287,7 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
         try {
             val syncClient = SyncClient(deviceAddress)
 
-            ChainLinkApi(chainLinkRepository, syncClient).sync(chain.id)
+            ChainLinkApi(chainLinkRepository, syncClient).sync(chain.value!!.id)
                 .onFailure { syncClient.disconnect() }.getOrThrow()
         } catch (e: Exception) {
             throw SyncNetworkError
@@ -269,6 +296,9 @@ class ChainLinkListViewModel(private val chainLinkRepository: ChainLinkRepositor
 }
 
 @Composable
-fun rememberChainLinkListViewModel(chainLinkRepository: ChainLinkRepository, chain: Chain) = remember {
-    ChainLinkListViewModel(chainLinkRepository, chain)
+fun rememberChainLinkListViewModel(
+    chainRepository: ChainRepository,
+    chainLinkRepository: ChainLinkRepository
+) = remember {
+    ChainLinkListViewModel(chainRepository, chainLinkRepository)
 }

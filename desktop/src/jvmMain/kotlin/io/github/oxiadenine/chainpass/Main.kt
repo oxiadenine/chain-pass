@@ -14,8 +14,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import androidx.navigation.compose.rememberNavController
 import io.github.oxiadenine.chainpass.network.SyncServer
-import io.github.oxiadenine.chainpass.component.rememberNavigationState
 import io.github.oxiadenine.chainpass.network.TcpSocket
 import io.github.oxiadenine.chainpass.repository.ChainLinkRepository
 import io.github.oxiadenine.chainpass.repository.ChainRepository
@@ -75,7 +75,7 @@ fun main() {
 
     application {
         val windowState = rememberWindowState()
-        val navigationState = rememberNavigationState()
+        val navHostController = rememberNavController()
 
         windowState.size = DpSize(640.dp, 480.dp)
         windowState.position = WindowPosition(Alignment.Center)
@@ -87,9 +87,7 @@ fun main() {
             icon = rememberBitmapResource("icon.png"),
             onKeyEvent = { keyEvent ->
                 if (keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
-                    if (navigationState.composableRouteStack.size > 1) {
-                        navigationState.pop()
-                    } else exitApplication()
+                    if (!navHostController.popBackStack()) exitApplication()
 
                     true
                 } else false
@@ -115,7 +113,7 @@ fun main() {
                         settingsState = settingsState,
                         networkState = networkState,
                         themeState = themeState,
-                        navigationState = navigationState
+                        navHostController = navHostController
                     )
                 }
             }

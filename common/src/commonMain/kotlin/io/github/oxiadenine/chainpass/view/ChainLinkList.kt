@@ -20,7 +20,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.oxiadenine.chainpass.Chain
-import io.github.oxiadenine.chainpass.ChainLink
 import io.github.oxiadenine.chainpass.Platform
 import io.github.oxiadenine.chainpass.security.PasswordGenerator
 import io.github.oxiadenine.chainpass.component.*
@@ -34,16 +33,14 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
-class ChainLinkListRouteArgument(
-    val chain: Chain,
-    val chainLink: ChainLink? = null
-) : NavigationState.RouteArgument()
-
 @Composable
 fun ChainLinkList(
+    chainId: String,
+    chainKey: Chain.Key,
+    chainLinkSearchId: String?,
     viewModel: ChainLinkListViewModel,
     onTopAppBarBackClick: () -> Unit,
-    onTopAppBarSearchClick: (List<ChainLink>) -> Unit,
+    onTopAppBarSearchClick: (Chain) -> Unit,
     deviceAddress: String,
     passwordGenerator: PasswordGenerator
 ) {
@@ -112,7 +109,7 @@ fun ChainLinkList(
                     scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
                     scaffoldListState.popupHostState.currentPopupData?.dismiss()
 
-                    onTopAppBarSearchClick(viewModel.chainLinkListState.toList())
+                    onTopAppBarSearchClick(viewModel.chain.value!!)
                 },
                 onMenuItemClick = { menuItem ->
                     when (menuItem) {
@@ -129,7 +126,7 @@ fun ChainLinkList(
                                     loadingDialogVisible = true
 
                                     viewModel.sync(deviceAddress).onSuccess {
-                                        viewModel.getAll()
+                                        viewModel.getAll(chainId, chainKey)
 
                                         loadingDialogVisible = false
                                     }.onFailure { error ->
@@ -150,7 +147,7 @@ fun ChainLinkList(
                         ChainLinkListTopAppBarMenuItem.UNSTORE -> unstoreDialogVisible = true
                     }
                 },
-                title = viewModel.chain.name.value,
+                title = viewModel.chain.value?.name?.value ?: ""
             )
         },
         floatingActionButton = {
@@ -315,7 +312,7 @@ fun ChainLinkList(
                     loadingDialogVisible = true
 
                     viewModel.unstore(fileSelected).onSuccess {
-                        viewModel.getAll()
+                        viewModel.getAll(chainId, chainKey)
 
                         loadingDialogVisible = false
 
@@ -355,7 +352,9 @@ fun ChainLinkList(
     LaunchedEffect(viewModel) {
         loadingDialogVisible = true
 
-        viewModel.getAll()
+        viewModel.getAll(chainId, chainKey)
+
+        chainLinkSearchId?.let { id -> viewModel.select(id) }
 
         loadingDialogVisible = false
     }

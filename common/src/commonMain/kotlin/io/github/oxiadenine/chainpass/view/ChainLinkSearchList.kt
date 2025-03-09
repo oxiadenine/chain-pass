@@ -10,45 +10,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.oxiadenine.chainpass.ChainLink
-import io.github.oxiadenine.chainpass.component.NavigationState
+import io.github.oxiadenine.chainpass.component.LoadingDialog
 import io.github.oxiadenine.common.generated.resources.Res
 import io.github.oxiadenine.common.generated.resources.list_chainLink_search_empty_text
 import org.jetbrains.compose.resources.stringResource
 
-class ChainLinkSearchListRouteArgument(val chainLinks: List<ChainLink>) : NavigationState.RouteArgument()
-
-class ChainLinkSearchListState(private val chainLinks: List<ChainLink>) {
-    val chainLinkSearchListState = chainLinks.toMutableStateList()
-
-    fun search(keyword: String) {
-        val chainLinks = chainLinks
-            .filter { chainLink -> chainLink.name.value.lowercase().contains(keyword.lowercase()) }
-            .sortedBy { chainLink -> chainLink.name.value }
-
-        chainLinkSearchListState.clear()
-        chainLinkSearchListState.addAll(chainLinks)
-    }
-}
-
-@Composable
-fun rememberChainLinkSearchListState(chainLinks: List<ChainLink>) = remember {
-    ChainLinkSearchListState(chainLinks)
-}
-
 @Composable
 fun ChainLinkSearchList(
-    state: ChainLinkSearchListState,
+    chainId: String,
+    viewModel: ChainLinkSearchListViewModel,
     onTopAppBarBackClick: () -> Unit,
     onListItemClick: (ChainLink) -> Unit
 ) {
+    var loadingDialogVisible by remember { mutableStateOf(false) }
+
     Column(modifier = Modifier.fillMaxSize()) {
         ChainLinkSearchListTopAppBar(
             onBackClick = { onTopAppBarBackClick() },
-            onKeywordChange = { keyword -> state.search(keyword) }
+            onKeywordChange = { keyword -> viewModel.search(keyword) }
         )
 
         Box(modifier = Modifier.fillMaxSize()) {
-            val chainLinks = state.chainLinkSearchListState.toTypedArray()
+            val chainLinks = viewModel.chainLinkSearchListState.toTypedArray()
 
             if (chainLinks.isEmpty()) {
                 Row(
@@ -70,5 +53,17 @@ fun ChainLinkSearchList(
                 }
             }
         }
+    }
+
+    if (loadingDialogVisible) {
+        LoadingDialog()
+    }
+
+    LaunchedEffect(viewModel) {
+        loadingDialogVisible = true
+
+        viewModel.getAll(chainId)
+
+        loadingDialogVisible = false
     }
 }
