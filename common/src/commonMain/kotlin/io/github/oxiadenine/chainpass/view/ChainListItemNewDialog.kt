@@ -1,5 +1,6 @@
 package io.github.oxiadenine.chainpass.view
 
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -28,29 +31,65 @@ import io.github.oxiadenine.common.generated.resources.dialog_chain_textField_na
 import io.github.oxiadenine.common.generated.resources.dialog_chain_textField_name_placeholder
 import org.jetbrains.compose.resources.stringResource
 
+data class ChainListItemNewDialogState(
+    val name: Chain.Name = Chain.Name(),
+    val key: Chain.Key = Chain.Key()
+) {
+    companion object {
+        val Saver = listSaver(
+            save = { state ->
+                listOf(
+                    state.value.name.value,
+                    state.value.name.validation.isFailure,
+                    state.value.key.value,
+                    state.value.key.validation.isFailure
+                )
+            },
+            restore = {
+                val name = it[0] as String
+                val nameError = it[1] as Boolean
+                val key = it[2] as String
+                val keyError = it[3] as Boolean
+
+                mutableStateOf(ChainListItemNewDialogState(
+                    name = if (name.isNotEmpty() || nameError) {
+                        Chain.Name(name)
+                    } else Chain.Name(),
+                    key = if (key.isNotEmpty() || keyError) {
+                        Chain.Key(key)
+                    } else Chain.Key()
+                ))
+            }
+        )
+    }
+}
+
+@Composable
+fun rememberChainListItemNewDialogState() = rememberSaveable(saver = ChainListItemNewDialogState.Saver) {
+    mutableStateOf(ChainListItemNewDialogState())
+}
+
 @Composable
 fun ChainListItemNewDialog(
     onConfirm: (Chain.Name, Chain.Key) -> Unit,
     onCancel: () -> Unit,
     passwordGenerator: PasswordGenerator
 ) {
-    var chainName by remember { mutableStateOf(Chain.Name()) }
-    var chainKey by remember { mutableStateOf(Chain.Key()) }
+    var state by rememberChainListItemNewDialogState()
 
     val onNameTextFieldValueChange = { name: String ->
-        chainName = Chain.Name(name)
+        state = state.copy(name = Chain.Name(name))
     }
 
     val onKeyTextFieldValueChange = { key: String ->
-        chainKey = Chain.Key(key)
+        state = state.copy(key = Chain.Key(key))
     }
 
     val onInputDialogConfirmRequest = {
-        chainName = Chain.Name(chainName.value)
-        chainKey = Chain.Key(chainKey.value)
+        state = state.copy(name = Chain.Name(state.name.value), key = Chain.Key(state.key.value))
 
-        if (chainName.validation.isSuccess && chainKey.validation.isSuccess) {
-            onConfirm(chainName, chainKey)
+        if (state.name.validation.isSuccess && state.key.validation.isSuccess) {
+            onConfirm(state.name, state.key)
         }
     }
 
@@ -62,24 +101,24 @@ fun ChainListItemNewDialog(
 
                     true
                 } else false
-            },
+            }.focusGroup(),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val focusRequester = remember { FocusRequester() }
 
             ValidationTextField(
-                value = chainName.value,
+                value = state.name.value,
                 onValueChange = onNameTextFieldValueChange,
-                modifier = Modifier.focusRequester(focusRequester = focusRequester),
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester = focusRequester),
                 placeholder = {
                     Text(text = stringResource(Res.string.dialog_chain_textField_name_placeholder))
                 },
-                trailingIcon = if (chainName.validation.isFailure) {
+                trailingIcon = if (state.name.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = chainName.validation.isFailure,
-                errorMessage = chainName.validation.exceptionOrNull()?.let { error ->
+                isError = state.name.validation.isFailure,
+                errorMessage = state.name.validation.exceptionOrNull()?.let { error ->
                     when (error) {
                         is Chain.Name.EmptyError -> {
                             stringResource(Res.string.dialog_chain_textField_name_empty_error)
@@ -103,8 +142,9 @@ fun ChainListItemNewDialog(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             ValidationTextField(
-                value = chainKey.value,
+                value = state.key.value,
                 onValueChange = onKeyTextFieldValueChange,
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = {
                     Text(text = stringResource(Res.string.dialog_chain_textField_key_placeholder))
                 },
@@ -123,11 +163,11 @@ fun ChainListItemNewDialog(
                             }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
-                trailingIcon = if (chainKey.validation.isFailure) {
+                trailingIcon = if (state.key.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = chainKey.validation.isFailure,
-                errorMessage = chainKey.validation.exceptionOrNull()?.let { error ->
+                isError = state.key.validation.isFailure,
+                errorMessage = state.key.validation.exceptionOrNull()?.let { error ->
                     when (error) {
                         is Chain.Key.EmptyError -> {
                             stringResource(Res.string.dialog_chain_textField_key_empty_error)

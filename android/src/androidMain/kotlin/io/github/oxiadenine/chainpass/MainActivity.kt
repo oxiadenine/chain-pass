@@ -4,8 +4,16 @@ import android.os.Bundle
 import android.os.Environment
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeContent
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.rememberNavController
 import io.github.oxiadenine.chainpass.network.SyncServer
 import io.github.oxiadenine.chainpass.network.TcpSocket
@@ -18,8 +26,12 @@ import kotlinx.coroutines.launch
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
+    private var syncServer: SyncServer? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        enableEdgeToEdge()
 
         val appDataDir = if (BuildConfig.DEBUG) {
             File("${applicationContext.getExternalFilesDir("")!!.absolutePath}/local")
@@ -44,22 +56,25 @@ class MainActivity : AppCompatActivity() {
         val chainRepository = ChainRepository(database, storage)
         val chainLinkRepository = ChainLinkRepository(database, storage)
 
-        val syncServer = SyncServer(chainRepository, chainLinkRepository)
+        syncServer = SyncServer(chainRepository, chainLinkRepository)
 
         CoroutineScope(Dispatchers.IO).launch {
             TcpSocket.hostAddressFlow.collectLatest { hostAddress ->
-                syncServer.stop()
+                syncServer?.stop()
 
                 try {
-                    if (hostAddress.isNotEmpty()) syncServer.start(hostAddress)
-                } catch (_: Exception) {}
+                    if (hostAddress.isNotEmpty()) {
+                        syncServer?.start(hostAddress)
+                    }
+                } catch (e: Exception) {
+                    println(e)
+                }
             }
         }
 
         setContent {
             title = "Chain Pass"
 
-            val settingsState = rememberSettingsState(settings)
             val networkState = rememberNetworkState(TcpSocket.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
             val navHostController = rememberNavController()
@@ -67,22 +82,51 @@ class MainActivity : AppCompatActivity() {
             BackHandler(
                 enabled = true,
                 onBack = {
-                    if (!navHostController.popBackStack()) finish()
+                    if (!navHostController.popBackStack()) {
+                        syncServer?.stop()
+
+                        finish()
+                    }
                 }
             )
 
-            MaterialTheme(colorScheme = if (themeState.isDarkMode) {
-                Theme.DarkColors
-            } else Theme.LightColors) {
-                App(
-                    chainRepository = chainRepository,
-                    chainLinkRepository = chainLinkRepository,
-                    settingsState = settingsState,
-                    networkState = networkState,
-                    themeState = themeState,
-                    navHostController = navHostController
+            val configuration = LocalConfiguration.current
+            val density = LocalDensity.current
+
+            val windowInsets = WindowInsets.safeContent
+
+            val screen = with(density) {
+                val insetsLeft = windowInsets.getLeft(this, LayoutDirection.Ltr).toDp()
+                val insetsRight = windowInsets.getRight(this, LayoutDirection.Ltr).toDp()
+                val insetsTop = windowInsets.getTop(this).toDp()
+                val insetsBottom = windowInsets.getBottom(this).toDp()
+
+                Screen(
+                    width = configuration.screenWidthDp.dp - insetsLeft - insetsRight,
+                    height = configuration.screenHeightDp.dp - insetsTop - insetsBottom
                 )
             }
+
+            CompositionLocalProvider(LocalScreen provides screen) {
+                MaterialTheme(colorScheme = if (themeState.isDarkMode) {
+                    Theme.DarkColors
+                } else Theme.LightColors) {
+                    App(
+                        chainRepository = chainRepository,
+                        chainLinkRepository = chainLinkRepository,
+                        settings = settings,
+                        networkState = networkState,
+                        themeState = themeState,
+                        navHostController = navHostController
+                    )
+                }
+            }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        syncServer?.stop()
     }
 }

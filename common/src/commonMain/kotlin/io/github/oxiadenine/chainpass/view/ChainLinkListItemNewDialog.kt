@@ -1,5 +1,6 @@
 package io.github.oxiadenine.chainpass.view
 
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -7,6 +8,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -28,36 +31,84 @@ import io.github.oxiadenine.common.generated.resources.dialog_chainLink_textFiel
 import io.github.oxiadenine.common.generated.resources.dialog_chainLink_textField_name_placeholder
 import org.jetbrains.compose.resources.stringResource
 
+data class ChainLinkListItemNewDialogState(
+    val name: ChainLink.Name = ChainLink.Name(),
+    val description: ChainLink.Description = ChainLink.Description(),
+    val password: ChainLink.Password = ChainLink.Password()
+) {
+    companion object {
+        val Saver = listSaver(
+            save = { state ->
+                listOf(
+                    state.value.name.value,
+                    state.value.name.validation.isFailure,
+                    state.value.description.value,
+                    state.value.description.validation.isFailure,
+                    state.value.password.value,
+                    state.value.password.validation.isFailure
+                )
+            },
+            restore = {
+                val name = it[0] as String
+                val nameError = it[1] as Boolean
+                val description = it[2] as String
+                val descriptionError = it[3] as Boolean
+                val password = it[4] as String
+                val passwordError = it[5] as Boolean
+
+                mutableStateOf(ChainLinkListItemNewDialogState(
+                    name = if (name.isNotEmpty() || nameError) {
+                        ChainLink.Name(name)
+                    } else ChainLink.Name(),
+                    description = if (description.isNotEmpty() || descriptionError) {
+                        ChainLink.Description(description)
+                    } else ChainLink.Description(),
+                    password = if (password.isNotEmpty() || passwordError) {
+                        ChainLink.Password(password)
+                    } else ChainLink.Password()
+                ))
+            }
+        )
+    }
+}
+
+@Composable
+fun rememberChainLinkListItemNewDialogState() = rememberSaveable(saver = ChainLinkListItemNewDialogState.Saver) {
+    mutableStateOf(ChainLinkListItemNewDialogState())
+}
+
 @Composable
 fun ChainLinkListItemNewDialog(
     onConfirm: (ChainLink.Name, ChainLink.Description, ChainLink.Password) -> Unit,
     onCancel: () -> Unit,
     passwordGenerator: PasswordGenerator
 ) {
-    var chainLinkName by remember { mutableStateOf(ChainLink.Name()) }
-    var chainLinkDescription by remember { mutableStateOf(ChainLink.Description()) }
-    var chainLinkPassword by remember { mutableStateOf(ChainLink.Password()) }
+    var state by rememberChainLinkListItemNewDialogState()
 
     val onNameTextFieldValueChange = { name: String ->
-        chainLinkName = ChainLink.Name(name)
+        state = state.copy(name = ChainLink.Name(name))
     }
 
     val onDescriptionTextFieldValueChange = { description: String ->
-        chainLinkDescription = ChainLink.Description(description)
+        state = state.copy(description = ChainLink.Description(description))
     }
 
     val onPasswordTextFieldValueChange = { password: String ->
-        chainLinkPassword = ChainLink.Password(password)
+        state = state.copy(password = ChainLink.Password(password))
     }
 
     val onInputDialogConfirmRequest = {
-        chainLinkName = ChainLink.Name(chainLinkName.value)
-        chainLinkDescription = ChainLink.Description(chainLinkDescription.value)
-        chainLinkPassword = ChainLink.Password(chainLinkPassword.value)
+        state = state.copy(
+            name = ChainLink.Name(state.name.value),
+            description = ChainLink.Description(state.description.value),
+            password = ChainLink.Password(state.password.value)
+        )
 
-        if (chainLinkName.validation.isSuccess &&
-            chainLinkDescription.validation.isSuccess && chainLinkPassword.validation.isSuccess
-            ) { onConfirm(chainLinkName, chainLinkDescription, chainLinkPassword) }
+        if (state.name.validation.isSuccess
+            && state.description.validation.isSuccess
+            && state.password.validation.isSuccess) {
+            onConfirm(state.name, state.description, state.password)
+        }
     }
 
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onInputDialogConfirmRequest) {
@@ -68,24 +119,24 @@ fun ChainLinkListItemNewDialog(
 
                     true
                 } else false
-            },
+            }.focusGroup(),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             val focusRequester = remember { FocusRequester() }
 
             ValidationTextField(
-                value = chainLinkName.value,
+                value = state.name.value,
                 onValueChange = onNameTextFieldValueChange,
-                modifier = Modifier.focusRequester(focusRequester = focusRequester),
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester = focusRequester),
                 placeholder = {
                     Text(text = stringResource(Res.string.dialog_chainLink_textField_name_placeholder))
                 },
-                trailingIcon = if (chainLinkName.validation.isFailure) {
+                trailingIcon = if (state.name.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = chainLinkName.validation.isFailure,
-                errorMessage = chainLinkName.validation.exceptionOrNull()?.let { error ->
+                isError = state.name.validation.isFailure,
+                errorMessage = state.name.validation.exceptionOrNull()?.let { error ->
                     when (error) {
                         is ChainLink.Name.EmptyError -> {
                             stringResource(Res.string.dialog_chainLink_textField_name_empty_error)
@@ -109,16 +160,17 @@ fun ChainLinkListItemNewDialog(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             ValidationTextField(
-                value = chainLinkDescription.value,
+                value = state.description.value,
                 onValueChange = onDescriptionTextFieldValueChange,
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = {
                     Text(text = stringResource(Res.string.dialog_chainLink_textField_description_placeholder))
                 },
-                trailingIcon = if (chainLinkDescription.validation.isFailure) {
+                trailingIcon = if (state.description.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = chainLinkDescription.validation.isFailure,
-                errorMessage = chainLinkDescription.validation.exceptionOrNull()?.let { error ->
+                isError = state.description.validation.isFailure,
+                errorMessage = state.description.validation.exceptionOrNull()?.let { error ->
                     if (error is ChainLink.Description.LengthError) {
                         stringResource(Res.string.dialog_chainLink_textField_description_length_error)
                     } else null
@@ -133,8 +185,9 @@ fun ChainLinkListItemNewDialog(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next)
             )
             ValidationTextField(
-                value = chainLinkPassword.value,
+                value = state.password.value,
                 onValueChange = onPasswordTextFieldValueChange,
+                modifier = Modifier.fillMaxWidth(),
                 placeholder = {
                     Text(text = stringResource(Res.string.dialog_chainLink_textField_password_placeholder))
                 },
@@ -153,11 +206,11 @@ fun ChainLinkListItemNewDialog(
                             }
                     ) { Icon(imageVector = Icons.Default.VpnKey, contentDescription = null) }
                 },
-                trailingIcon = if (chainLinkPassword.validation.isFailure) {
+                trailingIcon = if (state.password.validation.isFailure) {
                     { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                 } else null,
-                isError = chainLinkPassword.validation.isFailure,
-                errorMessage = chainLinkPassword.validation.exceptionOrNull()?.let { error ->
+                isError = state.password.validation.isFailure,
+                errorMessage = state.password.validation.exceptionOrNull()?.let { error ->
                     when (error) {
                         is ChainLink.Password.EmptyError -> {
                             stringResource(Res.string.dialog_chainLink_textField_password_empty_error)

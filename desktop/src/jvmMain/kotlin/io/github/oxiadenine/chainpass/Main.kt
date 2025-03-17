@@ -68,8 +68,12 @@ fun main() {
             syncServer.stop()
 
             try {
-                if (hostAddress.isNotEmpty()) syncServer.start(hostAddress)
-            } catch (_: Exception) {}
+                if (hostAddress.isNotEmpty()) {
+                    syncServer.start(hostAddress)
+                }
+            } catch (e: Exception) {
+                println(e)
+            }
         }
     }
 
@@ -82,12 +86,20 @@ fun main() {
 
         Window(
             state = windowState,
-            onCloseRequest = ::exitApplication,
+            onCloseRequest = {
+                syncServer.stop()
+
+                exitApplication()
+            },
             title = "Chain Pass",
             icon = rememberBitmapResource("icon.png"),
             onKeyEvent = { keyEvent ->
                 if (keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
-                    if (!navHostController.popBackStack()) exitApplication()
+                    if (!navHostController.popBackStack()) {
+                        syncServer.stop()
+
+                        exitApplication()
+                    }
 
                     true
                 } else false
@@ -95,11 +107,11 @@ fun main() {
         ) {
             window.minimumSize = Dimension(360, 480)
 
-            val settingsState = rememberSettingsState(settings)
             val networkState = rememberNetworkState(TcpSocket.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
 
             CompositionLocalProvider(
+                LocalScreen provides Screen(windowState.size.width, windowState.size.height),
                 LocalContextMenuRepresentation provides if (themeState.isDarkMode) {
                     DarkDefaultContextMenuRepresentation
                 } else LightDefaultContextMenuRepresentation
@@ -110,7 +122,7 @@ fun main() {
                     App(
                         chainRepository = chainRepository,
                         chainLinkRepository = chainLinkRepository,
-                        settingsState = settingsState,
+                        settings = settings,
                         networkState = networkState,
                         themeState = themeState,
                         navHostController = navHostController

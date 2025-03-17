@@ -8,10 +8,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
@@ -24,7 +26,7 @@ import org.jetbrains.compose.resources.stringResource
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (String) -> Unit) {
-    val keywordState = remember { mutableStateOf("") }
+    val keywordState = rememberSaveable { mutableStateOf("") }
 
     val onSearchTextFieldValueChange = { keyword: String ->
         keywordState.value = keyword
@@ -45,7 +47,16 @@ fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (Stri
             TextField(
                 value = keywordState.value,
                 onValueChange = onSearchTextFieldValueChange,
-                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester = focusRequester),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onKeyEvent { keyEvent: KeyEvent ->
+                        if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
+                            onBackClick()
+
+                            true
+                        } else false
+                    }
+                    .focusRequester(focusRequester = focusRequester),
                 textStyle = TextStyle(fontSize = 18.sp),
                 placeholder = {
                     Text(text = stringResource(Res.string.topAppBar_chainLink_textField_search_placeholder))

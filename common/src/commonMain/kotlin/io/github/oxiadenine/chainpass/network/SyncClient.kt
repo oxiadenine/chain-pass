@@ -5,12 +5,20 @@ import io.ktor.network.sockets.*
 import kotlinx.coroutines.Dispatchers
 
 class SyncClient(private val hostAddress: String) {
+    object SyncNetworkError : Error() {
+        private fun readResolve(): Any = SyncNetworkError
+    }
+
     private var selectorManager: SelectorManager? = null
     private var socket: Socket? = null
 
     suspend fun connect(): Socket {
         selectorManager = SelectorManager(Dispatchers.IO)
-        socket = aSocket(selectorManager!!).tcp().connect(hostAddress, TcpSocket.PORT)
+        socket = try {
+            aSocket(selectorManager!!).tcp().connect(hostAddress, TcpSocket.PORT)
+        } catch (e: Throwable) {
+            throw SyncNetworkError
+        }
 
         println("Sync client connected to ${hostAddress}:${TcpSocket.PORT}")
 

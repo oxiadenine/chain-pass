@@ -7,14 +7,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.mapSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -33,39 +37,60 @@ import kotlinx.serialization.json.*
 import org.jetbrains.compose.resources.stringResource
 import java.util.*
 
-class SettingsState(private val settings: Settings) {
-    val deviceAddressState = mutableStateOf("")
-    val passwordLengthState = mutableStateOf(16)
-    val passwordIsAlphanumericState = mutableStateOf(false)
-    val languageState = mutableStateOf("")
-
-    init {
-        settings.load()?.let { settingsJson ->
-            deviceAddressState.value = settingsJson["deviceAddress"]!!
-                .jsonPrimitive.content
-            passwordLengthState.value = settingsJson["passwordLength"]!!
-                .jsonPrimitive.content.toInt()
-            passwordIsAlphanumericState.value = settingsJson["passwordIsAlphanumeric"]!!
-                .jsonPrimitive.content.toBoolean()
-            languageState.value = settingsJson["language"]!!.jsonPrimitive.content
-        } ?: settings.save(buildJsonObject {
-            put("deviceAddress", deviceAddressState.value)
-            put("passwordLength", passwordLengthState.value)
-            put("passwordIsAlphanumeric", passwordIsAlphanumericState.value)
-            put("language", languageState.value)
-        })
+data class SettingsState(
+    val deviceAddress: String = "",
+    val passwordLength: Int = 16,
+    val passwordIsAlphanumeric: Boolean = false,
+    val language: String = ""
+) {
+    fun toJson() = buildJsonObject {
+        put("deviceAddress", deviceAddress)
+        put("passwordLength", passwordLength)
+        put("passwordIsAlphanumeric", passwordIsAlphanumeric)
+        put("language", language)
     }
 
-    fun update() = settings.save(buildJsonObject {
-        put("deviceAddress", deviceAddressState.value)
-        put("passwordLength", passwordLengthState.value)
-        put("passwordIsAlphanumeric", passwordIsAlphanumericState.value)
-        put("language", languageState.value)
-    })
+    companion object {
+        val Saver = mapSaver(
+            save = { state ->
+                mapOf(
+                    "deviceAddress" to state.value.deviceAddress,
+                    "passwordLength" to state.value.passwordLength,
+                    "passwordIsAlphanumeric" to state.value.passwordIsAlphanumeric,
+                    "language" to state.value.language
+                )
+            },
+            restore = {
+                mutableStateOf(SettingsState(
+                    it["deviceAddress"] as String,
+                    it["passwordLength"] as Int,
+                    it["passwordIsAlphanumeric"] as Boolean,
+                    it["language"] as String
+                ))
+            }
+        )
+
+        fun fromJson(settingsJson: JsonObject) = SettingsState(
+            deviceAddress = settingsJson["deviceAddress"]!!.jsonPrimitive.content,
+            passwordLength = settingsJson["passwordLength"]!!.jsonPrimitive.content.toInt(),
+            passwordIsAlphanumeric = settingsJson["passwordIsAlphanumeric"]!!.jsonPrimitive.content.toBoolean(),
+            language = settingsJson["language"]!!.jsonPrimitive.content
+        )
+    }
 }
 
 @Composable
-fun rememberSettingsState(settings: Settings) = remember { SettingsState(settings) }
+fun rememberSettingsState(settings: Settings) = rememberSaveable(saver = SettingsState.Saver) {
+    mutableStateOf(settings.load()?.let { settingsJson ->
+        SettingsState.fromJson(settingsJson)
+    } ?: run {
+        val settingsState = SettingsState(language = Locale.getDefault().language)
+
+        settings.save(settingsState.toJson())
+
+        settingsState
+    })
+}
 
 class NetworkState(val hostAddressState: State<String>)
 
@@ -75,6 +100,10 @@ fun rememberNetworkState(hostAddressFlow: Flow<String>): NetworkState {
 
     return remember { NetworkState(hostAddressState) }
 }
+
+data class Screen(val width: Dp = Dp.Unspecified, val height: Dp = Dp.Unspecified)
+
+val LocalScreen = staticCompositionLocalOf { Screen() }
 
 enum class ThemeMode { DARK, LIGHT }
 
@@ -91,9 +120,7 @@ object Route {
     @Serializable
     data object ChainList
     @Serializable
-    data class ChainLinkList(val chainId: String, val chainKey: String, val chainLinkSearchId: String? = null)
-    @Serializable
-    data class ChainLinkSearchList(val chainId: String)
+    data class ChainLinkList(val chainId: String, val chainKey: String)
 }
 
 object Intl {
@@ -106,18 +133,16 @@ val LocalLocale = staticCompositionLocalOf { Locale.getDefault() }
 fun App(
     chainRepository: ChainRepository,
     chainLinkRepository: ChainLinkRepository,
-    settingsState: SettingsState,
+    settings: Settings,
     networkState: NetworkState,
     themeState: ThemeState,
     navHostController: NavHostController
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    if (settingsState.languageState.value.isEmpty()) {
-        settingsState.languageState.value = Intl.languages.first { language ->
-            language == Locale.getDefault().language
-        }
-    } else Locale.setDefault(Locale(settingsState.languageState.value))
+    var settingsState by rememberSettingsState(settings)
+
+    Locale.setDefault(Locale(settingsState.language))
 
     CompositionLocalProvider(LocalLocale provides Locale.getDefault()) {
         Surface(modifier = Modifier.safeContentPadding().fillMaxSize()) {
@@ -125,7 +150,25 @@ fun App(
                 composable<Route.ChainList> {
                     val drawerState = rememberDrawerState(DrawerValue.Closed)
 
-                    var settingsDialogVisible by remember { mutableStateOf(false) }
+                    var settingsDialogVisible by rememberSaveable { mutableStateOf(false) }
+
+                    if (settingsDialogVisible) {
+                        SettingsDialog(
+                            settingsState = settingsState,
+                            onSave = { newSettingsState ->
+                                settingsState = newSettingsState
+
+                                settings.save(settingsState.toJson())
+
+                                Locale.setDefault(Locale(settingsState.language))
+
+                                settingsDialogVisible = false
+                            },
+                            onClose = { settingsDialogVisible = false },
+                            storeDirPath = chainRepository.storage.storeDir.absolutePath,
+                            languages = Intl.languages
+                        )
+                    }
 
                     ModalNavigationDrawer(
                         drawerContent = {
@@ -200,10 +243,8 @@ fun App(
                         drawerState = drawerState,
                         scrimColor = Color.Black.copy(alpha = if (platform == Platform.DESKTOP) 0.3f else 0.6f)
                     ) {
-                        val chainListViewModel = rememberChainListViewModel(chainRepository, chainLinkRepository)
-
                         ChainList(
-                            viewModel = chainListViewModel,
+                            viewModel = viewModel { ChainListViewModel(chainRepository, chainLinkRepository) },
                             onTopAppBarMenuClick = {
                                 coroutineScope.launch {
                                     drawerState.open()
@@ -214,77 +255,27 @@ fun App(
                                     navHostController.navigate(route = Route.ChainLinkList(chain.id, chain.key.value))
                                 }
                             },
-                            deviceAddress = settingsState.deviceAddressState.value,
-                            passwordGenerator = PasswordGenerator(
-                                PasswordGenerator.Strength(
-                                settingsState.passwordLengthState.value,
-                                settingsState.passwordIsAlphanumericState.value
+                            deviceAddress = settingsState.deviceAddress,
+                            passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
+                                settingsState.passwordLength,
+                                settingsState.passwordIsAlphanumeric
                             ))
-                        )
-                    }
-
-                    if (settingsDialogVisible) {
-                        SettingsDialog(
-                            settingsState = settingsState,
-                            onClose = {
-                                Locale.setDefault(Locale(settingsState.languageState.value))
-
-                                settingsState.update()
-
-                                settingsDialogVisible = false
-                            },
-                            storeDirPath = chainRepository.storage.storeDir.absolutePath
                         )
                     }
                 }
                 composable<Route.ChainLinkList> { navBackStackEntry ->
                     val route = navBackStackEntry.toRoute<Route.ChainLinkList>()
 
-                    val chainLinkListViewModel = rememberChainLinkListViewModel(chainRepository, chainLinkRepository)
-
                     ChainLinkList(
                         chainId = route.chainId,
                         chainKey = Chain.Key(route.chainKey),
-                        chainLinkSearchId = route.chainLinkSearchId,
-                        viewModel = chainLinkListViewModel,
+                        viewModel = viewModel { ChainLinkListViewModel(chainRepository, chainLinkRepository) },
                         onTopAppBarBackClick = { navHostController.navigateUp() },
-                        onTopAppBarSearchClick = { chain ->
-                            coroutineScope.launch {
-                                navHostController.navigate(route = Route.ChainLinkSearchList(chain.id))
-                            }
-                        },
-                        deviceAddress = settingsState.deviceAddressState.value,
-                        passwordGenerator = PasswordGenerator(
-                            PasswordGenerator.Strength(
-                            settingsState.passwordLengthState.value,
-                            settingsState.passwordIsAlphanumericState.value
+                        deviceAddress = settingsState.deviceAddress,
+                        passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
+                            settingsState.passwordLength,
+                            settingsState.passwordIsAlphanumeric
                         ))
-                    )
-                }
-                composable<Route.ChainLinkSearchList> { navBackStackEntry ->
-                    val route = navBackStackEntry.toRoute<Route.ChainLinkSearchList>()
-
-                    val chainLinkSearchListViewModel = rememberChainLinkSearchListViewModel(
-                        chainRepository,
-                        chainLinkRepository
-                    )
-
-                    ChainLinkSearchList(
-                        chainId = route.chainId,
-                        viewModel = chainLinkSearchListViewModel,
-                        onTopAppBarBackClick = { navHostController.navigateUp() },
-                        onListItemClick = { chainLink ->
-                            navHostController.popBackStack()
-                            navHostController.popBackStack()
-
-                            coroutineScope.launch {
-                                navHostController.navigate(route = Route.ChainLinkList(
-                                    chainLink.chain.id,
-                                    chainLink.chain.key.value,
-                                    chainLink.id
-                                ))
-                            }
-                        }
                     )
                 }
             }

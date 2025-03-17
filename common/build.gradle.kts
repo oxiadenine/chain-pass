@@ -47,6 +47,8 @@ kotlin {
 
         androidMain {
             dependencies {
+                implementation(libs.kotlinx.coroutines.android)
+
                 api(libs.bundles.androidx.android)
             }
         }
@@ -59,6 +61,8 @@ kotlin {
         val desktopMain by getting {
             dependencies {
                 implementation(compose.desktop.common)
+
+                implementation(libs.kotlinx.coroutines.swing)
             }
         }
         val desktopTest by getting {

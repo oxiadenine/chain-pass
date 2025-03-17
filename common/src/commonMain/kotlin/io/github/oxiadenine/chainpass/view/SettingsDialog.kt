@@ -1,14 +1,15 @@
 package io.github.oxiadenine.chainpass.view
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -23,7 +24,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import io.github.oxiadenine.chainpass.Intl
 import io.github.oxiadenine.chainpass.SettingsState
 import io.github.oxiadenine.chainpass.component.Dialog
 import io.github.oxiadenine.chainpass.component.ValidationTextField
@@ -46,63 +46,109 @@ class DeviceAddress(value: String? = null) {
     val validation = value?.let {
         if (value.isNotEmpty() && !value.matches(
                 "^(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d\\d?)\$".toRegex()
-        )) {
+            )) {
             Result.failure(InvalidIPv4Error)
         } else Result.success(value)
     } ?: Result.success(this.value)
 }
 
-@Composable
-fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPath: String) {
-    var deviceAddress by remember {
-        mutableStateOf(DeviceAddress(settingsState.deviceAddressState.value))
+data class PasswordConfig(
+    val length: Float = 16f,
+    val lengthRange: ClosedFloatingPointRange<Float> = 8f..32f,
+    val isAlphanumeric: Boolean = false
+)
+
+class SettingsDialogState(
+    deviceAddress: DeviceAddress,
+    passwordLength: Int,
+    passwordIsAlphanumeric: Boolean,
+    language: String
+) {
+    val deviceAddressState = mutableStateOf(deviceAddress)
+    val passwordConfigState = mutableStateOf(PasswordConfig(
+        length = passwordLength.toFloat(),
+        isAlphanumeric = passwordIsAlphanumeric
+    ))
+    val selectedLocaleState = mutableStateOf(Locale(language))
+
+    companion object {
+        val Saver = listSaver(
+            save = { state ->
+                listOf(
+                    state.deviceAddressState.value.value,
+                    state.deviceAddressState.value.validation.isFailure,
+                    state.passwordConfigState.value.length.toInt(),
+                    state.passwordConfigState.value.isAlphanumeric,
+                    state.selectedLocaleState.value.language
+                )
+            },
+            restore = {
+                val deviceAddress = it[0] as String
+                val deviceAddressError = it[1] as Boolean
+
+                SettingsDialogState(
+                    if (deviceAddress.isNotEmpty() || deviceAddressError) {
+                        DeviceAddress(deviceAddress)
+                    } else DeviceAddress(),
+                    it[2] as Int,
+                    it[3] as Boolean,
+                    it[4] as String
+                )
+            }
+        )
     }
+}
+
+@Composable
+fun rememberSettingsDialogState(settingsState: SettingsState) = rememberSaveable(saver = SettingsDialogState.Saver) {
+    SettingsDialogState(
+        DeviceAddress(settingsState.deviceAddress),
+        settingsState.passwordLength,
+        settingsState.passwordIsAlphanumeric,
+        settingsState.language
+    )
+}
+
+@Composable
+fun SettingsDialog(
+    settingsState: SettingsState,
+    onSave: (SettingsState) -> Unit,
+    onClose: () -> Unit,
+    storeDirPath: String,
+    languages: List<String>
+) {
+    val state = rememberSettingsDialogState(settingsState)
 
     val onDeviceAddressTextFieldValueChange = { address: String ->
-        deviceAddress = DeviceAddress(address)
+        state.deviceAddressState.value = DeviceAddress(address)
     }
 
-    var passwordLength by remember {
-        mutableStateOf(settingsState.passwordLengthState.value.toFloat())
-    }
+    val onPasswordLengthSliderValueChange = { length: Float ->
+        val passwordLengthRange = state.passwordConfigState.value.lengthRange
 
-    val passwordLengthValueRange by remember { mutableStateOf(8f..32f) }
-
-    var passwordIsAlphanumeric by remember {
-        mutableStateOf(settingsState.passwordIsAlphanumericState.value)
-    }
-
-    val onPasswordLengthChange = { length: Float ->
-        if (length >= passwordLengthValueRange.start
-            && length <= passwordLengthValueRange.endInclusive) {
-            passwordLength = length
+        if (length >= passwordLengthRange.start && length <= passwordLengthRange.endInclusive) {
+            state.passwordConfigState.value = state.passwordConfigState.value.copy(length = length)
         }
     }
 
-    val onPasswordIsAlphanumericChange = { isAlphanumeric: Boolean ->
-        passwordIsAlphanumeric = isAlphanumeric
+    val onPasswordAlphanumericSwitchCheckedChange = { isAlphanumeric: Boolean ->
+        state.passwordConfigState.value = state.passwordConfigState.value.copy(isAlphanumeric = isAlphanumeric)
     }
 
-    var selectedLanguage by remember {
-        mutableStateOf(Intl.languages.first { language ->
-            language == settingsState.languageState.value
-        })
-    }
-
-    val onLanguageListItemClick = { language: String ->
-        selectedLanguage = language
+    val onLocaleListItemClick = { language: String ->
+        state.selectedLocaleState.value = Locale(language)
     }
 
     val onInputDialogConfirmRequest = {
-        deviceAddress = DeviceAddress(deviceAddress.value)
+        val isValid = DeviceAddress(state.deviceAddressState.value.value).validation.isSuccess
 
-        if (deviceAddress.validation.isSuccess) {
-            settingsState.deviceAddressState.value = deviceAddress.value
-            settingsState.passwordLengthState.value = passwordLength.toInt()
-            settingsState.passwordIsAlphanumericState.value = passwordIsAlphanumeric
-            settingsState.languageState.value = selectedLanguage
-
-            onClose()
+        if (isValid) {
+            onSave(SettingsState(
+                state.deviceAddressState.value.value,
+                state.passwordConfigState.value.length.toInt(),
+                state.passwordConfigState.value.isAlphanumeric,
+                state.selectedLocaleState.value.language
+            ))
         }
     }
 
@@ -130,14 +176,9 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
             ) { Text(text = stringResource(Res.string.dialog_settings_button_save_text)) }
         }
     ) {
-        val scrollState = rememberScrollState(initial = 0)
-
         Column(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-                .verticalScroll(state = scrollState),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
                 Text(
@@ -152,18 +193,17 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                     val focusRequester = remember { FocusRequester() }
 
                     ValidationTextField(
-                        value = deviceAddress.value,
+                        value = state.deviceAddressState.value.value,
                         onValueChange = onDeviceAddressTextFieldValueChange,
                         modifier = Modifier
-                            .focusRequester(focusRequester = focusRequester)
+                            .fillMaxWidth()
                             .onKeyEvent { keyEvent: KeyEvent ->
                                 if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
                                     onInputDialogConfirmRequest()
 
                                     true
                                 } else false
-                            }
-                        ,
+                            }.focusRequester(focusRequester),
                         placeholder = {
                             Text(text = stringResource(
                                 Res.string.dialog_settings_item_sync_textField_device_placeholder
@@ -173,11 +213,11 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                         leadingIcon = {
                             Icon(imageVector = Icons.Default.Devices, contentDescription = null)
                         },
-                        trailingIcon = if (deviceAddress.validation.isFailure) {
+                        trailingIcon = if (state.deviceAddressState.value.validation.isFailure) {
                             { Icon(imageVector = Icons.Default.Info, contentDescription = null) }
                         } else null,
-                        isError = deviceAddress.validation.isFailure,
-                        errorMessage = deviceAddress.validation.exceptionOrNull()?.let { error ->
+                        isError = state.deviceAddressState.value.validation.isFailure,
+                        errorMessage = state.deviceAddressState.value.validation.exceptionOrNull()?.let { error ->
                             if (error is DeviceAddress.InvalidIPv4Error) {
                                 stringResource(Res.string.dialog_settings_item_sync_textFiled_device_error)
                             } else null
@@ -201,32 +241,32 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp
                 )
-                Column {
+                Column(modifier = Modifier.focusGroup()) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(text = stringResource(Res.string.dialog_settings_item_password_length_text))
                         Slider(
-                            value = passwordLength,
-                            onValueChange = onPasswordLengthChange,
+                            value = state.passwordConfigState.value.length,
+                            onValueChange = onPasswordLengthSliderValueChange,
                             modifier = Modifier
                                 .weight(1f, false)
                                 .pointerHoverIcon(icon = PointerIcon.Hand)
                                 .onKeyEvent { keyEvent: KeyEvent ->
                                     if (keyEvent.type == KeyEventType.KeyUp) {
                                         if (keyEvent.key == Key.DirectionLeft) {
-                                            onPasswordLengthChange(passwordLength - 1)
+                                            onPasswordLengthSliderValueChange(state.passwordConfigState.value.length - 1f)
                                         } else if (keyEvent.key == Key.DirectionRight) {
-                                            onPasswordLengthChange(passwordLength + 1)
+                                            onPasswordLengthSliderValueChange(state.passwordConfigState.value.length + 1f)
                                         }
 
                                         true
                                     } else false
                                 },
-                            valueRange = passwordLengthValueRange
+                            valueRange = state.passwordConfigState.value.lengthRange
                         )
-                        Text(text = passwordLength.toInt().toString())
+                        Text(text = state.passwordConfigState.value.length.toInt().toString())
                     }
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
@@ -234,8 +274,8 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                     ) {
                         Text(text = stringResource(Res.string.dialog_settings_item_password_alphanumeric_text))
                         Switch(
-                            checked = passwordIsAlphanumeric,
-                            onCheckedChange = onPasswordIsAlphanumericChange,
+                            checked = state.passwordConfigState.value.isAlphanumeric,
+                            onCheckedChange = onPasswordAlphanumericSwitchCheckedChange,
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                         )
                     }
@@ -263,17 +303,17 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                     fontSize = 14.sp
                 )
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    Intl.languages.forEach { language ->
+                    languages.forEach { language ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable { onLanguageListItemClick(language) }
+                                .clickable { onLocaleListItemClick(language) }
                                 .padding(all = 8.dp)
                                 .pointerHoverIcon(icon = PointerIcon.Hand),
                             horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (selectedLanguage == language) {
+                            if (state.selectedLocaleState.value.language == language) {
                                 Icon(imageVector = Icons.Default.RadioButtonChecked, contentDescription = null)
                             } else {
                                 Icon(imageVector = Icons.Default.RadioButtonUnchecked, contentDescription = null)
@@ -281,9 +321,7 @@ fun SettingsDialog(settingsState: SettingsState, onClose: () -> Unit, storeDirPa
                             Column {
                                 Text(text = stringResource(
                                     Res.string.dialog_settings_item_language_item_text,
-                                    Locale.getAvailableLocales().first { locale ->
-                                        locale.language == language
-                                    }.displayLanguage.replaceFirstChar { it.uppercase() }
+                                    Locale(language).displayLanguage.replaceFirstChar { it.uppercase() }
                                 ))
                                 Text(
                                     text = language,

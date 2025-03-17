@@ -5,6 +5,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -29,27 +31,59 @@ class FileSelected(val path: String, val bytes: ByteArray) {
     val fileName = path.substringAfterLast("/").substringBeforeLast(".")
 }
 
+data class UnstoreDialogState(
+    val fileChooserOpened: Boolean = false,
+    val fileChooserResult: FileChooserResult? = null
+) {
+    companion object {
+        val Saver = listSaver(
+            save = { state ->
+                val fileChooserResult = state.value.fileChooserResult
+
+                if (fileChooserResult != null && fileChooserResult is FileChooserResult.File) {
+                    listOf(state.value.fileChooserOpened, fileChooserResult.path, fileChooserResult.bytes)
+                } else if (fileChooserResult != null && fileChooserResult is FileChooserResult.None) {
+                    listOf(state.value.fileChooserOpened, true)
+                } else listOf(state.value.fileChooserOpened)
+            },
+            restore = {
+                if (it.size == 3) {
+                    mutableStateOf(UnstoreDialogState(
+                        it[0] as Boolean,
+                        FileChooserResult.File(it[1] as String, it[2] as ByteArray)
+                    ))
+                } else if (it.size == 2) {
+                    mutableStateOf(UnstoreDialogState(it[0] as Boolean, FileChooserResult.None))
+                } else mutableStateOf(UnstoreDialogState(it[0] as Boolean))
+            }
+        )
+    }
+}
+
+@Composable
+fun rememberUnstoreDialogState() = rememberSaveable(saver = UnstoreDialogState.Saver) {
+    mutableStateOf(UnstoreDialogState())
+}
+
 @Composable
 fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
-    var fileChooserDialogOpened by remember { mutableStateOf(false) }
-    var fileChooserDialogResult by remember { mutableStateOf<FileChooserResult?>(null) }
+    var state by rememberUnstoreDialogState()
 
     val onSelectFileButtonClick = {
-        fileChooserDialogOpened = true
+        state = state.copy(fileChooserOpened = true)
     }
 
     val onCloseFileChooserDialog = { result: FileChooserResult ->
-        fileChooserDialogOpened = false
-        fileChooserDialogResult = result
+        state = state.copy(fileChooserOpened = false, fileChooserResult = result)
     }
 
     val onInputDialogConfirmRequest = {
-        if (fileChooserDialogResult == null) {
-            fileChooserDialogResult = FileChooserResult.None
+        if (state.fileChooserResult == null) {
+            state = state.copy(fileChooserResult = FileChooserResult.None)
         }
 
-        if (fileChooserDialogResult is FileChooserResult.File) {
-            val file = fileChooserDialogResult as FileChooserResult.File
+        if (state.fileChooserResult is FileChooserResult.File) {
+            val file = state.fileChooserResult as FileChooserResult.File
 
             onConfirm(FileSelected(file.path, file.bytes))
         }
@@ -87,15 +121,15 @@ fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
                 }
             }
 
-            if (fileChooserDialogResult != null) {
-                if (fileChooserDialogResult is FileChooserResult.None) {
+            if (state.fileChooserResult != null) {
+                if (state.fileChooserResult is FileChooserResult.None) {
                     Text(
                         text = stringResource(Res.string.dialog_unstore_item_file_error),
                         color = MaterialTheme.colorScheme.error,
                         fontSize = 14.sp
                     )
                 } else {
-                    val file = fileChooserDialogResult as FileChooserResult.File
+                    val file = state.fileChooserResult as FileChooserResult.File
 
                     Text(text = FileSelected(file.path, file.bytes).fileName, fontSize = 14.sp)
                 }
@@ -112,7 +146,7 @@ fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
     } else listOf("application/${StorageType.JSON.name.lowercase()}", "text/comma-separated-values")
 
     FileChooserDialog(
-        isOpened = fileChooserDialogOpened,
+        isOpened = state.fileChooserOpened,
         fileExtensions = fileExtensions.toList(),
         onClose = onCloseFileChooserDialog
     )

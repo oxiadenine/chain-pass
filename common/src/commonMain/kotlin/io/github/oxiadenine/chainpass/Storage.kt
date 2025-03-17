@@ -3,6 +3,7 @@ package io.github.oxiadenine.chainpass
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import java.io.File
+import java.lang.Exception
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -12,6 +13,18 @@ import kotlin.reflect.full.primaryConstructor
 enum class StorageType { JSON, CSV, TXT }
 
 class Storage(storageDirPath: String) {
+    object StorableFormatError : Error() {
+        private fun readResolve(): Any = StorableFormatError
+    }
+
+    object StorablePrivateError : Error() {
+        private fun readResolve(): Any = StorablePrivateError
+    }
+
+    object StorableMultipleError : Error() {
+        private fun readResolve(): Any = StorableMultipleError
+    }
+
     val storeDir = File("$storageDirPath/Store")
 
     init {
@@ -61,7 +74,11 @@ class Storage(storageDirPath: String) {
 
         val storageType = StorageType.valueOf(File(filePath).extension.uppercase())
 
-        return fileBytes.decodeToString().toStorable(storageType)
+        try {
+            return fileBytes.decodeToString().toStorable(storageType)
+        } catch (e: Exception) {
+            throw StorableFormatError
+        }
     }
 }
 

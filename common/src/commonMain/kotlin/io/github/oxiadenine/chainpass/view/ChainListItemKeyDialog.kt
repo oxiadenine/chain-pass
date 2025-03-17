@@ -16,6 +16,8 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -37,25 +39,56 @@ import io.github.oxiadenine.common.generated.resources.dialog_chain_textField_ke
 import io.github.oxiadenine.common.generated.resources.dialog_chain_textField_key_placeholder
 import org.jetbrains.compose.resources.stringResource
 
+data class ChainListItemKeyDialogState(
+    val key: Chain.Key = Chain.Key(),
+    val keyVisible: Boolean = false
+) {
+    companion object {
+        val Saver = listSaver(
+            save = { state ->
+                listOf(
+                    state.value.key.value,
+                    state.value.key.validation.isFailure,
+                    state.value.keyVisible
+                )
+            },
+            restore = {
+                val key = it[0] as String
+                val keyError = it[1] as Boolean
+
+                mutableStateOf(ChainListItemKeyDialogState(
+                    key = if (key.isNotEmpty() || keyError) {
+                        Chain.Key(key)
+                    } else Chain.Key(),
+                    keyVisible = it[2] as Boolean
+                ))
+            }
+        )
+    }
+}
+
+@Composable
+fun rememberChainListItemKeyDialogState() = rememberSaveable(saver = ChainListItemKeyDialogState.Saver) {
+    mutableStateOf(ChainListItemKeyDialogState())
+}
+
 @Composable
 fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit) {
-    var chainKey by remember { mutableStateOf(Chain.Key()) }
-
-    var keyVisible by remember { mutableStateOf(false) }
+    var state by rememberChainListItemKeyDialogState()
 
     val onKeyTextFieldValueChange = { key: String ->
-        chainKey = Chain.Key(key)
+        state = state.copy(key = Chain.Key(key))
     }
 
     val onKeyVisibilityIconClick = {
-        keyVisible = !keyVisible
+        state = state.copy(keyVisible = !state.keyVisible)
     }
 
     val onInputDialogConfirmRequest = {
-        chainKey = Chain.Key(chainKey.value)
+        state = state.copy(key = Chain.Key(state.key.value))
 
-        if (chainKey.validation.isSuccess) {
-            onConfirm(chainKey)
+        if (state.key.validation.isSuccess) {
+            onConfirm(state.key)
         }
     }
 
@@ -74,14 +107,14 @@ fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit)
             val focusRequester = remember { FocusRequester() }
 
             ValidationTextField(
-                value = chainKey.value,
+                value = state.key.value,
                 onValueChange = onKeyTextFieldValueChange,
-                modifier = Modifier.focusRequester(focusRequester = focusRequester),
+                modifier = Modifier.fillMaxWidth().focusRequester(focusRequester = focusRequester),
                 placeholder = {
                     Text(text = stringResource(Res.string.dialog_chain_textField_key_placeholder))
                 },
                 trailingIcon = {
-                    if (chainKey.validation.isFailure) {
+                    if (state.key.validation.isFailure) {
                         Icon(imageVector = Icons.Default.Info, contentDescription = null)
                     } else {
                         IconButton(
@@ -89,20 +122,20 @@ fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit)
                             modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand)
                         ) {
                             AnimatedVisibility(
-                                visible = !keyVisible,
+                                visible = !state.keyVisible,
                                 enter = fadeIn(animationSpec = tween(durationMillis = 500)),
                                 exit = fadeOut(animationSpec = tween(durationMillis = 500))
                             ) { Icon(imageVector = Icons.Default.Visibility, contentDescription = null) }
                             AnimatedVisibility(
-                                visible = keyVisible,
+                                visible = state.keyVisible,
                                 enter = fadeIn(animationSpec = tween(durationMillis = 500)),
                                 exit = fadeOut(animationSpec = tween(durationMillis = 500))
                             ) { Icon(imageVector = Icons.Default.VisibilityOff, contentDescription = null) }
                         }
                     }
                 },
-                isError = chainKey.validation.isFailure,
-                errorMessage = chainKey.validation.exceptionOrNull()?.let { error ->
+                isError = state.key.validation.isFailure,
+                errorMessage = state.key.validation.exceptionOrNull()?.let { error ->
                     when (error) {
                         is Chain.Key.EmptyError -> {
                             stringResource(Res.string.dialog_chain_textField_key_empty_error)
@@ -114,7 +147,7 @@ fun ChainListItemKeyDialog(onConfirm: (Chain.Key) -> Unit, onCancel: () -> Unit)
                     }
                 },
                 singleLine = true,
-                visualTransformation = if (!keyVisible) {
+                visualTransformation = if (!state.keyVisible) {
                     PasswordVisualTransformation()
                 } else VisualTransformation.None,
                 colors = TextFieldDefaults.colors(

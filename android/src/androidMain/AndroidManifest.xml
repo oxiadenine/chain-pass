@@ -1,17 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
-        tools:ignore="LockedOrientationActivity">
+<manifest xmlns:tools="http://schemas.android.com/tools" xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
     <application
             android:label="Chain Pass"
             android:icon="@mipmap/icon"
             android:supportsRtl="true"
-            android:theme="@style/Theme.AppCompat.NoActionBar">
+            android:enableOnBackInvokedCallback="true"
+            android:theme="@style/Theme.AppCompat.NoActionBar" tools:ignore="UnusedAttribute">
         <activity
                 android:name="io.github.oxiadenine.chainpass.MainActivity"
-                android:screenOrientation="portrait"
                 android:windowSoftInputMode="adjustResize"
                 android:exported="true">
             <intent-filter>

@@ -7,10 +7,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.oxiadenine.common.generated.resources.*
@@ -28,7 +28,7 @@ fun ChainListTopAppBar(
     onMenuItemClick: (ChainListTopAppBarMenuItem) -> Unit,
     title: String
 ) {
-    var dropdownMenuExpanded by remember { mutableStateOf(false) }
+    var dropdownMenuExpanded by rememberSaveable { mutableStateOf(false) }
 
     TopAppBar(
         title = { Text(text = title) },
@@ -50,7 +50,9 @@ fun ChainListTopAppBar(
                     expanded = true,
                     onDismissRequest = { dropdownMenuExpanded = false },
                     modifier = Modifier.width(width = 150.dp),
-                    offset = DpOffset(x = 8.dp, y = (-40).dp)
+                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp),
+                    tonalElevation = 2.dp,
+                    shadowElevation = 2.dp
                 ) {
                     DropdownMenuItem(
                         text = {
