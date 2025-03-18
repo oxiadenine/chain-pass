@@ -11,4 +11,4 @@ plugins {
 
 rootProject.name = "chain-pass"
 
-include(":common", ":android", ":desktop")
+include("composeApp")
