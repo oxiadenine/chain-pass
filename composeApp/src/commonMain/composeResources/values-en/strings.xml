@@ -11,7 +11,8 @@
     <string name="dialog_settings_item_storage_title">Storage</string>
     <string name="dialog_settings_item_storage_text">Files are stored at </string>
     <string name="dialog_settings_item_language_title">Language</string>
-    <string name="dialog_settings_item_language_item_text">%1$s</string>
+    <string name="dialog_settings_item_language_es_item_text">Spanish</string>
+    <string name="dialog_settings_item_language_en_item_text">English</string>
     <string name="dialog_settings_button_save_text">Save</string>
     <string name="dialog_store_title">Store</string>
     <string name="dialog_store_item_private_text">Encrypted</string>

@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.github.oxiadenine.chainpass.Intl
 import io.github.oxiadenine.chainpass.SettingsState
 import io.github.oxiadenine.chainpass.component.Dialog
 import io.github.oxiadenine.chainpass.component.ValidationTextField
@@ -313,16 +314,17 @@ fun SettingsDialog(
                             horizontalArrangement = Arrangement.spacedBy(space = 16.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            if (state.selectedLocaleState.value.language == language) {
+                            if (language == state.selectedLocaleState.value.language) {
                                 Icon(imageVector = Icons.Default.RadioButtonChecked, contentDescription = null)
                             } else {
                                 Icon(imageVector = Icons.Default.RadioButtonUnchecked, contentDescription = null)
                             }
                             Column {
-                                Text(text = stringResource(
-                                    Res.string.dialog_settings_item_language_item_text,
-                                    Locale(language).displayLanguage.replaceFirstChar { it.uppercase() }
-                                ))
+                                Text(text = when (language) {
+                                    Intl.SPANISH -> stringResource(Res.string.dialog_settings_item_language_es_item_text)
+                                    Intl.ENGLISH -> stringResource(Res.string.dialog_settings_item_language_en_item_text)
+                                    else -> Locale(language).displayLanguage.replaceFirstChar { it.uppercase() }
+                                })
                                 Text(
                                     text = language,
                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)

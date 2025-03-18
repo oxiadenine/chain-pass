@@ -7,7 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.mapSaver
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,21 +51,21 @@ data class SettingsState(
     }
 
     companion object {
-        val Saver = mapSaver(
+        val Saver = listSaver(
             save = { state ->
-                mapOf(
-                    "deviceAddress" to state.value.deviceAddress,
-                    "passwordLength" to state.value.passwordLength,
-                    "passwordIsAlphanumeric" to state.value.passwordIsAlphanumeric,
-                    "language" to state.value.language
+                listOf(
+                    state.value.deviceAddress,
+                    state.value.passwordLength,
+                    state.value.passwordIsAlphanumeric,
+                    state.value.language
                 )
             },
             restore = {
                 mutableStateOf(SettingsState(
-                    it["deviceAddress"] as String,
-                    it["passwordLength"] as Int,
-                    it["passwordIsAlphanumeric"] as Boolean,
-                    it["language"] as String
+                    it[0] as String,
+                    it[1] as Int,
+                    it[2] as Boolean,
+                    it[3] as String
                 ))
             }
         )
@@ -84,7 +84,7 @@ fun rememberSettingsState(settings: Settings) = rememberSaveable(saver = Setting
     mutableStateOf(settings.load()?.let { settingsJson ->
         SettingsState.fromJson(settingsJson)
     } ?: run {
-        val settingsState = SettingsState(language = Locale.getDefault().language)
+        val settingsState = SettingsState()
 
         settings.save(settingsState.toJson())
 
@@ -124,7 +124,10 @@ object Route {
 }
 
 object Intl {
-    val languages = listOf("es", "en")
+    const val SPANISH = "es"
+    const val ENGLISH = "en"
+
+    val languages = listOf(SPANISH, ENGLISH)
 }
 
 val LocalLocale = staticCompositionLocalOf { Locale.getDefault() }
@@ -141,6 +144,16 @@ fun App(
     val coroutineScope = rememberCoroutineScope()
 
     var settingsState by rememberSettingsState(settings)
+
+    if (settingsState.language.isEmpty()) {
+        val currentLocale = Locale.getDefault()
+
+        settingsState = settingsState.copy(language = Intl.languages.firstOrNull { language ->
+            language == currentLocale.language
+        } ?: settingsState.language.ifEmpty { Intl.SPANISH })
+
+        settings.save(settingsState.toJson())
+    }
 
     Locale.setDefault(Locale(settingsState.language))
 
