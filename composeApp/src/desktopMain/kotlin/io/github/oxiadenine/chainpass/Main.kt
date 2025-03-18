@@ -97,8 +97,10 @@ fun main() {
             val networkState = rememberNetworkState(TcpSocket.hostAddressFlow)
             val themeState = rememberThemeState(ThemeMode.DARK)
 
+            val screen = Screen(windowState.size.width, windowState.size.height)
+
             CompositionLocalProvider(
-                LocalScreen provides Screen(windowState.size.width, windowState.size.height),
+                LocalScreen provides screen,
                 LocalContextMenuRepresentation provides if (themeState.isDarkMode) {
                     DarkDefaultContextMenuRepresentation
                 } else LightDefaultContextMenuRepresentation

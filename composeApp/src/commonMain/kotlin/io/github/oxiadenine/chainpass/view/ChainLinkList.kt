@@ -288,8 +288,6 @@ fun ChainLinkList(
             }
         }
     ) { lazyListState ->
-        val screen = LocalScreen.current
-
         Box(modifier = Modifier.fillMaxSize().pointerInput(Unit) {
             awaitPointerEventScope {
                 while (true) {
@@ -299,10 +297,8 @@ fun ChainLinkList(
                         (pointerInputChange.type == PointerType.Mouse ||
                                 pointerInputChange.type == PointerType.Touch)
                     ) {
-                        val topAppBarHeight = screen.height.toPx() - size.height
-
                         val positionX = pointerInputChange.position.x
-                        val positionY = pointerInputChange.position.y + topAppBarHeight
+                        val positionY = pointerInputChange.position.y
 
                         itemMenuState = itemMenuState.copy(
                             offset = IntOffset(
@@ -373,80 +369,80 @@ fun ChainLinkList(
                 }
             }
         }
-    }
 
-    if (itemMenuState.expanded) {
-        Popup(
-            onDismissRequest = { itemMenuState = itemMenuState.copy(expanded = false) },
-            offset = itemMenuState.offset,
-            properties = PopupProperties(focusable = true)
-        ) {
-            Surface(
-                modifier = Modifier.size(itemMenuState.size),
-                tonalElevation = 2.dp,
-                shadowElevation = 2.dp
+        if (itemMenuState.expanded) {
+            Popup(
+                onDismissRequest = { itemMenuState = itemMenuState.copy(expanded = false) },
+                offset = itemMenuState.offset,
+                properties = PopupProperties(focusable = true)
             ) {
-                Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp, bottom = 8.dp)) {
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = stringResource(Res.string.list_chainLink_menu_item_copy_text),
-                                fontSize = 14.sp
-                            )
-                        },
-                        onClick = {
-                            viewModel.copyPassword()
+                Surface(
+                    modifier = Modifier.size(itemMenuState.size),
+                    tonalElevation = 2.dp,
+                    shadowElevation = 2.dp
+                ) {
+                    Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp, bottom = 8.dp)) {
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(Res.string.list_chainLink_menu_item_copy_text),
+                                    fontSize = 14.sp
+                                )
+                            },
+                            onClick = {
+                                viewModel.copyPassword()
 
-                            itemMenuState = itemMenuState.copy(expanded = false)
-                        },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                        leadingIcon = {
-                            Icon(imageVector = Icons.Default.CopyAll, contentDescription = null)
-                        },
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = stringResource(Res.string.list_chainLink_menu_item_edit_text),
-                                fontSize = 14.sp
-                            )
-                        },
-                        onClick = {
-                            itemMenuState = itemMenuState.copy(expanded = false)
+                                itemMenuState = itemMenuState.copy(expanded = false)
+                            },
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                            leadingIcon = {
+                                Icon(imageVector = Icons.Default.CopyAll, contentDescription = null)
+                            },
+                            contentPadding = PaddingValues(horizontal = 16.dp)
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(Res.string.list_chainLink_menu_item_edit_text),
+                                    fontSize = 14.sp
+                                )
+                            },
+                            onClick = {
+                                itemMenuState = itemMenuState.copy(expanded = false)
 
-                            scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
+                                scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                            viewModel.startEdit()
+                                viewModel.startEdit()
 
-                            itemEditDialogVisible = true
-                        },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                        leadingIcon = {
-                            Icon(imageVector = Icons.Default.Edit, contentDescription = null)
-                        },
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    )
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = stringResource(Res.string.list_chainLink_menu_item_delete_text),
-                                fontSize = 14.sp
-                            )
-                        },
-                        onClick = {
-                            itemMenuState = itemMenuState.copy(expanded = false)
+                                itemEditDialogVisible = true
+                            },
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                            leadingIcon = {
+                                Icon(imageVector = Icons.Default.Edit, contentDescription = null)
+                            },
+                            contentPadding = PaddingValues(horizontal = 16.dp)
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(Res.string.list_chainLink_menu_item_delete_text),
+                                    fontSize = 14.sp
+                                )
+                            },
+                            onClick = {
+                                itemMenuState = itemMenuState.copy(expanded = false)
 
-                            scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
+                                scaffoldListState.snackbarHostState.currentSnackbarData?.dismiss()
 
-                            viewModel.removeLater()
-                        },
-                        modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
-                        leadingIcon = {
-                            Icon(imageVector = Icons.Default.Delete, contentDescription = null)
-                        },
-                        contentPadding = PaddingValues(horizontal = 16.dp)
-                    )
+                                viewModel.removeLater()
+                            },
+                            modifier = Modifier.pointerHoverIcon(icon = PointerIcon.Hand),
+                            leadingIcon = {
+                                Icon(imageVector = Icons.Default.Delete, contentDescription = null)
+                            },
+                            contentPadding = PaddingValues(horizontal = 16.dp)
+                        )
+                    }
                 }
             }
         }
