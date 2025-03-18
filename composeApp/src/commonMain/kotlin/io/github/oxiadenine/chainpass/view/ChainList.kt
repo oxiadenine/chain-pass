@@ -61,7 +61,8 @@ sealed class ChainListEvent {
     data object Sync : ChainListEvent()
     data class Store(val fileName: String) : ChainListEvent()
     data class Unstore(val fileName: String) : ChainListEvent()
-    data class ItemSelect(val chain: Chain) : ChainListEvent()
+    data object ItemNew : ChainListEvent()
+    data class ItemOpen(val chain: Chain) : ChainListEvent()
     data class ItemRemoveLater(val chain: Chain) : ChainListEvent()
     data object ItemRemove : ChainListEvent()
     data object ItemUndoRemove : ChainListEvent()
@@ -134,7 +135,7 @@ fun ChainList(
 
             viewModel.clearEvent()
         }
-        is ChainListEvent.ItemSelect -> {
+        is ChainListEvent.ItemOpen -> {
             onListItemOpenMenuItemClick(event.chain)
 
             viewModel.clearEvent()
@@ -153,7 +154,8 @@ fun ChainList(
 
             viewModel.clearEvent()
         }
-        else -> viewModel.clearEvent()
+        is ChainListEvent.ItemRemove -> viewModel.clearEvent()
+        else -> Unit
     }
 
     dataState.error?.let { error ->
@@ -313,10 +315,15 @@ fun ChainList(
                     }
                 }
 
-                dataState.chainSelectedIndex.takeIf { index -> index != -1 }?.let { index ->
-                    LaunchedEffect(index) {
-                        lazyListState.animateScrollToItem(index)
+                when (dataState.event) {
+                    is ChainListEvent.ItemNew, is ChainListEvent.ItemUndoRemove -> {
+                        dataState.chainSelectedIndex.takeIf { index -> index != -1 }?.let { index ->
+                            LaunchedEffect(index) {
+                                lazyListState.animateScrollToItem(index)
+                            }
+                        }
                     }
+                    else -> Unit
                 }
             }
         }
@@ -407,7 +414,7 @@ fun ChainList(
 
                         scaffoldListState.snackbarHostState.currentSnackbarData?.performAction()
 
-                        viewModel.select(chainKey)
+                        viewModel.open(chainKey)
                     }
                     ChainListItemMenuItem.DELETE -> {
                         itemKeyDialogVisible = false

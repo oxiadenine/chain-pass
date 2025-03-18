@@ -49,6 +49,7 @@ sealed class ChainLinkListEvent {
     data object Sync : ChainLinkListEvent()
     data class Store(val fileName: String) : ChainLinkListEvent()
     data class Unstore(val fileName: String) : ChainLinkListEvent()
+    data object ItemNew : ChainLinkListEvent()
     data class ItemCopyPassword(val password: ChainLink.Password) : ChainLinkListEvent()
     data object ItemStartEdit : ChainLinkListEvent()
     data object ItemEdit : ChainLinkListEvent()
@@ -56,6 +57,9 @@ sealed class ChainLinkListEvent {
     data class ItemRemoveLater(val chainLink: ChainLink) : ChainLinkListEvent()
     data object ItemRemove : ChainLinkListEvent()
     data object ItemUndoRemove : ChainLinkListEvent()
+    data object StartSearch : ChainLinkListEvent()
+    data object Search : ChainLinkListEvent()
+    data object CancelSearch : ChainLinkListEvent()
 }
 
 data class ChainLinkListState(
@@ -157,7 +161,8 @@ fun ChainLinkList(
 
             viewModel.clearEvent()
         }
-        else -> viewModel.clearEvent()
+        is ChainLinkListEvent.ItemRemove -> viewModel.clearEvent()
+        else -> Unit
     }
 
     dataState.error?.let { error ->
@@ -363,10 +368,18 @@ fun ChainLinkList(
                 }
             }
 
-            dataState.chainLinkSelectedIndex.takeIf { index -> index != -1 }?.let { index ->
-                LaunchedEffect(index) {
-                    lazyListState.animateScrollToItem(index)
+            when (dataState.event) {
+                is ChainLinkListEvent.ItemNew,
+                is ChainLinkListEvent.ItemEdit,
+                is ChainLinkListEvent.ItemUndoRemove,
+                is ChainLinkListEvent.CancelSearch -> {
+                    dataState.chainLinkSelectedIndex.takeIf { index -> index != -1 }?.let { index ->
+                        LaunchedEffect(index) {
+                            lazyListState.animateScrollToItem(index)
+                        }
+                    }
                 }
+                else -> Unit
             }
         }
 

@@ -87,7 +87,8 @@ class ChainLinkListViewModel(
                 state.copy(
                     isLoading = false,
                     chainLinkSelected = chainLinkDraft,
-                    chainLinks = state.chainLinks.plus(chainLinkDraft).sortedBy { chainLink -> chainLink.name.value }
+                    chainLinks = state.chainLinks.plus(chainLinkDraft).sortedBy { chainLink -> chainLink.name.value },
+                    event = ChainLinkListEvent.ItemNew
                 )
             }
         }
@@ -230,23 +231,33 @@ class ChainLinkListViewModel(
 
     fun startSearch() {
         _dataStateFlow.update { state ->
-            state.copy(isSearch = true, chainLinksSearch = state.chainLinks)
+            state.copy(
+                isSearch = true,
+                chainLinksSearch = state.chainLinks,
+                event = ChainLinkListEvent.StartSearch
+            )
         }
     }
 
     fun search(keyword: String) {
         _dataStateFlow.update { state ->
-            state.copy(chainLinksSearch = state.chainLinks.filter { chainLink ->
-                chainLink.name.value.lowercase().contains(keyword.lowercase())
-            }.sortedBy { chainLink -> chainLink.name.value })
+            state.copy(
+                chainLinksSearch = state.chainLinks.filter { chainLink ->
+                    chainLink.name.value.lowercase().contains(keyword.lowercase())
+                }.sortedBy { chainLink -> chainLink.name.value },
+                event = ChainLinkListEvent.Search
+            )
         }
     }
 
     fun cancelSearch(chainLinkSearched: ChainLink? = null) {
-        _dataStateFlow.update { state -> state.copy(
-            isSearch = false,
-            chainLinkSelected = chainLinkSearched,
-            chainLinksSearch = emptyList())
+        _dataStateFlow.update { state ->
+            state.copy(
+                isSearch = false,
+                chainLinkSelected = chainLinkSearched,
+                chainLinksSearch = emptyList(),
+                event = ChainLinkListEvent.CancelSearch
+            )
         }
     }
 

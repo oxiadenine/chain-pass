@@ -67,7 +67,8 @@ class ChainListViewModel(
                 state.copy(
                     isLoading = false,
                     chainSelected = chainDraft,
-                    chains = state.chains.plus(chainDraft).sortedBy { chain -> chain.name.value }
+                    chains = state.chains.plus(chainDraft).sortedBy { chain -> chain.name.value },
+                    event = ChainListEvent.ItemNew
                 )
             }
         }
@@ -77,7 +78,7 @@ class ChainListViewModel(
         _dataStateFlow.update { state -> state.copy(chainSelected = chain) }
     }
 
-    fun select(chainKey: Chain.Key) {
+    fun open(chainKey: Chain.Key) {
         viewModelScope.launch(Dispatchers.IO) {
             _dataStateFlow.update { state -> state.copy(isLoading = true) }
 
@@ -102,7 +103,7 @@ class ChainListViewModel(
                     salt = chainEntity.salt
                 }.validateKey(chain.key)
             } catch (e: Throwable) {
-                _dataStateFlow.update { state -> state.copy(error = e) }
+                _dataStateFlow.update { state -> state.copy(isLoading = false, error = e) }
 
                 return@launch
             }
@@ -110,7 +111,7 @@ class ChainListViewModel(
             chain.key = secretKey
 
             _dataStateFlow.update { state ->
-                state.copy(isLoading = false, event = ChainListEvent.ItemSelect(chain))
+                state.copy(isLoading = false, event = ChainListEvent.ItemOpen(chain))
             }
         }
     }
