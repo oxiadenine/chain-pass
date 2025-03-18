@@ -36,6 +36,7 @@ kotlin {
                 implementation(libs.ktor.network)
                 implementation(libs.exposed.core)
 
+                api(libs.bundles.compose.multiplatform)
                 api(libs.bundles.androidx.multiplatform)
             }
         }

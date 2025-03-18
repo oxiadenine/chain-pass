@@ -6,8 +6,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.graphics.painter.BitmapPainter
-import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -39,6 +40,7 @@ internal fun rememberBitmapResource(path: String) = remember(path) {
     BitmapPainter(readResourceBytes(path).decodeToImageBitmap())
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     val appDataDir = if (System.getenv("DEBUG")?.toBoolean() ?: false) {
         File("${System.getProperty("user.home")}/.chain-pass/local")
@@ -93,17 +95,6 @@ fun main() {
             },
             title = "Chain Pass",
             icon = rememberBitmapResource("icon.png"),
-            onKeyEvent = { keyEvent ->
-                if (keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Escape) {
-                    if (!navHostController.popBackStack()) {
-                        syncServer.stop()
-
-                        exitApplication()
-                    }
-
-                    true
-                } else false
-            }
         ) {
             window.minimumSize = Dimension(360, 480)
 
@@ -119,6 +110,14 @@ fun main() {
                 MaterialTheme(colorScheme = if (themeState.isDarkMode) {
                     Theme.DarkColors
                 } else Theme.LightColors) {
+                    BackHandler {
+                        if (!navHostController.popBackStack()) {
+                            syncServer.stop()
+
+                            exitApplication()
+                        }
+                    }
+
                     App(
                         chainRepository = chainRepository,
                         chainLinkRepository = chainLinkRepository,

@@ -10,7 +10,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -74,6 +76,7 @@ data class ChainLinkListState(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ChainLinkList(
     chainId: String,
@@ -176,6 +179,12 @@ fun ChainLinkList(
         }
 
         viewModel.clearError()
+    }
+
+    BackHandler {
+        if (dataState.isSearch) {
+            viewModel.cancelSearch()
+        } else onTopAppBarBackClick()
     }
 
     ScaffoldList(

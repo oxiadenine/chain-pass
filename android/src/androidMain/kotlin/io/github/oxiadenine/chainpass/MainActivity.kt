@@ -2,7 +2,6 @@ package io.github.oxiadenine.chainpass
 
 import android.os.Bundle
 import android.os.Environment
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -10,6 +9,8 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.backhandler.BackHandler
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.LayoutDirection
@@ -28,6 +29,7 @@ import java.io.File
 class MainActivity : AppCompatActivity() {
     private var syncServer: SyncServer? = null
 
+    @OptIn(ExperimentalComposeUiApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -79,17 +81,6 @@ class MainActivity : AppCompatActivity() {
             val themeState = rememberThemeState(ThemeMode.DARK)
             val navHostController = rememberNavController()
 
-            BackHandler(
-                enabled = true,
-                onBack = {
-                    if (!navHostController.popBackStack()) {
-                        syncServer?.stop()
-
-                        finish()
-                    }
-                }
-            )
-
             val configuration = LocalConfiguration.current
             val density = LocalDensity.current
 
@@ -111,6 +102,14 @@ class MainActivity : AppCompatActivity() {
                 MaterialTheme(colorScheme = if (themeState.isDarkMode) {
                     Theme.DarkColors
                 } else Theme.LightColors) {
+                    BackHandler {
+                        if (!navHostController.popBackStack()) {
+                            syncServer?.stop()
+
+                            finish()
+                        }
+                    }
+
                     App(
                         chainRepository = chainRepository,
                         chainLinkRepository = chainLinkRepository,

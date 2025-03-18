@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.1.10"
-compose = "1.7.3"
+compose = "1.8.0-alpha04"
 android = "8.7.3"
 kotlinx-coroutines = "1.10.1"
 kotlinx-serialization = "1.8.0"
@@ -10,8 +10,8 @@ h2database = "2.3.232"
 androidx-core = "1.15.0"
 androidx-appcompat = "1.7.0"
 androidx-activity = "1.10.1"
-androidx-navigation = "2.8.0-alpha10"
-androidx-lifecycle = "2.8.2"
+androidx-navigation = "2.9.0-alpha14"
+androidx-lifecycle = "2.9.0-alpha04"
 junit = "5.12.0"
 
 [libraries]
@@ -26,11 +26,13 @@ h2 = { module = "com.h2database:h2", version.ref = "h2database" }
 core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+ui-backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose" }
 navigation-compose = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "androidx-navigation" }
 lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
 
 [bundles]
+compose-multiplatform = ["ui-backhandler"]
 androidx-multiplatform = ["navigation-compose", "lifecycle-viewmodel-compose"]
 androidx-android = ["core-ktx", "appcompat", "activity-compose"]
 
