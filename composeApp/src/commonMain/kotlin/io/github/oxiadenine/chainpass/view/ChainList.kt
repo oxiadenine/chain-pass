@@ -69,6 +69,7 @@ sealed class ChainListEvent {
 }
 
 data class ChainListState(
+    val isFirstLoad: Boolean = false,
     val isLoading: Boolean = false,
     val chains: List<Chain> = emptyList(),
     val chainSelected: Chain? = null,
@@ -292,7 +293,7 @@ fun ChainList(
                 }
             }
         }) {
-            if (dataState.chains.isEmpty()) {
+            if (dataState.chains.isEmpty() && !dataState.isFirstLoad) {
                 Row(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalArrangement = Arrangement.spacedBy(space = 8.dp),

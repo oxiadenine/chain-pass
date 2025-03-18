@@ -26,7 +26,7 @@ class ChainLinkListViewModel(
 
     fun getAll(chainId: String, chainKey: Chain.Key) {
         viewModelScope.launch(Dispatchers.IO) {
-            _dataStateFlow.update { state -> state.copy(isLoading = true) }
+            _dataStateFlow.update { state -> state.copy(isFirstLoad = true) }
 
             val chain = chainRepository.getOne(chainId).getOrThrow().let { chainEntity ->
                 Chain().apply {
@@ -36,6 +36,8 @@ class ChainLinkListViewModel(
                     salt = chainEntity.salt
                 }
             }
+
+            _dataStateFlow.update { state -> state.copy(chain = chain) }
 
             val chainLinks = chainLinkRepository.getBy(chain.id).map { chainLinkEntity ->
                 ChainLink(chain).apply {
@@ -48,7 +50,7 @@ class ChainLinkListViewModel(
             }.sortedBy { chainLink -> chainLink.name.value }
 
             _dataStateFlow.update { state ->
-                state.copy(isLoading = false, chain = chain, chainLinks = chainLinks)
+                state.copy(isFirstLoad = false, chainLinks = chainLinks)
             }
         }
     }

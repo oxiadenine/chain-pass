@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -159,7 +160,24 @@ fun App(
 
     CompositionLocalProvider(LocalLocale provides Locale.getDefault()) {
         Surface(modifier = Modifier.safeContentPadding().fillMaxSize()) {
-            NavHost(navController = navHostController, startDestination = Route.ChainList) {
+            NavHost(
+                navController = navHostController,
+                startDestination = Route.ChainList,
+                enterTransition = {
+                    slideIn(
+                        animationSpec = tween(durationMillis = 250),
+                        initialOffset = { fullSize -> IntOffset(fullSize.width, 0) }
+                    ) + fadeIn(animationSpec = tween(durationMillis = 150))
+                },
+                exitTransition = { fadeOut(animationSpec = tween(durationMillis = 0)) },
+                popEnterTransition = { fadeIn(animationSpec = tween(durationMillis = 0)) },
+                popExitTransition = {
+                    slideOut(
+                        animationSpec = tween(durationMillis = 250),
+                        targetOffset = { fullSize -> IntOffset(fullSize.width, 0) }
+                    ) + fadeOut(animationSpec = tween(durationMillis = 150))
+                }
+            ) {
                 composable<Route.ChainList> {
                     val drawerState = rememberDrawerState(DrawerValue.Closed)
 

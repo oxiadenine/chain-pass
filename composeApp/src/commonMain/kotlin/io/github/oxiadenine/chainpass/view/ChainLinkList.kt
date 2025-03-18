@@ -63,6 +63,7 @@ sealed class ChainLinkListEvent {
 }
 
 data class ChainLinkListState(
+    val isFirstLoad: Boolean = false,
     val isLoading: Boolean = false,
     val isSearch: Boolean = false,
     val chain: Chain? = null,
@@ -342,7 +343,7 @@ fun ChainLinkList(
             } else {
                 val chainLinks = dataState.chainLinks.toTypedArray()
 
-                if (chainLinks.isEmpty()) {
+                if (chainLinks.isEmpty() && !dataState.isFirstLoad) {
                     Row(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
