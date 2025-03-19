@@ -107,10 +107,17 @@ enum class ThemeMode { DARK, LIGHT }
 
 class ThemeState(val mode: MutableState<ThemeMode>) {
     val isDarkMode by derivedStateOf { mode.value == ThemeMode.DARK }
+
+    companion object {
+        val Saver = listSaver(
+            save = { state -> listOf(state.mode.value.name) },
+            restore = { ThemeState(mutableStateOf(ThemeMode.valueOf(it[0]))) }
+        )
+    }
 }
 
 @Composable
-fun rememberThemeState(mode: ThemeMode = ThemeMode.LIGHT) = remember {
+fun rememberThemeState(mode: ThemeMode = ThemeMode.LIGHT) = rememberSaveable(saver = ThemeState.Saver) {
     ThemeState(mutableStateOf(mode))
 }
 
