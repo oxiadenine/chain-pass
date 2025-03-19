@@ -112,9 +112,9 @@ private fun AnimatedPopup(
 
                 val opacity = animatedOpacity(
                     animation = tween(
-                        easing = LinearEasing,
+                        durationMillis = duration,
                         delayMillis = animationDelay,
-                        durationMillis = duration
+                        easing = LinearEasing
                     ),
                     visible = isVisible,
                     onAnimationFinish = {
@@ -126,9 +126,9 @@ private fun AnimatedPopup(
                 )
                 val scale = animatedScale(
                     animation = tween(
-                        easing = FastOutSlowInEasing,
+                        durationMillis = duration,
                         delayMillis = animationDelay,
-                        durationMillis = duration
+                        easing = FastOutSlowInEasing
                     ),
                     visible = isVisible
                 )
@@ -138,8 +138,7 @@ private fun AnimatedPopup(
                         scaleX = scale.value,
                         scaleY = scale.value,
                         alpha = opacity.value
-                    )
-                    .semantics {
+                    ).semantics {
                         liveRegion = LiveRegionMode.Polite
                         dismiss { popupItemKey.dismiss(); true }
                     }
@@ -151,16 +150,15 @@ private fun AnimatedPopup(
     popupState.scope = currentRecomposeScope
     popupState.items.forEach { (item, opacity) ->
         key(item) {
-            Popup(
-                alignment = alignment,
-                offset = with(LocalDensity.current) {
-                    IntOffset(x = offset.x.roundToPx(), y = offset.y.roundToPx())
-                },
-            ) {
+            Popup(alignment = alignment, offset = with(LocalDensity.current) {
+                IntOffset(x = offset.x.roundToPx(), y = offset.y.roundToPx())
+            }) {
                 opacity {
                     Surface(
                         modifier = Modifier.padding(all = 16.dp),
-                        shape = if (platform == Platform.DESKTOP) RectangleShape else MaterialTheme.shapes.extraSmall,
+                        shape = if (platform == Platform.DESKTOP) {
+                            RectangleShape
+                        } else MaterialTheme.shapes.extraSmall,
                         tonalElevation = 4.dp
                     ) { content(item!!) }
                 }
@@ -178,10 +176,7 @@ private fun animatedOpacity(
     val alpha = remember { Animatable(if (!visible) 1f else 0f) }
 
     LaunchedEffect(visible) {
-        alpha.animateTo(
-            if (visible) 1f else 0f,
-            animationSpec = animation
-        )
+        alpha.animateTo(if (visible) 1f else 0f, animationSpec = animation)
         onAnimationFinish()
     }
 
@@ -193,10 +188,7 @@ private fun animatedScale(animation: AnimationSpec<Float>, visible: Boolean): St
     val scale = remember { Animatable(if (!visible) 1f else 0.8f) }
 
     LaunchedEffect(visible) {
-        scale.animateTo(
-            if (visible) 1f else 0.8f,
-            animationSpec = animation
-        )
+        scale.animateTo(if (visible) 1f else 0.8f, animationSpec = animation)
     }
 
     return scale.asState()

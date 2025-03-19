@@ -63,10 +63,7 @@ data class SettingsState(
             },
             restore = {
                 mutableStateOf(SettingsState(
-                    it[0] as String,
-                    it[1] as Int,
-                    it[2] as Boolean,
-                    it[3] as String
+                    it[0] as String, it[1] as Int, it[2] as Boolean, it[3] as String
                 ))
             }
         )
@@ -246,12 +243,9 @@ fun App(
                                                 platform.name.lowercase().replaceFirstChar { it.uppercase() }
                                             } else osName
                                         } ?: platform.name.lowercase().replaceFirstChar { it.uppercase() })
-                                        Text(
-                                            text = hostAddress.ifEmpty {
-                                                stringResource(Res.string.drawer_network_text)
-                                            },
-                                            fontSize = 14.sp
-                                        )
+                                        Text(text = hostAddress.ifEmpty {
+                                            stringResource(Res.string.drawer_network_text)
+                                        }, fontSize = 14.sp)
                                     }
                                 }
                                 NavigationDrawerItem(
@@ -288,8 +282,7 @@ fun App(
                             },
                             deviceAddress = settingsState.deviceAddress,
                             passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
-                                settingsState.passwordLength,
-                                settingsState.passwordIsAlphanumeric
+                                settingsState.passwordLength, settingsState.passwordIsAlphanumeric
                             ))
                         )
                     }
@@ -304,8 +297,7 @@ fun App(
                         onTopAppBarBackClick = { navHostController.navigateUp() },
                         deviceAddress = settingsState.deviceAddress,
                         passwordGenerator = PasswordGenerator(PasswordGenerator.Strength(
-                            settingsState.passwordLength,
-                            settingsState.passwordIsAlphanumeric
+                            settingsState.passwordLength, settingsState.passwordIsAlphanumeric
                         ))
                     )
                 }

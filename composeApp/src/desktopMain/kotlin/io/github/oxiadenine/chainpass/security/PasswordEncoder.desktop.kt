@@ -13,15 +13,11 @@ actual object PasswordEncoder {
     }
 
     actual object Salt {
-        actual fun generate() = Base64.encode(
-            Random.nextBytes(EncoderSpec.Strength.SALT_LENGTH / 8)
-        )
+        actual fun generate() = Base64.encode(Random.nextBytes(EncoderSpec.Strength.SALT_LENGTH / 8))
     }
 
     actual object IV {
-        actual fun generate() = Base64.encode(
-            Random.nextBytes(EncoderSpec.Strength.IV_LENGTH / 8)
-        )
+        actual fun generate() = Base64.encode(Random.nextBytes(EncoderSpec.Strength.IV_LENGTH / 8))
     }
 
     actual fun hash(password: String, salt: String): String {

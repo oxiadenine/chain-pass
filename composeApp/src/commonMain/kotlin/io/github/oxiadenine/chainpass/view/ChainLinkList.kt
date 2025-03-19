@@ -225,7 +225,9 @@ fun ChainLinkList(
                                 }
                             }
                         },
-                        shape = if (platform == Platform.DESKTOP) RectangleShape else SnackbarDefaults.shape,
+                        shape = if (platform == Platform.DESKTOP) {
+                            RectangleShape
+                        } else SnackbarDefaults.shape,
                         containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(elevation = 4.dp),
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ) { Text(text = snackbarData.visuals.message, fontSize = 14.sp) }
@@ -398,10 +400,9 @@ fun ChainLinkList(
                     Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp, bottom = 8.dp)) {
                         DropdownMenuItem(
                             text = {
-                                Text(
-                                    text = stringResource(Res.string.list_chainLink_menu_item_copy_text),
-                                    fontSize = 14.sp
-                                )
+                                Text(text = stringResource(
+                                    Res.string.list_chainLink_menu_item_copy_text
+                                ), fontSize = 14.sp)
                             },
                             onClick = {
                                 viewModel.copyPassword()
@@ -416,10 +417,9 @@ fun ChainLinkList(
                         )
                         DropdownMenuItem(
                             text = {
-                                Text(
-                                    text = stringResource(Res.string.list_chainLink_menu_item_edit_text),
-                                    fontSize = 14.sp
-                                )
+                                Text(text = stringResource(
+                                    Res.string.list_chainLink_menu_item_edit_text
+                                ), fontSize = 14.sp)
                             },
                             onClick = {
                                 itemMenuState = itemMenuState.copy(expanded = false)
@@ -438,10 +438,9 @@ fun ChainLinkList(
                         )
                         DropdownMenuItem(
                             text = {
-                                Text(
-                                    text = stringResource(Res.string.list_chainLink_menu_item_delete_text),
-                                    fontSize = 14.sp
-                                )
+                                Text(text = stringResource(
+                                    Res.string.list_chainLink_menu_item_delete_text
+                                ), fontSize = 14.sp)
                             },
                             onClick = {
                                 itemMenuState = itemMenuState.copy(expanded = false)

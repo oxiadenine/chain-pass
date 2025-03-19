@@ -54,8 +54,7 @@ fun ChainLinkSearchListTopAppBar(onBackClick: () -> Unit, onKeywordChange: (Stri
 
                             true
                         } else false
-                    }
-                    .focusRequester(focusRequester = focusRequester),
+                    }.focusRequester(focusRequester = focusRequester),
                 textStyle = TextStyle(fontSize = 18.sp),
                 placeholder = {
                     Text(text = stringResource(Res.string.topAppBar_chainLink_textField_search_placeholder))

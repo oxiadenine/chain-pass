@@ -104,11 +104,10 @@ fun ChainLinkListItemNewDialog(
             password = ChainLink.Password(state.password.value)
         )
 
-        if (state.name.validation.isSuccess
-            && state.description.validation.isSuccess
-            && state.password.validation.isSuccess) {
-            onConfirm(state.name, state.description, state.password)
-        }
+        if (state.name.validation.isSuccess &&
+            state.description.validation.isSuccess &&
+            state.password.validation.isSuccess
+        ) { onConfirm(state.name, state.description, state.password) }
     }
 
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onInputDialogConfirmRequest) {

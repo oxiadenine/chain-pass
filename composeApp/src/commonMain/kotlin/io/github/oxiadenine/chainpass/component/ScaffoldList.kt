@@ -95,12 +95,10 @@ fun ScaffoldList(
                     start = 16.dp,
                     end = 16.dp,
                     top = 16.dp,
-                    bottom = if (scaffoldListState.snackbarOverlapping  &&
-                        scaffoldListState.snackbarSize.height > 0.dp) {
-                        scaffoldListState.snackbarSize.height
-                    } else 16.dp
-                )
-                .onSizeChanged { size ->
+                    bottom = if (scaffoldListState.snackbarOverlapping &&
+                        scaffoldListState.snackbarSize.height > 0.dp
+                    ) { scaffoldListState.snackbarSize.height } else 16.dp
+                ).onSizeChanged { size ->
                     scaffoldListState.floatingActionButtonSize = with(density) {
                         DpSize(size.width.toDp(), size.height.toDp())
                     }
@@ -136,11 +134,14 @@ fun ScaffoldList(
                 }
             }
 
-            Column(modifier = Modifier.align(alignment = scaffoldListState.snackbarPosition).onSizeChanged { size ->
-                scaffoldListState.snackbarSize = with(density) {
-                    DpSize(size.width.toDp(), size.height.toDp())
+            Column(modifier = Modifier
+                .align(alignment = scaffoldListState.snackbarPosition)
+                .onSizeChanged { size ->
+                    scaffoldListState.snackbarSize = with(density) {
+                        DpSize(size.width.toDp(), size.height.toDp())
+                    }
                 }
-            }) { snackbarHost(scaffoldListState.snackbarHostState) }
+            ) { snackbarHost(scaffoldListState.snackbarHostState) }
         }
     }
 }

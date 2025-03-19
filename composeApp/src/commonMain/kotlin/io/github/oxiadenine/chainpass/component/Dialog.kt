@@ -31,9 +31,7 @@ fun Dialog(
 
         val isLandscape by derivedStateOf { screen.width > screen.height }
 
-        val maxWidth by derivedStateOf {
-            if (isLandscape) 360.dp else (screen.width.value * 0.75).dp
-        }
+        val maxWidth by derivedStateOf { if (isLandscape) 360.dp else (screen.width.value * 0.75).dp }
         val maxHeight by derivedStateOf { (screen.height.value * 0.75).dp }
 
         Column(

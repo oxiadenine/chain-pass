@@ -68,15 +68,13 @@ class Chain() {
     var key = Key()
     var salt = ""
 
-    fun secretKey() = Key(
-        PasswordEncoder.hash(
-        PasswordEncoder.Base64.encode(key.value.encodeToByteArray()), salt)
-    )
+    fun secretKey() = Key(PasswordEncoder.hash(
+        PasswordEncoder.Base64.encode(key.value.encodeToByteArray()), salt
+    ))
 
-    fun privateKey(secretKey: Key) = Key(
-        PasswordEncoder.hash(
-        PasswordEncoder.Base64.encode(key.value.encodeToByteArray()), secretKey.value)
-    )
+    fun privateKey(secretKey: Key) = Key(PasswordEncoder.hash(
+        PasswordEncoder.Base64.encode(key.value.encodeToByteArray()), secretKey.value
+    ))
 
     fun validateKey(key: Key) = if (key.value != this.key.value) {
         throw KeyInvalidError

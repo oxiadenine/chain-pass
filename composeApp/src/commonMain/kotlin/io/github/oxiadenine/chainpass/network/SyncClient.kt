@@ -16,7 +16,7 @@ class SyncClient(private val hostAddress: String) {
         selectorManager = SelectorManager(Dispatchers.IO)
         socket = try {
             aSocket(selectorManager!!).tcp().connect(hostAddress, TcpSocket.PORT)
-        } catch (e: Throwable) {
+        } catch (_: Throwable) {
             throw SyncNetworkError
         }
 
@@ -28,5 +28,5 @@ class SyncClient(private val hostAddress: String) {
     fun disconnect() = try {
         socket?.close()
         selectorManager?.close()
-    } catch (_: Exception) {}
+    } catch (_: Throwable) {}
 }

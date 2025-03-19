@@ -288,14 +288,12 @@ fun SettingsDialog(
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 14.sp,
                 )
-                Text(
-                    text = buildAnnotatedString {
-                        append(stringResource(Res.string.dialog_settings_item_storage_text))
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                            append(storeDirPath)
-                        }
+                Text(text = buildAnnotatedString {
+                    append(stringResource(Res.string.dialog_settings_item_storage_text))
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                        append(storeDirPath)
                     }
-                )
+                })
             }
             Column(verticalArrangement = Arrangement.spacedBy(space = 16.dp)) {
                 Text(

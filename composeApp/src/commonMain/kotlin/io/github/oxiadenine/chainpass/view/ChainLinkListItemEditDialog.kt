@@ -68,9 +68,7 @@ data class ChainLinkListItemEditDialogState(
 @Composable
 fun rememberChainLinkListItemEditDialogState(chainLink: ChainLink) = rememberSaveable(
     saver = ChainLinkListItemEditDialogState.Saver
-) {
-    mutableStateOf(ChainLinkListItemEditDialogState(chainLink.description, chainLink.password))
-}
+) { mutableStateOf(ChainLinkListItemEditDialogState(chainLink.description, chainLink.password)) }
 
 @Composable
 fun ChainLinkListItemEditDialog(

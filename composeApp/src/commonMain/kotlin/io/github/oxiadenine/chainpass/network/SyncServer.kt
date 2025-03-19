@@ -89,5 +89,5 @@ class SyncServer(
     fun stop() = try {
         serverSocket?.close()
         selectorManager?.close()
-    } catch (_: Exception) {}
+    } catch (_: Throwable) {}
 }

@@ -38,7 +38,9 @@ internal fun rememberBitmapResource(path: String) = remember(path) {
 }
 
 fun main() {
-    val appDataDir = if (System.getenv("DEBUG")?.toBoolean() ?: false) {
+    val isDebug = System.getenv("DEBUG")?.toBoolean() ?: false
+
+    val appDataDir = if (isDebug) {
         File("${System.getProperty("user.home")}/.chain-pass/local")
     } else File("${System.getProperty("user.home")}/.chain-pass")
 
@@ -69,8 +71,8 @@ fun main() {
                 if (hostAddress.isNotEmpty()) {
                     syncServer.start(hostAddress)
                 }
-            } catch (e: Exception) {
-                println(e)
+            } catch (e: Throwable) {
+                if (isDebug) println(e)
             }
         }
     }
@@ -116,14 +118,7 @@ fun main() {
                         }
                     }
 
-                    App(
-                        chainRepository = chainRepository,
-                        chainLinkRepository = chainLinkRepository,
-                        settings = settings,
-                        networkState = networkState,
-                        themeState = themeState,
-                        navHostController = navHostController
-                    )
+                    App(chainRepository, chainLinkRepository, settings, networkState, themeState, navHostController)
                 }
             }
         }

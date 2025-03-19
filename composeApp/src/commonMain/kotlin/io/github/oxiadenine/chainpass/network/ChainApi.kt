@@ -54,13 +54,10 @@ class ChainApi(
 
             chainLinkEntities.forEach { chainLinkEntity ->
                 chainLinkRepository.getOne(chainLinkEntity.id).onSuccess { chainLinkEntityFound ->
-                    if (chainLinkEntity.password != chainLinkEntityFound.password
-                        || chainLinkEntity.description != chainLinkEntityFound.description) {
-                        chainLinkRepository.update(chainLinkEntity)
-                    }
-                }.onFailure {
-                    chainLinkRepository.create(chainLinkEntity)
-                }
+                    if (chainLinkEntity.password != chainLinkEntityFound.password ||
+                        chainLinkEntity.description != chainLinkEntityFound.description
+                    ) { chainLinkRepository.update(chainLinkEntity) }
+                }.onFailure { chainLinkRepository.create(chainLinkEntity) }
             }
         }
     }

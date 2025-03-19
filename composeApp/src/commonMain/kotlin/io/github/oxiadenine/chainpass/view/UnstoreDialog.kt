@@ -93,10 +93,9 @@ fun UnstoreDialog(onConfirm: (FileSelected) -> Unit, onCancel: () -> Unit) {
         onDismissRequest = onCancel,
         onConfirmRequest = onInputDialogConfirmRequest,
         title = {
-            Text(
-                text = stringResource(Res.string.dialog_unstore_title),
-                modifier = Modifier.padding(all = 16.dp)
-            )
+            Text(text = stringResource(
+                Res.string.dialog_unstore_title
+            ), modifier = Modifier.padding(all = 16.dp))
         }
     ) {
         Column(

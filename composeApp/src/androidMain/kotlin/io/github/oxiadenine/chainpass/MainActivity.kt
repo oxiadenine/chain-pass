@@ -66,8 +66,8 @@ class MainActivity : AppCompatActivity() {
                     if (hostAddress.isNotEmpty()) {
                         syncServer?.start(hostAddress)
                     }
-                } catch (e: Exception) {
-                    println(e)
+                } catch (e: Throwable) {
+                    if (BuildConfig.DEBUG) println(e)
                 }
             }
         }
@@ -108,14 +108,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
-                    App(
-                        chainRepository = chainRepository,
-                        chainLinkRepository = chainLinkRepository,
-                        settings = settings,
-                        networkState = networkState,
-                        themeState = themeState,
-                        navHostController = navHostController
-                    )
+                    App(chainRepository, chainLinkRepository, settings, networkState, themeState, navHostController)
                 }
             }
         }

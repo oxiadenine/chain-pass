@@ -27,7 +27,7 @@ class ChainLink(val chain: Chain) {
                 Result.failure(LengthError)
             } else if (!value.matches("^(\\w+\\.?)*\\w+\$".toRegex())) {
                 Result.failure(InvalidError)
-            }else Result.success(value)
+            } else Result.success(value)
         } ?: Result.success(this.value)
     }
 
@@ -81,13 +81,11 @@ class ChainLink(val chain: Chain) {
     var password = Password()
     var iv = ""
 
-    fun privatePassword(secretKey: Chain.Key) = Password(
-        PasswordEncoder.encrypt(
-        PasswordEncoder.Base64.encode(password.value.encodeToByteArray()), secretKey.value, iv)
-    )
+    fun privatePassword(secretKey: Chain.Key) = Password(PasswordEncoder.encrypt(
+        PasswordEncoder.Base64.encode(password.value.encodeToByteArray()), secretKey.value, iv
+    ))
 
-    fun plainPassword(secretKey: Chain.Key) = Password(
-        PasswordEncoder.Base64.decode(
+    fun plainPassword(secretKey: Chain.Key) = Password(PasswordEncoder.Base64.decode(
         PasswordEncoder.decrypt(password.value, secretKey.value, iv)
     ).decodeToString())
 }

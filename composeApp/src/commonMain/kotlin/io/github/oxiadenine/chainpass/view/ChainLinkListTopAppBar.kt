@@ -59,10 +59,9 @@ fun ChainLinkListTopAppBar(
                 ) {
                     DropdownMenuItem(
                         text = {
-                            Text(
-                                text = stringResource(Res.string.topAppBar_chainLink_menu_item_sync_text),
-                                fontSize = 14.sp
-                            )
+                            Text(text = stringResource(
+                                Res.string.topAppBar_chainLink_menu_item_sync_text
+                            ), fontSize = 14.sp)
                         },
                         onClick = {
                             dropdownMenuExpanded = false
@@ -75,10 +74,9 @@ fun ChainLinkListTopAppBar(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text(
-                                text = stringResource(Res.string.topAppBar_chainLink_menu_item_store_text),
-                                fontSize = 14.sp
-                            )
+                            Text(text = stringResource(
+                                Res.string.topAppBar_chainLink_menu_item_store_text
+                            ), fontSize = 14.sp)
                         },
                         onClick = {
                             dropdownMenuExpanded = false
@@ -91,10 +89,9 @@ fun ChainLinkListTopAppBar(
                     )
                     DropdownMenuItem(
                         text = {
-                            Text(
-                                text = stringResource(Res.string.topAppBar_chainLink_menu_item_unstore_text),
-                                fontSize = 14.sp
-                            )
+                            Text(text = stringResource(
+                                Res.string.topAppBar_chainLink_menu_item_unstore_text
+                            ), fontSize = 14.sp)
                         },
                         onClick = {
                             dropdownMenuExpanded = false

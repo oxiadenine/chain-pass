@@ -223,7 +223,9 @@ fun ChainList(
                                 }
                             }
                         },
-                        shape = if (platform == Platform.DESKTOP) RectangleShape else SnackbarDefaults.shape,
+                        shape = if (platform == Platform.DESKTOP) {
+                            RectangleShape
+                        } else SnackbarDefaults.shape,
                         containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(elevation = 4.dp),
                         contentColor = MaterialTheme.colorScheme.onSurface
                     ) { Text(text = snackbarData.visuals.message, fontSize = 14.sp) }
@@ -343,10 +345,9 @@ fun ChainList(
                     Column(modifier = Modifier.fillMaxSize().padding(top = 8.dp, bottom = 8.dp)) {
                         DropdownMenuItem(
                             text = {
-                                Text(
-                                    text = stringResource(Res.string.list_chain_menu_item_open_text),
-                                    fontSize = 14.sp
-                                )
+                                Text(text = stringResource(
+                                    Res.string.list_chain_menu_item_open_text
+                                ), fontSize = 14.sp)
                             },
                             onClick = {
                                 itemMenuState = itemMenuState.copy(
@@ -370,9 +371,9 @@ fun ChainList(
                         )
                         DropdownMenuItem(
                             text = {
-                                Text(
-                                    text = stringResource(Res.string.list_chain_menu_item_delete_text),
-                                    fontSize = 14.sp)
+                                Text(text = stringResource(
+                                    Res.string.list_chain_menu_item_delete_text
+                                ), fontSize = 14.sp)
                             },
                             onClick = {
                                 itemMenuState = itemMenuState.copy(

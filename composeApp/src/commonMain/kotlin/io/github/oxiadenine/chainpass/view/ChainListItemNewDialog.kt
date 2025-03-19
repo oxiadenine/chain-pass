@@ -95,13 +95,16 @@ fun ChainListItemNewDialog(
 
     InputDialog(onDismissRequest = onCancel, onConfirmRequest = onInputDialogConfirmRequest) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(all = 16.dp).onKeyEvent { keyEvent: KeyEvent ->
-                if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
-                    onInputDialogConfirmRequest()
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(all = 16.dp)
+                .onKeyEvent { keyEvent: KeyEvent ->
+                    if (keyEvent.type == KeyEventType.KeyUp && keyEvent.key == Key.Enter) {
+                        onInputDialogConfirmRequest()
 
-                    true
-                } else false
-            }.focusGroup(),
+                        true
+                    } else false
+                }.focusGroup(),
             verticalArrangement = Arrangement.spacedBy(space = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
